@@ -1,6 +1,6 @@
 const Booking = require('../models/Booking');
 const Event = require('../models/Event');
-const { sendBookingEmail } = require('../utils/bookingEmail');
+const { sendUserBookingEmail, sendAdminNotificationEmail } = require('../utils/sendEmail');
 
 exports.createBooking = async (req, res) => {
   try {
@@ -68,7 +68,7 @@ exports.getBookings = async (req, res) => {
   }
 };
 
-exports.updateBooking = async (req, res) => {
+exports.updateBookingStatus = async (req, res) => {
   try {
     const { status } = req.body;
 
@@ -90,17 +90,19 @@ exports.updateBooking = async (req, res) => {
     }
 
     // 3. Email Notification Logic
-    // Only send if status changed to Confirmed (approved) or Cancelled (rejected)
-    console.log(`Debug: Status Update - Original: ${originalBooking.status}, New: ${status}`);
+    // Only send if status changed
     if (status && status !== originalBooking.status) {
       if (status === 'Confirmed' || status === 'Cancelled') {
-        console.log(`Debug: Triggering email for status ${status} to ${booking.customerId?.email}`);
-        await sendBookingEmail(booking, status);
-      } else {
-        console.log(`Debug: Status ${status} is not Confirmed/Cancelled, skipping email.`);
+        // Trigger emails in background (do not block response)
+        (async () => {
+          try {
+            await sendUserBookingEmail(booking, status);
+            await sendAdminNotificationEmail(booking);
+          } catch (emailErr) {
+            console.error("Email Notification Background Error:", emailErr);
+          }
+        })();
       }
-    } else {
-      console.log(`Debug: Status not changed or missing, skipping email.`);
     }
 
     res.status(200).json(booking);
