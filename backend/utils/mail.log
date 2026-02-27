@@ -42,3 +42,9 @@
 2026-02-27T07:22:16.234Z - ✅ Success: Email sent to mansenghani6@gmail.com. MessageID: <0e71aa49-b910-0610-958c-3f5b55c64cd5@gmail.com>
 2026-02-27T07:22:16.304Z - Attempting to send email to admin@kukirestaurant.com - Subject: Booking Update: dev - rejected
 2026-02-27T07:22:18.467Z - ✅ Success: Email sent to admin@kukirestaurant.com. MessageID: <10c3e780-e857-5ae5-0806-2d1a02e3b230@gmail.com>
+2026-02-27T15:38:53.600Z - Attempting to send email to harrowgame09@gmail.com - Subject: Your Reservation is Confirmed – KUKI Restaurant
+2026-02-27T15:38:57.287Z - ✅ Success: Email sent to harrowgame09@gmail.com. MessageID: <136377c0-f28c-d6aa-1327-7bb39ccbf3a6@gmail.com>
+2026-02-27T15:38:57.314Z - Attempting to send email to admin@kukirestaurant.com - Subject: Booking Update: Game - approved
+2026-02-27T15:39:00.408Z - ✅ Success: Email sent to admin@kukirestaurant.com. MessageID: <f1f27889-7d7c-d52f-bac2-b9df5fae50f8@gmail.com>
+2026-02-27T16:04:52.432Z - Attempting to send email to harrowgame09@gmail.com - Subject: Event Confirmed – KUKI Restaurant
+2026-02-27T16:04:55.939Z - ✅ Success: Email sent to harrowgame09@gmail.com. MessageID: <23d8ee96-236b-4a61-1a99-0a8a7b640815@gmail.com>

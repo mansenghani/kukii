@@ -122,3 +122,13 @@ exports.updatePreorderStatus = async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 };
+
+exports.deleteBooking = async (req, res) => {
+  try {
+    const booking = await Booking.findByIdAndDelete(req.params.id);
+    if (!booking) return res.status(404).json({ message: 'Booking not found' });
+    res.status(200).json({ message: 'Booking deleted successfully' });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
