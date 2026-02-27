@@ -25,8 +25,8 @@ const bookingSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['Pending', 'Confirmed', 'Cancelled', 'Completed'],
-    default: 'Pending',
+    enum: ['pending', 'approved', 'rejected'],
+    default: 'pending',
   },
   totalAmount: {
     type: Number,
@@ -35,6 +35,11 @@ const bookingSchema = new mongoose.Schema({
   preOrderId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'PreOrder',
+  },
+  preorderStatus: {
+    type: String,
+    enum: ['pending', 'completed', 'skipped'],
+    default: 'pending'
   },
 
   createdAt: {

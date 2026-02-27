@@ -62,6 +62,7 @@ exports.createPreOrder = async (req, res) => {
 
     // Attach to booking
     booking.preOrderId = savedPreOrder._id;
+    booking.preorderStatus = 'completed';
     await booking.save();
 
     res.status(201).json(savedPreOrder);

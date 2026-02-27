@@ -27,12 +27,12 @@ exports.createBooking = async (req, res) => {
       }
     }
 
-    // Validation: Check if another booking exists with same tableId, same date, same time, status is NOT Cancelled
+    // Validation: Check if another booking exists with same tableId, same date, same time, status is NOT rejected
     const existingBooking = await Booking.findOne({
       tableId,
       date: new Date(date),
       time,
-      status: { $ne: 'Cancelled' }
+      status: 'approved' // Only approved bookings block a table
     });
 
     if (existingBooking) {
@@ -45,7 +45,7 @@ exports.createBooking = async (req, res) => {
       date: new Date(date),
       time,
       guests,
-      status: 'Pending'
+      status: 'pending'
     });
 
     await booking.save();
@@ -72,32 +72,22 @@ exports.updateBookingStatus = async (req, res) => {
   try {
     const { status } = req.body;
 
-    // 1. Update the booking
     const originalBooking = await Booking.findById(req.params.id);
     if (!originalBooking) return res.status(404).json({ message: 'Booking not found' });
 
-    const booking = await Booking.findByIdAndUpdate(req.params.id, req.body, { new: true })
+    // Update the booking
+    const updatedBooking = await Booking.findByIdAndUpdate(req.params.id, req.body, { new: true })
       .populate('customerId')
       .populate('tableId')
       .populate('preOrderId');
 
-    // 2. Handle Pre-Order Cleanup if Cancelled
-    if (status === 'Cancelled' && booking.preOrderId) {
-      const PreOrder = require('../models/PreOrder');
-      await PreOrder.findByIdAndDelete(booking.preOrderId);
-      booking.preOrderId = undefined;
-      await booking.save();
-    }
-
-    // 3. Email Notification Logic
-    // Only send if status changed
+    // Email Notification Logic - ONLY if status changed and is approved/rejected
     if (status && status !== originalBooking.status) {
-      if (status === 'Confirmed' || status === 'Cancelled') {
-        // Trigger emails in background (do not block response)
+      if (status === 'approved' || status === 'rejected') {
         (async () => {
           try {
-            await sendUserBookingEmail(booking, status);
-            await sendAdminNotificationEmail(booking);
+            await sendUserBookingEmail(updatedBooking, status);
+            await sendAdminNotificationEmail(updatedBooking);
           } catch (emailErr) {
             console.error("Email Notification Background Error:", emailErr);
           }
@@ -105,11 +95,30 @@ exports.updateBookingStatus = async (req, res) => {
       }
     }
 
-    res.status(200).json(booking);
-
+    res.status(200).json(updatedBooking);
   } catch (error) {
     console.error("Update Booking Error:", error);
     res.status(400).json({ message: error.message });
   }
 };
+exports.updatePreorderStatus = async (req, res) => {
+  try {
+    const { status } = req.body;
+    const booking = await Booking.findByIdAndUpdate(
+      req.params.id,
+      { preorderStatus: status },
+      { new: true }
+    ).populate('customerId').populate('tableId');
 
+    if (!booking) return res.status(404).json({ message: 'Booking not found' });
+
+    // If skipped, we simply return success. No auto-email as per requirements.
+    if (status === 'skipped') {
+      console.log(`Preorder skipped for booking: ${req.params.id}`);
+    }
+
+    res.status(200).json(booking);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};

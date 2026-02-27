@@ -284,7 +284,7 @@ const AdminDashboard = () => {
     try {
       setSubmitting(true);
       await axios.put(`${API_BASE_URL}/bookings/${id}`, { status });
-      setMessage({ text: `Booking ${status} Successfully!`, type: 'success' });
+      setMessage({ text: `Email sent and booking ${status} successfully!`, type: 'success' });
       setSelectedBooking(null);
       fetchAll();
     } catch (err) {
@@ -304,7 +304,7 @@ const AdminDashboard = () => {
   };
 
   const totalDishes = data.menu.length;
-  const pendingReservations = data.bookings.filter(b => b.status === "Pending").length;
+  const pendingReservations = data.bookings.filter(b => b.status === "pending").length;
 
   if (!isAuthorized) {
     return (
@@ -707,21 +707,21 @@ const AdminDashboard = () => {
             </div>
 
             <div className="px-10 py-6 bg-background-ivory/30 flex justify-end gap-3 border-t border-primary/10">
-              {selectedBooking.status === 'Pending' && (
+              {selectedBooking.status === 'pending' && (
                 <>
                   <button
                     disabled={submitting}
-                    onClick={() => handleBookingStatusUpdate(selectedBooking._id, 'Cancelled')}
+                    onClick={() => handleBookingStatusUpdate(selectedBooking._id, 'rejected')}
                     className="px-6 py-3 border border-rose-100 text-rose-500 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-rose-50 transition-all flex items-center gap-2"
                   >
-                    <XCircle size={14} /> Cancel Booking
+                    <XCircle size={14} /> Reject Booking
                   </button>
                   <button
                     disabled={submitting}
-                    onClick={() => handleBookingStatusUpdate(selectedBooking._id, 'Confirmed')}
+                    onClick={() => handleBookingStatusUpdate(selectedBooking._id, 'approved')}
                     className="px-6 py-3 bg-primary text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-primary-hover transition-all flex items-center gap-2 shadow-lg shadow-primary/20"
                   >
-                    <CheckCircle2 size={14} /> Confirm Booking
+                    <CheckCircle2 size={14} /> Approve Booking
                   </button>
                 </>
               )}
@@ -763,9 +763,9 @@ const ModuleCard = ({ title, desc, icon, onClick }) => (
 
 const getStatusColorClass = (status) => {
   switch (status) {
-    case 'Pending': return 'text-orange-600 border-orange-200 bg-orange-50';
-    case 'Confirmed': return 'text-green-600 border-green-200 bg-green-50';
-    case 'Cancelled': return 'text-rose-600 border-rose-200 bg-rose-50';
+    case 'pending': return 'text-orange-600 border-orange-200 bg-orange-50';
+    case 'approved': return 'text-green-600 border-green-200 bg-green-50';
+    case 'rejected': return 'text-rose-600 border-rose-200 bg-rose-50';
     default: return 'text-primary border-primary/10 bg-primary/5';
   }
 };

@@ -55,7 +55,7 @@ const sendUserBookingEmail = async (booking, status) => {
         return;
     }
 
-    const isApproved = status === 'Confirmed' || status === 'approved';
+    const isApproved = status === 'approved';
     const subject = isApproved ? 'Your Reservation is Confirmed – KUKI Restaurant' : 'Reservation Update – KUKI Restaurant';
 
     const dateStr = new Date(booking.date).toDateString();

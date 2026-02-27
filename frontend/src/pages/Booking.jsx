@@ -41,6 +41,41 @@ const Booking = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const handleSkipPreOrder = async () => {
+    try {
+      if (!bookingResult || !bookingResult._id) {
+        setErrorMessage("Critical Error: Booking reference lost. Please try again.");
+        return;
+      }
+
+      console.log("Skipping preorder for booking:", bookingResult._id);
+
+      await axios.put(`/api/bookings/${bookingResult._id}/preorder-status`, { status: "skipped" });
+
+      // Clear form and state
+      setFormData({
+        name: '',
+        email: '',
+        phone: '',
+        date: '',
+        time: '18:00',
+        guests: '2 People',
+        requests: '',
+        tableId: tables.length > 0 ? tables[0]._id : ''
+      });
+      setBookingResult(null);
+      setStatus("idle");
+
+      // Show success message as a notification
+      setErrorMessage("SUCCESS: Reservation request finalized. We will notify you once approved!");
+      setTimeout(() => setErrorMessage(""), 8000);
+    } catch (error) {
+      console.error("Error skipping preorder:", error);
+      const msg = error.response?.data?.message || "Failed to finalize booking preferences.";
+      setErrorMessage(`Error: ${msg}`);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setStatus('loading');
@@ -102,10 +137,10 @@ const Booking = () => {
                   <span className="material-symbols-outlined text-3xl text-primary">check</span>
                 </div>
                 <h2 className="serif-heading text-4xl mb-2 text-charcoal">Thank you!</h2>
-                <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-primary mb-10">RESERVATION CONFIRMED</p>
+                <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-primary mb-10">RESERVATION REQUEST RECEIVED</p>
                 <div className="max-w-md mx-auto space-y-4 mb-12">
-                  <p className="text-soft-grey text-lg leading-relaxed">Your table has been successfully reserved. We are preparing for your arrival.</p>
-                  <p className="text-soft-grey text-sm italic font-light">A confirmation email has been sent to {formData.email} with all the details.</p>
+                  <p className="text-soft-grey text-lg leading-relaxed">Thank you for booking with KUKI. Your reservation is pending confirmation.</p>
+                  <p className="text-soft-grey text-sm italic font-light">A confirmation or rejection email will be sent shortly to {formData.email}.</p>
                 </div>
 
                 <div className="w-full mb-12 text-left">
@@ -149,12 +184,15 @@ const Booking = () => {
                 <div className="w-full h-[1px] bg-border-neutral mb-12"></div>
                 <div className="space-y-6">
                   <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-charcoal">WANT TO SAVE TIME AT THE RESTAURANT?</p>
-                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                    <Link to={`/preorder?id=${bookingResult._id}&type=table`} className="inline-block px-10 py-3 bg-primary text-white text-[10px] uppercase font-bold tracking-[0.2em] transition-soft hover:bg-primary-hover rounded-sm text-center">
+                  <div className="flex flex-col gap-3 justify-center max-w-xs mx-auto">
+                    <Link to={`/preorder?id=${bookingResult._id}&type=table`} className="inline-block px-10 py-4 bg-primary text-white text-[10px] uppercase font-bold tracking-[0.2em] transition-all hover:bg-primary-hover rounded-xl text-center shadow-lg shadow-primary/20">
                       PRE-ORDER FOOD NOW
                     </Link>
-                    <button onClick={() => setStatus('idle')} className="inline-block px-10 py-3 border border-border-neutral text-soft-grey text-[10px] uppercase font-bold tracking-[0.2em] transition-soft hover:bg-background-ivory rounded-sm text-center">
-                      SKIP / NEW RESERVATION
+                    <button
+                      onClick={handleSkipPreOrder}
+                      className="inline-block px-10 py-4 border border-primary/20 text-soft-grey text-[10px] uppercase font-bold tracking-[0.2em] transition-all hover:bg-background-ivory rounded-xl text-center"
+                    >
+                      Skip Preorder / Table Order
                     </button>
                   </div>
                 </div>
@@ -261,7 +299,12 @@ const Booking = () => {
                 <textarea value={formData.requests} onChange={handleChange} className="border border-border-neutral rounded-sm p-3 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all bg-background-ivory resize-none" id="requests" name="requests" placeholder="Allergies, anniversaries, or special seating preferences..." rows="4"></textarea>
               </div>
 
-              {errorMessage && <div className="text-red-500 text-sm flex gap-2"><AlertCircle size={16} />{errorMessage}</div>}
+              {errorMessage && (
+                <div className={`p-4 rounded-xl text-sm flex gap-3 items-center ${errorMessage.startsWith('SUCCESS') ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-red-50 text-red-600 border border-red-100'}`}>
+                  {errorMessage.startsWith('SUCCESS') ? <CheckCircle size={18} /> : <AlertCircle size={18} />}
+                  <span className="font-medium">{errorMessage}</span>
+                </div>
+              )}
 
               {/* Submit Button */}
               <div className="pt-4">
