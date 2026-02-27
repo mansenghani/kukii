@@ -3,39 +3,53 @@ const mongoose = require('mongoose');
 const preOrderSchema = new mongoose.Schema({
   bookingId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Booking',
     required: true,
+    refPath: 'typeModel'
+  },
+  type: {
+    type: String,
+    required: true,
+    enum: ['table', 'event']
+  },
+  typeModel: {
+    type: String,
+    required: true,
+    enum: ['Booking', 'Event']
   },
   items: [
     {
-      menuId: {
+      menuItemId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Menu',
-        required: true,
+        ref: 'MenuItem',
+        required: true
       },
-      quantity: {
-        type: Number,
-        required: true,
-      },
-      price: {
-        type: Number,
-        required: true,
-      },
+      name: String,
+      price: Number,
+      quantity: Number,
+      total: Number
     }
   ],
-  totalAmount: {
+  subtotal: {
     type: Number,
-    required: true,
+    required: true
+  },
+  tax: {
+    type: Number,
+    default: 0
+  },
+  grandTotal: {
+    type: Number,
+    required: true
   },
   status: {
     type: String,
-    enum: ['Preparing', 'Ready', 'Served'],
-    default: 'Preparing',
+    enum: ['pending', 'approved', 'rejected'],
+    default: 'pending'
   },
   createdAt: {
     type: Date,
-    default: Date.now,
-  },
+    default: Date.now
+  }
 });
 
 module.exports = mongoose.model('PreOrder', preOrderSchema);

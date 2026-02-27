@@ -2,8 +2,10 @@ const express = require('express');
 const router = express.Router();
 const preOrderController = require('../controllers/preOrderController');
 
+// Public User Routes
 router.post('/', preOrderController.createPreOrder);
-router.get('/', preOrderController.getPreOrders);
-router.put('/:id', preOrderController.updatePreOrder);
+router.get('/:bookingId', preOrderController.getPreOrderByBookingId);
+
+
 
 module.exports = router;

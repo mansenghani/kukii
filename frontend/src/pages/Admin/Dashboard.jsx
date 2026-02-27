@@ -1,33 +1,70 @@
 import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { LayoutDashboard, Utensils, Table as TableIcon, CalendarDays, ShoppingBag, Plus, Trash2, CheckCircle2, XCircle, X, Lock, Settings, LogOut, MessageSquare, BarChart, Layers, Tag, Pencil, AlertCircle } from 'lucide-react';
+import { LayoutDashboard, Utensils, Table as TableIcon, CalendarDays, ShoppingBag, Plus, Trash2, CheckCircle2, XCircle, X, Lock, Settings, LogOut, MessageSquare, BarChart, Layers, Tag, Pencil, AlertCircle, Clock, Eye, Star } from 'lucide-react';
 import AdminFeedback from './AdminFeedback';
 import ReportsPage from './ReportsPage';
 import FooterSettingsCard from './FooterSettingsCard';
 import FooterSettingsModal from './FooterSettingsModal';
+import AdminEvents from './AdminEvents';
+import AdminPreOrders from './AdminPreOrders';
+import AdminHeader from './AdminHeader';
+import AdminTimeSlots from './AdminTimeSlots';
+import AdminSettings from './AdminSettings';
+import AdminFeaturedMenu from './AdminFeaturedMenu';
 
 const AdminDashboard = () => {
-  const [isAuthorized, setIsAuthorized] = useState(false);
+  const { tab } = useParams();
+  const navigate = useNavigate();
+  const [isAuthorized, setIsAuthorized] = useState(localStorage.getItem('kuki_admin_auth') === 'true');
+  const [email, setEmail] = useState('admin@luxedining.com');
   const [password, setPassword] = useState('');
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState(tab || 'overview');
+
+  useEffect(() => {
+    if (tab && tab !== activeTab) {
+      setActiveTab(tab);
+    }
+    if (localStorage.getItem('kuki_admin_auth') === 'true') {
+      setIsAuthorized(true);
+      fetchAll();
+    }
+  }, [tab]);
+
+  const handleTabChange = (newTab) => {
+    setActiveTab(newTab);
+    navigate(`/admin/${newTab}`);
+  };
+
   const [data, setData] = useState({
     bookings: [],
     menu: [],
     tables: [],
     preorders: [],
-    categories: []
+    categories: [],
+    slots: []
   });
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({});
   const [isEditing, setIsEditing] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [selectedBooking, setSelectedBooking] = useState(null);
   const [message, setMessage] = useState({ text: '', type: '' });
+
   const [submitting, setSubmitting] = useState(false);
   const [showFooterModal, setShowFooterModal] = useState(false);
+  const [preorderStats, setPreorderStats] = useState({ summary: {}, popularItems: [] });
 
-  // API Configuration - Hardcoded to localhost:5050 for simplicity as per project structure
-  const API_BASE_URL = 'http://localhost:5050/api';
+
+  const API_BASE_URL = '/api';
+
+  useEffect(() => {
+    const token = localStorage.getItem('kuki_admin_token');
+    if (token) {
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    }
+  }, [isAuthorized]);
 
   useEffect(() => {
     if (message.text) {
@@ -44,14 +81,21 @@ const AdminDashboard = () => {
     }
   }, []);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    if (password === 'admin123') {
+    try {
+      setSubmitting(true);
+      const res = await axios.post('/api/admin/login', { email, password });
       localStorage.setItem('kuki_admin_auth', 'true');
+      localStorage.setItem('kuki_admin_token', res.data.token);
+      localStorage.setItem('kuki_admin_user', JSON.stringify(res.data));
       setIsAuthorized(true);
+      setMessage({ text: 'Welcome Back, Admin', type: 'success' });
       fetchAll();
-    } else {
-      alert("Invalid Admin Password");
+    } catch (err) {
+      alert(err.response?.data?.message || "Login Failed");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -63,23 +107,44 @@ const AdminDashboard = () => {
   const fetchAll = async () => {
     setLoading(true);
     try {
-      const [bookings, menu, tables, preorders, categories] = await Promise.all([
+      const results = await Promise.allSettled([
         axios.get(`${API_BASE_URL}/bookings`),
         axios.get(`${API_BASE_URL}/menu`),
         axios.get(`${API_BASE_URL}/tables`),
-        axios.get(`${API_BASE_URL}/preorders`),
-        axios.get(`${API_BASE_URL}/categories`)
+        axios.get(`${API_BASE_URL}/admin/preorders/all`),
+        axios.get(`${API_BASE_URL}/categories`),
+        axios.get(`${API_BASE_URL}/admin/preorders/stats`),
+        axios.get(`${API_BASE_URL}/admin/slots`)
       ]);
-      setData({
-        bookings: bookings.data || [],
-        menu: menu.data || [],
-        tables: tables.data || [],
-        preorders: preorders.data || [],
-        categories: categories.data || []
-      });
+
+      const [bookings, menu, tables, preorders, categories, stats, slots] = results.map(r =>
+        r.status === 'fulfilled' ? r.value : { data: [] }
+      );
+
+      if (results[5].status === 'fulfilled') {
+        setPreorderStats(results[5].value.data);
+      }
+
+      const newData = {
+        bookings: Array.isArray(bookings.data) ? bookings.data : [],
+        menu: Array.isArray(menu.data) ? menu.data : [],
+        tables: Array.isArray(tables.data) ? tables.data : [],
+        preorders: Array.isArray(preorders.data) ? preorders.data : [],
+        categories: Array.isArray(categories.data) ? categories.data : [],
+        slots: Array.isArray(slots.data) ? slots.data : []
+      };
+
+      console.log("Fetched Data:", newData);
+      setData(newData);
+
+      // Check if any critical fetch failed
+      if (results.some(r => r.status === 'rejected')) {
+        const failedIndices = results.map((r, i) => r.status === 'rejected' ? i : null).filter(i => i !== null);
+        console.warn("Some endpoints failed to fetch:", failedIndices);
+      }
     } catch (err) {
-      console.error("Fetch Error:", err);
-      setMessage({ text: 'Sync Error: Check if backend is running on port 5050', type: 'error' });
+      console.error("Critical Fetch Error:", err);
+      setMessage({ text: 'Sync Error: Dashboard data could not be fully loaded', type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -89,25 +154,38 @@ const AdminDashboard = () => {
     e.preventDefault();
     setSubmitting(true);
     try {
-      // Determine correct endpoint based on active tab
       let endpoint = activeTab;
-
-      // Fallback/Correction logic for endpoints
-      if (activeTab === 'overview') endpoint = 'tables'; // Should not happen but safe check
-
-      // Verify endpoint is pluralized as per requirement (except menu)
+      if (activeTab === 'overview') endpoint = 'tables';
       const validEndpoints = ['menu', 'categories', 'tables', 'bookings', 'preorders', 'feedback'];
-      if (!validEndpoints.includes(endpoint)) {
-        endpoint = 'tables';
-      }
+      if (!validEndpoints.includes(endpoint)) endpoint = 'tables';
 
       const url = isEditing && editingId
         ? `${API_BASE_URL}/${endpoint}/${editingId}`
         : `${API_BASE_URL}/${endpoint}`;
-
       const method = isEditing ? 'put' : 'post';
 
-      await axios[method](url, formData);
+      let finalFormData = { ...formData };
+
+      if (activeTab === 'bookings' && !isEditing) {
+        // 1. Create/Find Customer
+        const customerRes = await axios.post(`${API_BASE_URL}/customers`, {
+          name: formData.customerName,
+          email: formData.customerEmail,
+          phone: formData.customerPhone
+        });
+        const customerId = customerRes.data._id;
+
+        // 2. Prepare Booking Data
+        finalFormData = {
+          customerId,
+          tableId: formData.tableId,
+          date: formData.date,
+          time: formData.time,
+          guests: parseInt(formData.guests) || 2
+        };
+      }
+
+      await axios[method](url, finalFormData);
 
       const actionText = isEditing ? 'updated' : 'added';
       const typeText = activeTab === 'categories' ? 'Category' : activeTab.slice(0, -1);
@@ -130,8 +208,6 @@ const AdminDashboard = () => {
   const handleEdit = (item) => {
     setIsEditing(true);
     setEditingId(item._id);
-
-    // Map data to form based on type
     if (activeTab === 'menu') {
       setFormData({
         categoryId: item.categoryId?._id || item.categoryId,
@@ -142,165 +218,140 @@ const AdminDashboard = () => {
         availability: item.availability
       });
     } else if (activeTab === 'categories') {
-      setFormData({
-        name: item.name,
-        description: item.description
-      });
+      setFormData({ name: item.name, description: item.description });
     } else if (activeTab === 'tables') {
+      setFormData({ tableNumber: item.tableNumber, capacity: item.capacity });
+    } else if (activeTab === 'bookings') {
       setFormData({
-        tableNumber: item.tableNumber,
-        capacity: item.capacity
+        customerName: item.customerId?.name,
+        customerEmail: item.customerId?.email,
+        customerPhone: item.customerId?.phone,
+        tableId: item.tableId?._id || item.tableId,
+        date: item.date?.split('T')[0],
+        time: item.time,
+        guests: item.guests
       });
     }
     setShowModal(true);
   };
 
-  // Backend Handlers
-  const updateBookingStatus = async (id, status) => {
-    try { await axios.put(`${API_BASE_URL}/bookings/${id}`, { status }); fetchAll(); } catch (err) { alert("Failed"); }
-  };
-  const updatePreOrderStatus = async (id, status) => {
-    try { await axios.put(`${API_BASE_URL}/preorders/${id}`, { status }); fetchAll(); } catch (err) { alert("Failed"); }
-  };
   const deleteMenuItem = async (id) => {
     if (window.confirm("Delete this menu item?")) { try { await axios.delete(`${API_BASE_URL}/menu/${id}`); fetchAll(); } catch (err) { alert("Failed"); } }
   };
   const deleteBooking = async (id) => {
     if (window.confirm("Remove booking?")) { try { await axios.delete(`${API_BASE_URL}/bookings/${id}`); fetchAll(); } catch (err) { alert("Failed"); } }
   };
+
+  const handleBookingStatusUpdate = async (id, status) => {
+    if (!window.confirm(`Mark reservation as ${status}?`)) return;
+    try {
+      setSubmitting(true);
+      await axios.put(`${API_BASE_URL}/bookings/${id}`, { status });
+      setMessage({ text: `Booking ${status} Successfully!`, type: 'success' });
+      setSelectedBooking(null);
+      fetchAll();
+    } catch (err) {
+      console.error("Status Update Error:", err);
+      setMessage({ text: 'Update Failed', type: 'error' });
+    } finally {
+      setSubmitting(false);
+    }
+  };
   const deleteTable = async (id) => {
     if (window.confirm("Delete this table?")) { try { await axios.delete(`${API_BASE_URL}/tables/${id}`); fetchAll(); setMessage({ text: 'Table deleted', type: 'success' }); } catch (err) { setMessage({ text: 'Delete failed', type: 'error' }); } }
   };
   const deleteCategory = async (id) => {
     if (window.confirm("Delete this category? Associated menu items will also be removed.")) {
-      try {
-        await axios.delete(`${API_BASE_URL}/categories/${id}`);
-        fetchAll();
-        setMessage({ text: 'Category deleted', type: 'success' });
-      } catch (err) {
-        setMessage({ text: 'Delete failed', type: 'error' });
-      }
+      try { await axios.delete(`${API_BASE_URL}/categories/${id}`); fetchAll(); setMessage({ text: 'Category deleted', type: 'success' }); } catch (err) { setMessage({ text: 'Delete failed', type: 'error' }); }
     }
   };
 
-  // Stats
   const totalDishes = data.menu.length;
   const pendingReservations = data.bookings.filter(b => b.status === "Pending").length;
 
   if (!isAuthorized) {
     return (
       <div className="min-h-[calc(100vh-80px)] flex justify-center items-center bg-background-ivory">
-        <div className="bg-white shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-border-neutral rounded-xl p-10 text-center w-[400px]">
-          <div className="flex justify-center mb-6">
-            <Lock size={48} className="text-primary" />
-          </div>
-          <h2 className="serif-heading text-3xl mb-2 text-charcoal">Admin Access</h2>
-          <p className="text-soft-grey text-sm mb-8">Please enter the administrator password to manage KUKI.</p>
-          <form onSubmit={handleLogin} className="flex flex-col gap-4">
-            <input
-              type="password"
-              placeholder="Enter Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full border border-border-neutral rounded-sm p-3 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all bg-background-ivory"
-              required
-            />
-            <button type="submit" className="w-full bg-primary hover:bg-primary-hover text-white py-3 rounded-sm font-bold uppercase tracking-widest text-xs transition-colors">
-              Unlock Panel
-            </button>
+        <div className="bg-white shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-border-neutral rounded-[2rem] p-12 text-center w-[450px]">
+          <div className="flex justify-center mb-6"><div className="size-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary"><Lock size={32} /></div></div>
+          <h2 className="serif-heading text-4xl mb-2 text-charcoal italic lowercase">Admin Access</h2>
+          <p className="text-soft-grey text-xs mb-10 font-bold uppercase tracking-widest opacity-60">Authentication Protocol Required</p>
+          <form onSubmit={handleLogin} className="flex flex-col gap-5 text-left">
+            <div className="space-y-1">
+              <label className="text-[10px] font-black text-primary uppercase tracking-widest ml-1">Email Identity</label>
+              <input
+                type="email" placeholder="admin@kuki.com" value={email} onChange={(e) => setEmail(e.target.value)}
+                className="w-full border border-primary/10 rounded-xl p-4 text-sm focus:outline-none focus:border-primary transition-all bg-background-ivory/50 font-bold" required
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-[10px] font-black text-primary uppercase tracking-widest ml-1">Complexity Key</label>
+              <input
+                type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)}
+                className="w-full border border-primary/10 rounded-xl p-4 text-sm focus:outline-none focus:border-primary transition-all bg-background-ivory/50 font-bold" required
+              />
+            </div>
+            <button type="submit" disabled={submitting} className="w-full bg-primary hover:bg-primary-hover text-white py-4 rounded-xl font-bold uppercase tracking-[0.2em] text-[10px] transition-all shadow-lg mt-4">{submitting ? 'Verifying...' : 'Authorize'}</button>
           </form>
         </div>
       </div>
     );
   }
 
-  return (
-    <div className="flex min-h-screen bg-[#f4efec] text-[#2b2b2b]">
-      {/* Sidebar */}
-      <aside className="w-[260px] flex-shrink-0 flex flex-col border-r border-[#e3dbd4] bg-[#f4efec] py-8 px-6">
-        <div className="flex items-center gap-3 mb-10">
-          <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center text-primary">
-            <Layers size={22} strokeWidth={1.5} />
-          </div>
-          <div>
-            <h2 className="serif-heading text-xl leading-none text-charcoal tracking-widest">KUKI</h2>
-            <p className="text-[8px] uppercase tracking-widest text-[#c68991] font-bold mt-1">Rose Edition</p>
-            <p className="text-[8px] uppercase tracking-widest text-soft-grey font-bold">Admin</p>
-          </div>
-        </div>
-
-        <nav className="flex-1 space-y-2">
-          <SidebarLink icon={<LayoutDashboard size={18} />} label="Dashboard" active={activeTab === 'overview'} onClick={() => setActiveTab('overview')} />
-          <SidebarLink icon={<Utensils size={18} />} label="Menu Management" active={activeTab === 'menu'} onClick={() => setActiveTab('menu')} />
-          <SidebarLink icon={<Tag size={18} />} label="Menu Categories" active={activeTab === 'categories'} onClick={() => setActiveTab('categories')} />
-          <SidebarLink icon={<CalendarDays size={18} />} label="Reservations" active={activeTab === 'bookings'} onClick={() => setActiveTab('bookings')} />
-          <SidebarLink icon={<MessageSquare size={18} />} label="Feedback" active={activeTab === 'feedback'} onClick={() => setActiveTab('feedback')} />
-          <SidebarLink icon={<BarChart size={18} />} label="Reports" active={activeTab === 'reports'} onClick={() => setActiveTab('reports')} />
-          <SidebarLink icon={<TableIcon size={18} />} label="Table Slots" active={activeTab === 'tables'} onClick={() => setActiveTab('tables')} />
-        </nav>
-
-        <div className="mt-8 border-t border-primary/10 pt-8">
-          <button onClick={handleLogout} className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-primary hover:bg-primary/5 transition-colors font-medium text-sm">
-            <LogOut size={18} /> Logout
-          </button>
-        </div>
-      </aside>
-
-      {/* Main Content */}
-      <main className="flex-1 overflow-y-auto px-10 py-8 scroll-smooth">
-        <header className="flex justify-between items-start mb-10">
-          <div>
-            <div className="text-[10px] font-bold tracking-[0.2em] text-[#a89d96] mb-2 uppercase">ADMIN / {activeTab}</div>
-            <h1 className="serif-heading text-4xl text-charcoal">Admin Dashboard</h1>
-            <p className="text-soft-grey mt-1 text-sm">Manage your restaurant operations from one place.</p>
-          </div>
-          <div className="flex items-center gap-4">
-            <div className="flex gap-2">
-              <button
-                onClick={() => { setActiveTab('categories'); setFormData({}); setIsEditing(false); setShowModal(true); }}
-                className="px-4 py-2 border border-primary/20 text-primary bg-white text-[10px] font-bold uppercase tracking-widest rounded-lg hover:bg-primary/5 transition-all flex items-center gap-2"
-              >
-                <Tag size={14} /> Category
-              </button>
-              <button
-                onClick={() => { setActiveTab('menu'); setFormData({ availability: true }); setIsEditing(false); setShowModal(true); }}
-                className="px-4 py-2 bg-primary text-white text-[10px] font-bold uppercase tracking-widest rounded-lg hover:bg-primary-hover transition-all flex items-center gap-2 shadow-sm"
-              >
-                <Plus size={14} /> Menu Item
-              </button>
-            </div>
-          </div>
-        </header>
-
-        {/* Global Toast Message */}
-        {message.text && (
-          <div className={`fixed top-10 right-10 z-[100] flex items-center gap-3 px-6 py-4 rounded-xl shadow-2xl animate-fade-in border ${message.type === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 'bg-red-50 border-red-200 text-red-800'}`}>
-            {message.type === 'success' ? <CheckCircle2 size={20} /> : <AlertCircle size={20} />}
-            <p className="font-bold text-sm tracking-wide">{message.text}</p>
-          </div>
-        )}
-
-        {activeTab === 'overview' ? (
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'overview':
+        return (
           <div className="animate-fade-in">
-            <section className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-              <StatCard title="Total Dishes" value={totalDishes} icon="restaurant" trend="+2% this week" />
-              <StatCard title="Pending Bookings" value={pendingReservations} icon="event_seat" trend="Requires attention" />
-              <StatCard title="Customer Reviews" value="08" icon="rate_review" trend="Avg 4.9 stars" />
-            </section>
+            <section className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+              <StatCard title="Pending Bookings" value={pendingReservations} icon="event_seat" trend="Action required" />
+              <StatCard title="Pre-Order Revenue" value={`₹${preorderStats.summary.totalRevenue || 0}`} icon="payments" trend={`${preorderStats.summary.approvedCount || 0} orders approved`} />
+              <StatCard title="Pending Orders" value={preorderStats.summary.pendingCount || 0} icon="shopping_cart" trend="Awaiting review" />
+              <StatCard title="Menu Items" value={totalDishes} icon="restaurant" trend="Total catalog" />
 
+            </section>
             <h4 className="serif-heading font-bold text-charcoal mb-6 text-2xl">Quick Access</h4>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-              <ModuleCard title="Manage Categories" desc="Organize your menu with custom categories." icon={<Tag />} onClick={() => setActiveTab('categories')} />
-              <ModuleCard title="Manage Menu" desc="Update your dishes, prices and availability." icon={<Utensils />} onClick={() => setActiveTab('menu')} />
-              <ModuleCard title="Reservations" desc="Approve or manage customer table bookings." icon={<CalendarDays />} onClick={() => setActiveTab('bookings')} />
+              <ModuleCard title="Manage Categories" desc="Organize your menu with custom categories." icon={<Tag />} onClick={() => handleTabChange('categories')} />
+              <ModuleCard title="Manage Menu" desc="Update your dishes, prices and availability." icon={<Utensils />} onClick={() => handleTabChange('menu')} />
+              <ModuleCard title="Reservations" desc="Approve or manage customer table bookings." icon={<CalendarDays />} onClick={() => handleTabChange('bookings')} />
+              <ModuleCard title="Private Events" desc="Manage full-venue private event requests." icon={<CalendarDays className="text-primary" />} onClick={() => handleTabChange('events')} />
+              <ModuleCard title="Featured Menu" desc="Select 3 items to showcase on your homepage." icon={<Star className="text-primary" />} onClick={() => handleTabChange('featured')} />
+              <ModuleCard title="Pre-Orders" desc="Review meal selections for upcoming guests." icon={<ShoppingBag />} onClick={() => handleTabChange('preorders')} />
+              <ModuleCard title="System Settings" desc="Configure restaurant rules and logic." icon={<Settings />} onClick={() => handleTabChange('settings')} />
               <FooterSettingsCard onClick={() => setShowFooterModal(true)} />
             </div>
+
+            {preorderStats.popularItems.length > 0 && (
+              <div className="mb-16 animate-fade-in">
+                <h4 className="serif-heading font-bold text-charcoal mb-6 text-2xl">Top Ordered Foods</h4>
+                <div className="bg-white p-8 rounded-[2rem] border border-primary/5 shadow-sm">
+                  <div className="space-y-4">
+                    {preorderStats.popularItems.map((item, i) => (
+                      <div key={i} className="flex justify-between items-center pb-4 border-b border-border-neutral last:border-0 last:pb-0">
+                        <div className="flex items-center gap-4">
+                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">{i + 1}</div>
+                          <span className="font-bold text-charcoal text-sm uppercase tracking-wider">{item._id}</span>
+                        </div>
+                        <span className="text-primary font-black">{item.count} Orders</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
-        ) : activeTab === 'feedback' ? (
-          <AdminFeedback />
-        ) : activeTab === 'reports' ? (
-          <ReportsPage />
-        ) : (
+        );
+      case 'feedback': return <AdminFeedback />;
+      case 'reports': return <ReportsPage onError={(msg) => setMessage({ text: msg, type: 'error' })} onSuccess={(msg) => setMessage({ text: msg, type: 'success' })} />;
+      case 'events': return <AdminEvents onError={(msg) => setMessage({ text: msg, type: 'error' })} onSuccess={(msg) => setMessage({ text: msg, type: 'success' })} />;
+      case 'preorders': return <AdminPreOrders onError={(msg) => setMessage({ text: msg, type: 'error' })} onSuccess={(msg) => setMessage({ text: msg, type: 'success' })} />;
+      case 'timeslots': return <AdminTimeSlots onError={(msg) => setMessage({ text: msg, type: 'error' })} onSuccess={(msg) => setMessage({ text: msg, type: 'success' })} />;
+      case 'settings': return <AdminSettings onError={(msg) => setMessage({ text: msg, type: 'error' })} onSuccess={(msg) => setMessage({ text: msg, type: 'success' })} />;
+      case 'featured': return <AdminFeaturedMenu menuItems={data.menu} onError={(msg) => setMessage({ text: msg, type: 'error' })} onSuccess={(msg) => setMessage({ text: msg, type: 'success' })} />;
+
+      default:
+        return (
           <div className="animate-fade-in">
             {loading ? (
               <div className="text-center py-20 text-soft-grey animate-pulse">Synchronizing with server...</div>
@@ -309,14 +360,14 @@ const AdminDashboard = () => {
                 <table className="w-full text-left border-collapse">
                   <thead className="bg-background-ivory/50 border-b border-border-neutral">
                     <tr>
-                      <th className="p-5 text-[10px] uppercase tracking-widest text-[#a89d96] font-bold">
+                      <th className="p-5 text-[10px] uppercase tracking-widest text-soft-grey font-bold">
                         {activeTab === 'menu' ? 'Item / Category' : activeTab === 'categories' ? 'Category Details' : 'Info'}
                       </th>
-                      <th className="p-5 text-[10px] uppercase tracking-widest text-[#a89d96] font-bold">
+                      <th className="p-5 text-[10px] uppercase tracking-widest text-soft-grey font-bold">
                         {activeTab === 'menu' ? 'Price' : activeTab === 'categories' ? 'Created' : 'Details'}
                       </th>
-                      <th className="p-5 text-[10px] uppercase tracking-widest text-[#a89d96] font-bold">Status</th>
-                      <th className="p-5 text-[10px] uppercase tracking-widest text-[#a89d96] font-bold">Actions</th>
+                      <th className="p-5 text-[10px] uppercase tracking-widest text-soft-grey font-bold">Status</th>
+                      <th className="p-5 text-[10px] uppercase tracking-widest text-soft-grey font-bold">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border-neutral">
@@ -349,159 +400,301 @@ const AdminDashboard = () => {
                         </td>
                         <td className="p-5">
                           <div className="flex gap-2 text-soft-grey">
-                            {['menu', 'categories', 'tables'].includes(activeTab) && (
+                            {['menu', 'categories', 'tables', 'bookings'].includes(activeTab) && (
                               <button onClick={() => handleEdit(item)} className="p-2 hover:bg-primary/10 hover:text-primary rounded-lg transition-all"><Pencil size={18} /></button>
                             )}
-                            <button
-                              onClick={() => activeTab === 'menu' ? deleteMenuItem(item._id) : activeTab === 'categories' ? deleteCategory(item._id) : activeTab === 'tables' ? deleteTable(item._id) : deleteBooking(item._id)}
-                              className="p-2 hover:bg-red-50 hover:text-red-500 rounded-lg transition-all"
-                            >
-                              <Trash2 size={18} />
-                            </button>
+                            {activeTab === 'bookings' && (
+                              <button onClick={() => setSelectedBooking(item)} className="p-2 hover:bg-primary/10 hover:text-primary rounded-lg transition-all"><Eye size={18} /></button>
+                            )}
+                            <button onClick={() => activeTab === 'menu' ? deleteMenuItem(item._id) : activeTab === 'categories' ? deleteCategory(item._id) : activeTab === 'tables' ? deleteTable(item._id) : deleteBooking(item._id)} className="p-2 hover:bg-rose-50 hover:text-rose-500 rounded-lg transition-all"><Trash2 size={18} /></button>
+
                           </div>
                         </td>
                       </tr>
                     ))}
                     {(!data[activeTab] || data[activeTab].length === 0) && (
-                      <tr>
-                        <td colSpan="4" className="p-20 text-center text-soft-grey italic text-sm">No data found in this category.</td>
-                      </tr>
+                      <tr><td colSpan="4" className="p-20 text-center text-soft-grey italic text-sm">No data found in this category.</td></tr>
                     )}
                   </tbody>
                 </table>
               </div>
             )}
           </div>
-        )}
-      </main>
+        );
+    }
+  };
 
-      {/* Modal */}
+  return (
+    <div className="flex flex-col min-h-screen bg-[#f4efec] text-[#2b2b2b]">
+      <AdminHeader activeTab={activeTab} />
+      <div className="flex flex-1 overflow-hidden">
+        <aside className="w-[260px] flex-shrink-0 flex flex-col border-r border-[#e3dbd4] bg-[#f4efec] py-8 px-6">
+          <div className="flex items-center gap-3 mb-10">
+            <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center text-primary"><Layers size={22} /></div>
+            <div>
+              <h2 className="serif-heading text-xl leading-none text-charcoal tracking-widest">KUKI</h2>
+              <p className="text-[8px] uppercase tracking-widest text-primary font-bold mt-1">Admin Panel</p>
+            </div>
+          </div>
+          <nav className="space-y-2 flex-grow overflow-y-auto">
+            <h5 className="text-[10px] font-bold text-soft-grey uppercase tracking-[0.2em] mb-4 pl-4">Main</h5>
+            <SidebarLink icon={<LayoutDashboard size={18} />} label="Overview" active={activeTab === 'overview'} onClick={() => handleTabChange('overview')} />
+            <SidebarLink icon={<CalendarDays size={18} />} label="Events" active={activeTab === 'events'} onClick={() => handleTabChange('events')} />
+            <SidebarLink icon={<CalendarDays size={18} />} label="Bookings" active={activeTab === 'bookings'} onClick={() => handleTabChange('bookings')} />
+            <SidebarLink icon={<ShoppingBag size={18} />} label="Pre-Orders" active={activeTab === 'preorders'} onClick={() => handleTabChange('preorders')} />
+            <SidebarLink icon={<Utensils size={18} />} label="Menu" active={activeTab === 'menu'} onClick={() => handleTabChange('menu')} />
+            <SidebarLink icon={<Star size={18} />} label="Showcase" active={activeTab === 'featured'} onClick={() => handleTabChange('featured')} />
+
+            <SidebarLink icon={<Tag size={18} />} label="Categories" active={activeTab === 'categories'} onClick={() => handleTabChange('categories')} />
+            <SidebarLink icon={<Clock size={18} />} label="Table Slots" active={activeTab === 'timeslots'} onClick={() => handleTabChange('timeslots')} />
+            <SidebarLink icon={<TableIcon size={18} />} label="Tables" active={activeTab === 'tables'} onClick={() => handleTabChange('tables')} />
+            <SidebarLink icon={<MessageSquare size={18} />} label="Feedback" active={activeTab === 'feedback'} onClick={() => handleTabChange('feedback')} />
+            <SidebarLink icon={<BarChart size={18} />} label="Reports" active={activeTab === 'reports'} onClick={() => handleTabChange('reports')} />
+            <SidebarLink icon={<Settings size={18} />} label="Settings" active={activeTab === 'settings'} onClick={() => handleTabChange('settings')} />
+          </nav>
+          <div className="mt-8 border-t border-primary/10 pt-8">
+            <button onClick={handleLogout} className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-primary hover:bg-primary/5 transition-colors font-medium text-sm"><LogOut size={18} /> Logout</button>
+          </div>
+        </aside>
+
+        <main className="flex-1 overflow-y-auto px-10 py-8 relative">
+          {/* Header for dynamic actions */}
+          <div className="flex justify-between items-center mb-8">
+            <div>
+              <h1 className="serif-heading text-4xl text-charcoal capitalize">{activeTab}</h1>
+              <p className="text-soft-grey text-sm mt-1">Manage {activeTab} section of the restaurant.</p>
+            </div>
+            {['menu', 'categories', 'tables', 'bookings'].includes(activeTab) && (
+              <button onClick={() => { setFormData({}); setIsEditing(false); setShowModal(true); }} className="px-6 py-2.5 bg-primary text-white text-[10px] font-bold uppercase tracking-widest rounded-xl hover:bg-primary-hover transition-all flex items-center gap-2 shadow-sm"><Plus size={16} /> Add New</button>
+            )}
+          </div>
+
+          {renderContent()}
+
+          {/* Global Toast Message */}
+          {message.text && (
+            <div className={`fixed bottom-10 right-10 z-[100] flex items-center gap-3 px-6 py-4 rounded-xl shadow-2xl animate-fade-in border ${message.type === 'success' ? 'bg-green-50 border-green-200 text-green-800' : 'bg-rose-50 border-rose-200 text-rose-800'}`}>
+              {message.type === 'success' ? <CheckCircle2 size={20} /> : <AlertCircle size={20} />}
+              <p className="font-bold text-sm tracking-wide">{message.text}</p>
+            </div>
+          )}
+        </main>
+      </div>
+
+      {/* Modals */}
       {showModal && (
-        <div className="fixed inset-0 bg-charcoal/60 backdrop-blur-sm flex justify-center items-center z-[1000] p-4 animate-fade-in">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md relative p-8">
+        <div className="fixed inset-0 bg-charcoal/60 backdrop-blur-sm flex justify-center items-center z-[1000] p-4">
+          <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-md relative p-8 border border-primary/10">
             <button onClick={() => { setShowModal(false); setFormData({}); setIsEditing(false); }} className="absolute top-6 right-6 text-soft-grey hover:text-primary transition-colors"><X size={24} /></button>
             <h3 className="serif-heading text-2xl mb-6 text-charcoal">{isEditing ? 'Edit' : 'Add New'} {activeTab === 'categories' ? 'Category' : activeTab.slice(0, -1)}</h3>
-
             <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-              {activeTab === 'menu' ? (
+              {activeTab === 'menu' && (
                 <>
-                  <div>
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-[#a89d96] mb-2 block">Category</label>
-                    <select required value={formData.categoryId || ''} onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })} className="w-full border border-border-neutral rounded-lg p-3 text-sm focus:border-primary transition-all bg-background-ivory">
-                      <option value="">Select Category</option>
-                      {data.categories.map(cat => (<option key={cat._id} value={cat._id}>{cat.name}</option>))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-[#a89d96] mb-2 block">Item Name</label>
-                    <input type="text" required value={formData.name || ''} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full border border-border-neutral rounded-lg p-3 text-sm focus:border-primary transition-all bg-background-ivory" />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-[10px] font-bold uppercase tracking-widest text-[#a89d96] mb-2 block">Price (₹)</label>
-                      <input type="number" required value={formData.price || ''} onChange={(e) => setFormData({ ...formData, price: e.target.value })} className="w-full border border-border-neutral rounded-lg p-3 text-sm focus:border-primary transition-all bg-background-ivory" />
-                    </div>
-                    <div>
-                      <label className="text-[10px] font-bold uppercase tracking-widest text-[#a89d96] mb-2 block">Image URL</label>
-                      <input type="text" value={formData.image || ''} onChange={(e) => setFormData({ ...formData, image: e.target.value })} className="w-full border border-border-neutral rounded-lg p-3 text-sm focus:border-primary transition-all bg-background-ivory" />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-[#a89d96] mb-2 block">Description</label>
-                    <textarea value={formData.description || ''} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="w-full border border-border-neutral rounded-lg p-3 text-sm focus:border-primary transition-all bg-background-ivory h-24 resize-none" />
-                  </div>
-                  <label className="flex items-center gap-3 cursor-pointer p-3 bg-background-ivory rounded-lg border border-border-neutral">
-                    <input type="checkbox" checked={formData.availability} onChange={(e) => setFormData({ ...formData, availability: e.target.checked })} className="size-4 accent-primary" />
-                    <span className="text-xs text-charcoal font-bold uppercase tracking-widest">In Stock / Available</span>
-                  </label>
-                </>
-              ) : activeTab === 'categories' ? (
-                <>
-                  <div>
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-[#a89d96] mb-2 block">Category Name</label>
-                    <input type="text" required value={formData.name || ''} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full border border-border-neutral rounded-lg p-3 text-sm focus:border-primary transition-all bg-background-ivory" />
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-[#a89d96] mb-2 block">Description</label>
-                    <textarea value={formData.description || ''} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="w-full border border-border-neutral rounded-lg p-3 text-sm focus:border-primary transition-all bg-background-ivory h-24 resize-none" />
-                  </div>
-                </>
-              ) : (
-                <>
-                  <input type="number" placeholder="Table Number" required value={formData.tableNumber || ''} onChange={(e) => setFormData({ ...formData, tableNumber: e.target.value })} className="w-full border border-border-neutral rounded-lg p-3 text-sm focus:border-primary transition-all bg-background-ivory" />
-                  <input type="number" placeholder="Capacity" required value={formData.capacity || ''} onChange={(e) => setFormData({ ...formData, capacity: e.target.value })} className="w-full border border-border-neutral rounded-lg p-3 text-sm focus:border-primary transition-all bg-background-ivory" />
+                  <select required value={formData.categoryId || ''} onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })} className="w-full border border-primary/10 rounded-xl p-3 text-sm focus:border-primary outline-none bg-background-ivory">
+                    <option value="">Select Category</option>
+                    {data.categories.map(cat => (<option key={cat._id} value={cat._id}>{cat.name}</option>))}
+                  </select>
+                  <input type="text" placeholder="Item Name" required value={formData.name || ''} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full border border-primary/10 rounded-xl p-3 text-sm focus:border-primary outline-none bg-background-ivory" />
+                  <input type="number" placeholder="Price" required value={formData.price || ''} onChange={(e) => setFormData({ ...formData, price: e.target.value })} className="w-full border border-primary/10 rounded-xl p-3 text-sm focus:border-primary outline-none bg-background-ivory" />
+                  <textarea placeholder="Description" value={formData.description || ''} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="w-full border border-primary/10 rounded-xl p-3 text-sm focus:border-primary outline-none bg-background-ivory h-24" />
+                  <label className="flex items-center gap-3 cursor-pointer"><input type="checkbox" checked={formData.availability} onChange={(e) => setFormData({ ...formData, availability: e.target.checked })} /> <span className="text-xs font-bold uppercase tracking-widest text-charcoal">Available</span></label>
                 </>
               )}
-              <button
-                type="submit"
-                disabled={submitting}
-                className="w-full mt-4 bg-primary hover:bg-primary-hover text-white py-4 rounded-lg font-bold uppercase tracking-[0.2em] text-xs transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {submitting ? 'Processing...' : (isEditing ? 'Update ' : 'Create ') + (activeTab === 'categories' ? 'Category' : activeTab.slice(0, -1))}
-              </button>
+              {activeTab === 'categories' && (
+                <>
+                  <input type="text" placeholder="Category Name" required value={formData.name || ''} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full border border-primary/10 rounded-xl p-3 text-sm focus:border-primary outline-none bg-background-ivory" />
+                  <textarea placeholder="Description" value={formData.description || ''} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="w-full border border-primary/10 rounded-xl p-3 text-sm focus:border-primary outline-none bg-background-ivory h-24" />
+                </>
+              )}
+              {activeTab === 'tables' && (
+                <>
+                  <input type="number" placeholder="Table Number" required value={formData.tableNumber || ''} onChange={(e) => setFormData({ ...formData, tableNumber: e.target.value })} className="w-full border border-primary/10 rounded-xl p-3 text-sm focus:border-primary outline-none bg-background-ivory" />
+                  <input type="number" placeholder="Capacity" required value={formData.capacity || ''} onChange={(e) => setFormData({ ...formData, capacity: e.target.value })} className="w-full border border-primary/10 rounded-xl p-3 text-sm focus:border-primary outline-none bg-background-ivory" />
+                </>
+              )}
+              {activeTab === 'bookings' && (
+                <>
+                  <div className="grid grid-cols-1 gap-4">
+                    <p className="text-[10px] font-bold text-primary uppercase tracking-widest border-b border-primary/10 pb-2">Customer Details</p>
+                    <input type="text" placeholder="Customer Name" required value={formData.customerName || ''} onChange={(e) => setFormData({ ...formData, customerName: e.target.value })} className="w-full border border-primary/10 rounded-xl p-3 text-sm focus:border-primary outline-none bg-background-ivory" />
+                    <input type="email" placeholder="Email Address" required value={formData.customerEmail || ''} onChange={(e) => setFormData({ ...formData, customerEmail: e.target.value })} className="w-full border border-primary/10 rounded-xl p-3 text-sm focus:border-primary outline-none bg-background-ivory" />
+                    <input type="tel" placeholder="Phone Number" required value={formData.customerPhone || ''} onChange={(e) => setFormData({ ...formData, customerPhone: e.target.value })} className="w-full border border-primary/10 rounded-xl p-3 text-sm focus:border-primary outline-none bg-background-ivory" />
+
+                    <p className="text-[10px] font-bold text-primary uppercase tracking-widest border-b border-primary/10 pb-2 mt-2">Reservation Details</p>
+                    <div className="grid grid-cols-2 gap-4">
+                      <input type="date" required value={formData.date || ''} onChange={(e) => setFormData({ ...formData, date: e.target.value })} className="w-full border border-primary/10 rounded-xl p-3 text-sm focus:border-primary outline-none bg-background-ivory" />
+                      <select required value={formData.time || ''} onChange={(e) => setFormData({ ...formData, time: e.target.value })} className="w-full border border-primary/10 rounded-xl p-3 text-sm focus:border-primary outline-none bg-background-ivory">
+                        <option value="">Select Time</option>
+                        {data.slots && data.slots.filter(s => s.isActive).length > 0 ? (
+                          data.slots.filter(s => s.isActive).map(slot => (
+                            <option key={slot._id} value={slot.time}>{slot.time}</option>
+                          ))
+                        ) : (
+                          <>
+                            <option value="10:00 AM">10:00 AM (Fallback)</option>
+                            <option value="11:00 AM">11:00 AM (Fallback)</option>
+                            <option value="12:00 PM">12:00 PM (Fallback)</option>
+                            <option value="01:00 PM">01:00 PM (Fallback)</option>
+                            <option value="02:00 PM">02:00 PM (Fallback)</option>
+                            <option value="06:00 PM">06:00 PM (Fallback)</option>
+                            <option value="07:00 PM">07:00 PM (Fallback)</option>
+                            <option value="08:00 PM">08:00 PM (Fallback)</option>
+                            <option value="09:00 PM">09:00 PM (Fallback)</option>
+                            <option value="10:00 PM">10:00 PM (Fallback)</option>
+                          </>
+                        )}
+                      </select>
+                      {(!data.slots || data.slots.filter(s => s.isActive).length === 0) && (
+                        <p className="text-[9px] text-primary italic mt-1">Note: Configure custom slots in the 'Table Slots' tab.</p>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <select required value={formData.tableId || ''} onChange={(e) => setFormData({ ...formData, tableId: e.target.value })} className="w-full border border-primary/10 rounded-xl p-3 text-sm focus:border-primary outline-none bg-background-ivory">
+                        <option value="">Select Table</option>
+                        {data.tables.map(table => (
+                          <option key={table._id} value={table._id}>Table {table.tableNumber} (Cap: {table.capacity})</option>
+                        ))}
+                      </select>
+                      <input type="number" placeholder="Guests" required value={formData.guests || ''} onChange={(e) => setFormData({ ...formData, guests: e.target.value })} className="w-full border border-primary/10 rounded-xl p-3 text-sm focus:border-primary outline-none bg-background-ivory" />
+                    </div>
+                  </div>
+                </>
+              )}
+              <button type="submit" disabled={submitting} className="w-full bg-primary hover:bg-primary-hover text-white py-4 rounded-xl font-bold uppercase tracking-widest text-xs transition-all shadow-md">{submitting ? 'Processing...' : (isEditing ? 'Update' : 'Create')}</button>
             </form>
           </div>
         </div>
       )}
 
-      {/* Footer Settings Modal */}
-      <FooterSettingsModal
-        isOpen={showFooterModal}
-        onClose={() => setShowFooterModal(false)}
-        onSave={() => setMessage({ text: 'Footer settings updated successfully!', type: 'success' })}
-      />
+      <FooterSettingsModal isOpen={showFooterModal} onClose={() => setShowFooterModal(false)} onSave={() => setMessage({ text: 'Footer updated!', type: 'success' })} />
+
+      {/* Booking Detail Modal */}
+      {selectedBooking && (
+        <div className="fixed inset-0 bg-charcoal/60 backdrop-blur-sm flex justify-center items-center z-[2000] p-4 animate-fade-in">
+          <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-2xl overflow-hidden relative border border-primary/10">
+            <div className="bg-background-ivory/50 px-10 py-8 border-b border-primary/10 flex justify-between items-start">
+              <div className="pr-8">
+                <h3 className="serif-heading text-3xl text-charcoal leading-tight mb-2">Reservation Info</h3>
+                <div className="flex items-center gap-2">
+                  <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border border-current ${getStatusColorClass(selectedBooking.status)}`}>
+                    {selectedBooking.status}
+                  </span>
+                  <span className="text-xs text-soft-grey font-medium">Customer ID: {selectedBooking.customerId?._id?.slice(-6)}</span>
+                </div>
+              </div>
+              <button onClick={() => setSelectedBooking(null)} className="absolute top-6 right-6 size-10 rounded-full hover:bg-white shadow-sm flex items-center justify-center text-soft-grey hover:text-primary transition-all border border-border-neutral">
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="px-10 py-8 space-y-8 max-h-[70vh] overflow-y-auto custom-scrollbar">
+              <div className="grid grid-cols-2 gap-8">
+                <div>
+                  <p className="text-[10px] font-bold text-primary uppercase tracking-widest mb-1">Customer</p>
+                  <p className="font-bold text-charcoal">{selectedBooking.customerId?.name}</p>
+                  <p className="text-xs text-soft-grey">{selectedBooking.customerId?.email}</p>
+                  <p className="text-xs text-soft-grey">{selectedBooking.customerId?.phone}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-primary uppercase tracking-widest mb-1">Table & Time</p>
+                  <p className="font-bold text-charcoal">Table {selectedBooking.tableId?.tableNumber}</p>
+                  <p className="text-sm font-medium text-charcoal">{selectedBooking.date?.split('T')[0]} @ {selectedBooking.time}</p>
+                  <p className="text-xs text-soft-grey italic">{selectedBooking.guests} Guests</p>
+                </div>
+              </div>
+
+              {selectedBooking.preOrderId && (
+                <div className="space-y-4 pt-6 border-t border-border-neutral">
+                  <div className="flex items-center gap-2">
+                    <ShoppingBag size={18} className="text-primary" />
+                    <h4 className="serif-heading text-xl text-charcoal">Pre-Ordered Meal</h4>
+                    <span className={`ml-auto px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest ${selectedBooking.preOrderId.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
+                      }`}>
+                      {selectedBooking.preOrderId.status}
+                    </span>
+                  </div>
+                  <div className="bg-background-ivory/50 rounded-xl overflow-hidden border border-border-neutral">
+                    <table className="w-full text-left text-xs">
+                      <thead className="bg-white/50 text-[9px] uppercase tracking-tighter text-soft-grey">
+                        <tr>
+                          <th className="p-3">Item</th>
+                          <th className="p-3 text-center">Qty</th>
+                          <th className="p-3 text-right">Total</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border-neutral/30">
+                        {selectedBooking.preOrderId.items?.map((item, i) => (
+                          <tr key={i}>
+                            <td className="p-3 font-bold">{item.name}</td>
+                            <td className="p-3 text-center">{item.quantity}</td>
+                            <td className="p-3 text-right">₹{item.total}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                      <tfoot className="bg-primary/5 font-black text-primary border-t border-primary/10">
+                        <tr>
+                          <td colSpan="2" className="p-3 text-right uppercase text-[9px]">Grand Total</td>
+                          <td className="p-3 text-right text-sm font-bold">₹{selectedBooking.preOrderId.grandTotal}</td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="px-10 py-6 bg-background-ivory/30 flex justify-end gap-3 border-t border-primary/10">
+              {selectedBooking.status === 'Pending' && (
+                <>
+                  <button
+                    disabled={submitting}
+                    onClick={() => handleBookingStatusUpdate(selectedBooking._id, 'Cancelled')}
+                    className="px-6 py-3 border border-rose-100 text-rose-500 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-rose-50 transition-all flex items-center gap-2"
+                  >
+                    <XCircle size={14} /> Cancel Booking
+                  </button>
+                  <button
+                    disabled={submitting}
+                    onClick={() => handleBookingStatusUpdate(selectedBooking._id, 'Confirmed')}
+                    className="px-6 py-3 bg-primary text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-primary-hover transition-all flex items-center gap-2 shadow-lg shadow-primary/20"
+                  >
+                    <CheckCircle2 size={14} /> Confirm Booking
+                  </button>
+                </>
+              )}
+              <button onClick={() => setSelectedBooking(null)} className="px-6 py-3 bg-white border border-border-neutral text-charcoal rounded-xl text-xs font-bold uppercase tracking-widest transition-all">Close</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
 const SidebarLink = ({ icon, label, active, onClick }) => (
-  <button onClick={onClick} className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl transition-all duration-300 text-sm font-medium ${active ? 'bg-[#c68991] text-white shadow-md shadow-primary/20' : 'text-charcoal/70 hover:bg-white hover:text-charcoal'}`}>
-    {icon} {label}
-  </button>
+  <button onClick={onClick} className={`flex items-center gap-3 w-full px-4 py-3 rounded-xl transition-all duration-300 text-sm font-medium ${active ? 'bg-primary text-white shadow-md' : 'text-charcoal/70 hover:bg-white hover:text-charcoal'}`}>{icon} {label}</button>
 );
 
 const StatCard = ({ title, value, icon, trend }) => (
   <div className="bg-white rounded-xl border border-primary/5 flex items-center justify-between p-8 shadow-sm hover:-translate-y-1 transition-transform">
     <div>
-      <p className="text-soft-grey font-bold text-[10px] uppercase tracking-widest opacity-70">{title}</p>
+      <p className="text-soft-grey font-bold text-[10px] uppercase tracking-widest">{title}</p>
       <h3 className="serif-heading text-4xl font-bold mt-1 text-charcoal">{value}</h3>
-      <div className={`flex items-center gap-1 mt-2 text-xs font-bold ${trend.includes('+') ? 'text-green-500' : 'text-primary'}`}>
-        <span className="material-symbols-outlined text-sm">{trend.includes('+') ? 'trending_up' : 'info'}</span>
-        <span>{trend}</span>
-      </div>
+      <div className="flex items-center gap-1 mt-2 text-xs font-bold text-primary"><span>{trend}</span></div>
     </div>
-    <div className="size-14 bg-primary/10 rounded-full flex items-center justify-center text-primary">
-      <span className="material-symbols-outlined text-3xl">{icon}</span>
-    </div>
+    <div className="size-14 bg-primary/10 rounded-full flex items-center justify-center text-primary"><span className="material-symbols-outlined text-3xl">{icon}</span></div>
   </div>
 );
 
 const ModuleCard = ({ title, desc, icon, onClick }) => (
-  <div
-    onClick={onClick}
-    className="group bg-white p-8 rounded-[2.5rem] shadow-sm border border-primary/5 hover:shadow-xl hover:translate-y-[-4px] transition-all duration-300 cursor-pointer flex flex-col items-center text-center relative overflow-hidden"
-  >
-    {/* Soft decorative background element */}
-    <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-bl-[4rem] group-hover:w-32 group-hover:h-32 transition-all"></div>
-
+  <div onClick={onClick} className="group bg-white p-8 rounded-[2rem] shadow-sm border border-primary/5 hover:shadow-xl hover:translate-y-[-4px] transition-all duration-300 cursor-pointer flex flex-col items-center text-center relative overflow-hidden">
+    <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-bl-[4rem]"></div>
     <div className="mb-6 relative">
-      <div className="size-16 bg-background-ivory rounded-2xl flex items-center justify-center text-primary border border-primary/10 shadow-inner group-hover:scale-110 group-hover:rotate-6 transition-all">
-        <span className="text-3xl flex items-center justify-center">{icon}</span>
-      </div>
-      <div className="absolute -bottom-1 -right-1 size-4 bg-emerald-500 rounded-full border-4 border-white"></div>
+      <div className="size-16 bg-background-ivory rounded-2xl flex items-center justify-center text-primary border border-primary/10 group-hover:scale-110 transition-all">{icon}</div>
     </div>
-
-    <h3 className="serif-heading text-2xl text-charcoal mb-3">
-      {title}
-    </h3>
-
-    <p className="text-xs text-soft-grey leading-relaxed mb-8 max-w-[240px] font-medium">
-      {desc}
-    </p>
-
-    <button className="text-[10px] font-black uppercase tracking-[0.2em] text-primary flex items-center gap-2 group-hover:gap-3 transition-all py-2 px-4 rounded-full hover:bg-primary/5 mt-auto">
-      Explore <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
-    </button>
+    <h3 className="serif-heading text-2xl text-charcoal mb-3">{title}</h3>
+    <p className="text-xs text-soft-grey leading-relaxed mb-8 max-w-[240px] font-medium">{desc}</p>
+    <button className="text-[10px] font-black uppercase tracking-[0.2em] text-primary flex items-center gap-2 group-hover:gap-3 transition-all">Explore <span>&rarr;</span></button>
   </div>
 );
 
@@ -509,10 +702,8 @@ const getStatusColorClass = (status) => {
   switch (status) {
     case 'Pending': return 'text-orange-600 border-orange-200 bg-orange-50';
     case 'Confirmed': return 'text-green-600 border-green-200 bg-green-50';
-    case 'Cancelled': return 'text-red-600 border-red-200 bg-red-50';
-    case 'Preparing': return 'text-blue-600 border-blue-200 bg-blue-50';
-    case 'Ready': return 'text-purple-600 border-purple-200 bg-purple-50';
-    default: return 'text-primary border-primary/20 bg-primary/5';
+    case 'Cancelled': return 'text-rose-600 border-rose-200 bg-rose-50';
+    default: return 'text-primary border-primary/10 bg-primary/5';
   }
 };
 

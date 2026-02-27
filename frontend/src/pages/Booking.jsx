@@ -27,7 +27,7 @@ const Booking = () => {
 
   const fetchTables = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/tables');
+      const res = await axios.get('/api/tables');
       setTables(res.data);
       if (res.data.length > 0) {
         setFormData(prev => ({ ...prev, tableId: res.data[0]._id }));
@@ -48,7 +48,7 @@ const Booking = () => {
 
     try {
       // 1. Create/Find Customer
-      const customerRes = await axios.post('http://localhost:5000/api/customers', {
+      const customerRes = await axios.post('/api/customers', {
         name: formData.name,
         email: formData.email,
         phone: formData.phone
@@ -59,7 +59,7 @@ const Booking = () => {
       let guestNumber = parseInt(formData.guests.replace(/\D/g, '')) || 2;
 
       // 2. Create Booking
-      const bookingRes = await axios.post('http://localhost:5000/api/bookings', {
+      const bookingRes = await axios.post('/api/bookings', {
         customerId,
         tableId: formData.tableId,
         date: formData.date,
@@ -148,10 +148,15 @@ const Booking = () => {
                 </div>
                 <div className="w-full h-[1px] bg-border-neutral mb-12"></div>
                 <div className="space-y-6">
-                  <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-charcoal">NEED TO MAKE CHANGES?</p>
-                  <button onClick={() => setStatus('idle')} className="inline-block px-10 py-3 border border-primary text-primary text-[10px] uppercase font-bold tracking-[0.2em] transition-soft hover:bg-primary hover:text-white rounded-sm text-center">
-                    MAKE NEW RESERVATION
-                  </button>
+                  <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-charcoal">WANT TO SAVE TIME AT THE RESTAURANT?</p>
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                    <Link to={`/preorder?id=${bookingResult._id}&type=table`} className="inline-block px-10 py-3 bg-primary text-white text-[10px] uppercase font-bold tracking-[0.2em] transition-soft hover:bg-primary-hover rounded-sm text-center">
+                      PRE-ORDER FOOD NOW
+                    </Link>
+                    <button onClick={() => setStatus('idle')} className="inline-block px-10 py-3 border border-border-neutral text-soft-grey text-[10px] uppercase font-bold tracking-[0.2em] transition-soft hover:bg-background-ivory rounded-sm text-center">
+                      SKIP / NEW RESERVATION
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -226,7 +231,7 @@ const Booking = () => {
                 {/* Date */}
                 <div className="flex flex-col">
                   <label className="text-xs uppercase tracking-widest text-charcoal font-semibold mb-2" htmlFor="date">Preferred Date</label>
-                  <input value={formData.date} onChange={handleChange} className="border border-border-neutral rounded-sm p-3 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all bg-background-ivory" id="date" name="date" required type="date" />
+                  <input value={formData.date} onChange={handleChange} className="border border-border-neutral rounded-sm p-3 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all bg-background-ivory" id="date" name="date" required type="date" min={new Date().toISOString().split('T')[0]} />
                 </div>
                 {/* Time */}
                 <div className="flex flex-col">

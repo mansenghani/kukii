@@ -32,6 +32,11 @@ const bookingSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+  preOrderId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'PreOrder',
+  },
+
   createdAt: {
     type: Date,
     default: Date.now,

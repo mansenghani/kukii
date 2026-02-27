@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Search, Star, MessageSquareWarning, Trash2, Check, X, Eye, X as XClose, Loader2, AlertCircle } from 'lucide-react';
+import { Search, Star, MessageSquare, Trash2, Check, X, Eye, X as XClose, Loader2, AlertCircle } from 'lucide-react';
 
 const AdminFeedback = () => {
     const [feedbacks, setFeedbacks] = useState([]);
@@ -10,7 +10,7 @@ const AdminFeedback = () => {
     const [statusFilter, setStatusFilter] = useState('all');
     const [errorMsg, setErrorMsg] = useState('');
 
-    const API_BASE_URL = 'http://localhost:5050/api/admin/feedback';
+    const API_BASE_URL = '/api/admin/feedback';
 
     useEffect(() => {
         fetchFeedbacks();
@@ -20,7 +20,6 @@ const AdminFeedback = () => {
         setLoading(true);
         setErrorMsg('');
         try {
-            // Using the requested admin-side route
             const response = await axios.get(API_BASE_URL);
             setFeedbacks(response.data);
         } catch (error) {
@@ -57,7 +56,7 @@ const AdminFeedback = () => {
         if (!window.confirm('Permanently delete this review from system?')) return;
         try {
             // Re-using the base feedback route for absolute deletion
-            await axios.delete(`http://localhost:5050/api/feedback/${id}`);
+            await axios.delete(`/api/feedback/${id}`);
             fetchFeedbacks();
         } catch (error) {
             alert('Delete failed');

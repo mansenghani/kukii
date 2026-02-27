@@ -6,11 +6,13 @@ import { Star, Quote, ChevronRight, User } from 'lucide-react';
 const Home = () => {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [featuredItems, setFeaturedItems] = useState([]);
+  const [featuredLoading, setFeaturedLoading] = useState(true);
 
   useEffect(() => {
     const fetchApproved = async () => {
       try {
-        const res = await axios.get('http://localhost:5050/api/feedback/approved');
+        const res = await axios.get('/api/feedback/approved');
         setReviews(res.data.slice(0, 3));
       } catch (err) {
         console.error('Home feedback fetch error:', err);
@@ -18,7 +20,48 @@ const Home = () => {
         setLoading(false);
       }
     };
+
+    const fetchFeatured = async () => {
+      try {
+        setFeaturedLoading(true);
+        const res = await axios.get('/api/featured-menu');
+        if (res.data && res.data.menuIds && res.data.menuIds.length === 3) {
+          setFeaturedItems(res.data.menuIds);
+        } else {
+          // Fallback data if none selected
+          setFeaturedItems([
+            {
+              _id: 'fallback-1',
+              name: 'Truffle Risotto',
+              price: 42,
+              description: 'Wild forest mushrooms, aged parmesan, fresh seasonal black truffle, and micro-herbs.',
+              image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAh66ll9vNt1D8G10i98_DquZdwjzqW6fnon8cLhWxx2AEq0xo5_yKBGz9qjpTOOJpSdj6qCUM8hoDdRPHOZOA-OqJGdbodgo1JPOo4_dD4ddMs01mx4wH6SdLpqrMYk1NXTC1IZ7uqOBONQqJWDPG80A172MIfyCQ5AdjAIf3sZfq7c0Dw6WKSclXnvMv19Z3HcvUP7pe7b6vn9wkOit9u_wwGw9OPgZ6d7W8kaPPCx81p7b0a48Vy9CglVJLOYqM-k8JQNTSt7Vc'
+            },
+            {
+              _id: 'fallback-2',
+              name: 'Wagyu Ribeye',
+              price: 125,
+              description: 'A5 Miyazaki, roasted marrow bone, herb-infused butter, and Himalayan sea salt.',
+              image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAuKc8EiO5h9hvmXvRld0hLb3NfVVPw2W16kcYaCxMzQtPOmC4L68C-NZZtFHsgPh8FanU7hUXo6ilv8mik3gZdMKt0GS8nPM2UPeYkCrcFxYmqMxh2kY5HOp7cztYP-fizhyoMQ6egXvcKohuF44i77dgAjGtholNR6nZnyM3ONcj--rb6u-KHUsCGIRgX2sp13MFab9e0yWMJKz83VIcu2djRtseAHFgmla_URDs7JBSeZe5JTIGJLYWsvddApZ2xcmK4XC5O_Hg'
+            },
+            {
+              _id: 'fallback-3',
+              name: 'Gold Leaf Opera',
+              price: 28,
+              description: '70% Dark chocolate ganache, espresso-soaked sponge, and 24k edible gold leaf.',
+              image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC1FxieY0F7bZC1yIFLI-NTfioKyej6ahuV43oSfuZxGZddBKzkkQIfUc9daBkBd6ic640pTWM9T66SWOUwztflH4z1777g52VU79LTvEbjv02-ME8Q1h42hO6iRXPMTLYs0avABOR1LYpk-zPZqSctuEAQDqHwmNrd-fcxiNc8Rg0E7QDL6f1-dmFmadF5N5W5Hma0tNMddSgdBXPZq9hB12q7o5n7fNEsKHGAIDG25gL4_fcZu7vKaZ_MU6z5dTegBnGplveHJqM'
+            }
+          ]);
+        }
+      } catch (err) {
+        console.error('Featured menu fetch error:', err);
+      } finally {
+        setFeaturedLoading(false);
+      }
+    };
+
     fetchApproved();
+    fetchFeatured();
   }, []);
 
   return (
@@ -98,45 +141,23 @@ const Home = () => {
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-16">
-            {/* Truffle Risotto */}
-            <div className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 border border-border-neutral font-sans">
-              <div className="relative h-72 overflow-hidden">
-                <div className="w-full h-full bg-center bg-cover transition-transform duration-700 group-hover:scale-[1.03]" style={{ backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuAh66ll9vNt1D8G10i98_DquZdwjzqW6fnon8cLhWxx2AEq0xo5_yKBGz9qjpTOOJpSdj6qCUM8hoDdRPHOZOA-OqJGdbodgo1JPOo4_dD4ddMs01mx4wH6SdLpqrMYk1NXTC1IZ7uqOBONQqJWDPG80A172MIfyCQ5AdjAIf3sZfq7c0Dw6WKSclXnvMv19Z3HcvUP7pe7b6vn9wkOit9u_wwGw9OPgZ6d7W8kaPPCx81p7b0a48Vy9CglVJLOYqM-k8JQNTSt7Vc")' }}></div>
-              </div>
-              <div className="p-8 flex flex-col gap-3">
-                <div className="flex justify-between items-start">
-                  <h3 className="serif-heading text-xl font-bold group-hover:text-primary transition-colors">Truffle Risotto</h3>
-                  <span className="text-primary font-bold text-lg">₹42</span>
+            {featuredItems.map((item) => (
+              <div key={item._id} className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 border border-border-neutral font-sans">
+                <div className="relative h-72 overflow-hidden">
+                  <div
+                    className="w-full h-full bg-center bg-cover transition-transform duration-700 group-hover:scale-[1.03]"
+                    style={{ backgroundImage: `url("${item.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&q=80&w=1000'}")` }}
+                  ></div>
                 </div>
-                <p className="text-soft-grey text-sm leading-relaxed font-sans">Wild forest mushrooms, aged parmesan, fresh seasonal black truffle, and micro-herbs.</p>
-              </div>
-            </div>
-            {/* Wagyu */}
-            <div className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 border border-border-neutral font-sans">
-              <div className="relative h-72 overflow-hidden">
-                <div className="w-full h-full bg-center bg-cover transition-transform duration-700 group-hover:scale-[1.03]" style={{ backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuAuKc8EiO5h9hvmXvRld0hLb3NfVVPw2W16kcYaCxMzQtPOmC4L68C-NZZtFHsgPh8FanU7hUXo6ilv8mik3gZdMKt0GS8nPM2UPeYkCrcFxYmqMxh2kY5HOp7cztYP-fizhyoMQ6egXvcKohuF44i77dgAjGtholNR6nZnyM3ONcj--rb6u-KHUsCGIRgX2sp13MFab9e0yWMJKz83VIcu2djRtseAHFgmla_URDs7JBSeZe5JTIGJLYWsvddApZ2xcmK4XC5O_Hg")' }}></div>
-              </div>
-              <div className="p-8 flex flex-col gap-3">
-                <div className="flex justify-between items-start">
-                  <h3 className="serif-heading text-xl font-bold group-hover:text-primary transition-colors">Wagyu Ribeye</h3>
-                  <span className="text-primary font-bold text-lg">₹125</span>
+                <div className="p-8 flex flex-col gap-3">
+                  <div className="flex justify-between items-start">
+                    <h3 className="serif-heading text-xl font-bold group-hover:text-primary transition-colors">{item.name}</h3>
+                    <span className="text-primary font-bold text-lg">₹{item.price}</span>
+                  </div>
+                  <p className="text-soft-grey text-sm leading-relaxed font-sans line-clamp-2">{item.description}</p>
                 </div>
-                <p className="text-soft-grey text-sm leading-relaxed font-sans">A5 Miyazaki, roasted marrow bone, herb-infused butter, and Himalayan sea salt.</p>
               </div>
-            </div>
-            {/* Dessert */}
-            <div className="group bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 border border-border-neutral font-sans">
-              <div className="relative h-72 overflow-hidden">
-                <div className="w-full h-full bg-center bg-cover transition-transform duration-700 group-hover:scale-[1.03]" style={{ backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuC1FxieY0F7bZC1yIFLI-NTfioKyej6ahuV43oSfuZxGZddBKzkkQIfUc9daBkBd6ic640pTWM9T66SWOUwztflH4z1777g52VU79LTvEbjv02-ME8Q1h42hO6iRXPMTLYs0avABOR1LYpk-zPZqSctuEAQDqHwmNrd-fcxiNc8Rg0E7QDL6f1-dmFmadF5N5W5Hma0tNMddSgdBXPZq9hB12q7o5n7fNEsKHGAIDG25gL4_fcZu7vKaZ_MU6z5dTegBnGplveHJqM")' }}></div>
-              </div>
-              <div className="p-8 flex flex-col gap-3">
-                <div className="flex justify-between items-start">
-                  <h3 className="serif-heading text-xl font-bold group-hover:text-primary transition-colors">Gold Leaf Opera</h3>
-                  <span className="text-primary font-bold text-lg">₹28</span>
-                </div>
-                <p className="text-soft-grey text-sm leading-relaxed font-sans">70% Dark chocolate ganache, espresso-soaked sponge, and 24k edible gold leaf.</p>
-              </div>
-            </div>
+            ))}
           </div>
           <div className="flex justify-center mt-12">
             <Link to="/menu" className="bg-charcoal text-white px-10 py-4 rounded-full font-bold text-[10px] uppercase tracking-widest hover:bg-black transition-all">

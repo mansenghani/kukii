@@ -19,7 +19,7 @@ const ReportsPage = () => {
         search: ''
     });
 
-    const API_BASE_URL = 'http://localhost:5050/api/admin/reports';
+    const API_BASE_URL = '/api/admin/reports';
 
     useEffect(() => {
         fetchReports();
