@@ -125,7 +125,7 @@ const AdminFeaturedMenu = ({ menuItems = [], onError, onSuccess }) => {
                         {/* Image Container */}
                         <div className="relative h-48 overflow-hidden">
                             {item.image ? (
-                                <img src={item.image} alt={item.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                                <img src={item.image.startsWith('uploads') ? `/${item.image}` : item.image} alt={item.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
                             ) : (
                                 <div className="w-full h-full bg-background-ivory flex items-center justify-center text-primary/30">
                                     <Utensils size={40} />

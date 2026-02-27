@@ -55,6 +55,8 @@ const AdminDashboard = () => {
   const [submitting, setSubmitting] = useState(false);
   const [showFooterModal, setShowFooterModal] = useState(false);
   const [preorderStats, setPreorderStats] = useState({ summary: {}, popularItems: [] });
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
 
 
   const API_BASE_URL = '/api';
@@ -150,6 +152,18 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
@@ -185,14 +199,32 @@ const AdminDashboard = () => {
         };
       }
 
-      await axios[method](url, finalFormData);
+      let res;
+      if (activeTab === 'menu') {
+        const data = new FormData();
+        Object.keys(finalFormData).forEach(key => {
+          if (finalFormData[key] !== undefined && key !== 'image') {
+            data.append(key, finalFormData[key]);
+          }
+        });
+        if (imageFile) {
+          data.append('image', imageFile);
+        }
+        res = await axios[method](url, data, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+      } else {
+        res = await axios[method](url, finalFormData);
+      }
 
       const actionText = isEditing ? 'updated' : 'added';
-      const typeText = activeTab === 'categories' ? 'Category' : activeTab.slice(0, -1);
+      const typeText = activeTab === 'categories' ? 'Category' : (activeTab === 'menu' ? 'Menu' : activeTab.slice(0, -1));
 
       setMessage({ text: `${typeText} ${actionText} successfully!`, type: 'success' });
       setShowModal(false);
       setFormData({});
+      setImageFile(null);
+      setImagePreview(null);
       setIsEditing(false);
       setEditingId(null);
       fetchAll();
@@ -214,9 +246,14 @@ const AdminDashboard = () => {
         name: item.name,
         description: item.description,
         price: item.price,
-        image: item.image,
-        availability: item.availability
+        availability: item.availability,
+        isAvailable: item.isAvailable !== undefined ? item.isAvailable : true
       });
+      if (item.image) {
+        setImagePreview(item.image.startsWith('http') ? item.image : (item.image.startsWith('/') ? item.image : `/${item.image}`));
+      } else {
+        setImagePreview(null);
+      }
     } else if (activeTab === 'categories') {
       setFormData({ name: item.name, description: item.description });
     } else if (activeTab === 'tables') {
@@ -376,7 +413,7 @@ const AdminDashboard = () => {
                         <td className="p-5 text-sm">
                           {activeTab === 'menu' && (
                             <div className="flex items-center gap-3">
-                              {item.image && <img src={item.image} alt="" className="w-10 h-10 rounded object-cover border border-border-neutral" />}
+                              {item.image && <img src={item.image.startsWith('uploads') ? `/${item.image}` : item.image} alt="" className="w-10 h-10 rounded object-cover border border-border-neutral" />}
                               <div>
                                 <span className="font-bold text-charcoal">{item.name}</span> <br />
                                 <span className="text-primary text-[10px] font-bold uppercase tracking-widest">{item.categoryId?.name || 'Standard'}</span>
@@ -485,8 +522,8 @@ const AdminDashboard = () => {
       {showModal && (
         <div className="fixed inset-0 bg-charcoal/60 backdrop-blur-sm flex justify-center items-center z-[1000] p-4">
           <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-md relative p-8 border border-primary/10">
-            <button onClick={() => { setShowModal(false); setFormData({}); setIsEditing(false); }} className="absolute top-6 right-6 text-soft-grey hover:text-primary transition-colors"><X size={24} /></button>
-            <h3 className="serif-heading text-2xl mb-6 text-charcoal">{isEditing ? 'Edit' : 'Add New'} {activeTab === 'categories' ? 'Category' : activeTab.slice(0, -1)}</h3>
+            <button onClick={() => { setShowModal(false); setFormData({}); setIsEditing(false); setImageFile(null); setImagePreview(null); }} className="absolute top-6 right-6 text-soft-grey hover:text-primary transition-colors"><X size={24} /></button>
+            <h3 className="serif-heading text-2xl mb-6 text-charcoal">{isEditing ? 'Edit' : 'Add New'} {activeTab === 'categories' ? 'Category' : (activeTab === 'menu' ? 'Menu' : activeTab.slice(0, -1))}</h3>
             <form onSubmit={handleSubmit} className="flex flex-col gap-5">
               {activeTab === 'menu' && (
                 <>
@@ -497,7 +534,33 @@ const AdminDashboard = () => {
                   <input type="text" placeholder="Item Name" required value={formData.name || ''} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full border border-primary/10 rounded-xl p-3 text-sm focus:border-primary outline-none bg-background-ivory" />
                   <input type="number" placeholder="Price" required value={formData.price || ''} onChange={(e) => setFormData({ ...formData, price: e.target.value })} className="w-full border border-primary/10 rounded-xl p-3 text-sm focus:border-primary outline-none bg-background-ivory" />
                   <textarea placeholder="Description" value={formData.description || ''} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="w-full border border-primary/10 rounded-xl p-3 text-sm focus:border-primary outline-none bg-background-ivory h-24" />
-                  <label className="flex items-center gap-3 cursor-pointer"><input type="checkbox" checked={formData.availability} onChange={(e) => setFormData({ ...formData, availability: e.target.checked })} /> <span className="text-xs font-bold uppercase tracking-widest text-charcoal">Available</span></label>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-primary uppercase tracking-widest ml-1">Menu Image</label>
+                    <div className="flex items-center gap-4">
+                      {imagePreview && (
+                        <div className="w-20 h-20 rounded-xl overflow-hidden border border-primary/10 relative group">
+                          <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                        </div>
+                      )}
+                      <label className="flex-1 flex flex-col items-center justify-center border-2 border-dashed border-primary/10 rounded-xl p-4 hover:border-primary/30 transition-all cursor-pointer bg-background-ivory/50">
+                        <Plus size={20} className="text-primary mb-1" />
+                        <span className="text-[10px] font-bold text-soft-grey uppercase">{imageFile ? 'Change Image' : 'Upload Image'}</span>
+                        <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-6">
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <input type="checkbox" checked={formData.availability} onChange={(e) => setFormData({ ...formData, availability: e.target.checked })} />
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-charcoal">Available</span>
+                    </label>
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <input type="checkbox" checked={formData.isAvailable} onChange={(e) => setFormData({ ...formData, isAvailable: e.target.checked })} />
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-charcoal">Show in Menu</span>
+                    </label>
+                  </div>
                 </>
               )}
               {activeTab === 'categories' && (

@@ -1,4 +1,6 @@
 const MenuItem = require('../models/MenuItem');
+const fs = require('fs');
+const path = require('path');
 
 exports.getMenuItems = async (req, res) => {
   try {
@@ -13,41 +15,101 @@ exports.getMenuItems = async (req, res) => {
 
 exports.createMenuItem = async (req, res) => {
   try {
-    const { categoryId, name, description, price, image, availability } = req.body;
+    const { categoryId, name, description, price, availability, isAvailable } = req.body;
+
+    let imagePath = '';
+    if (req.file) {
+      // Use relative path starting with uploads/ for DB consistency
+      imagePath = `uploads/${req.file.filename}`;
+    }
+
     const newMenuItem = new MenuItem({
       categoryId,
       name,
       description,
-      price,
-      image,
-      availability
+      price: parseFloat(price),
+      image: imagePath,
+      availability: availability === 'true' || availability === true,
+      isAvailable: isAvailable === 'true' || isAvailable === true
     });
+
     await newMenuItem.save();
     res.status(201).json(newMenuItem);
   } catch (error) {
+    if (req.file) {
+      fs.unlinkSync(req.file.path);
+    }
     res.status(400).json({ message: error.message });
   }
 };
 
 exports.updateMenuItem = async (req, res) => {
   try {
-    const updatedMenuItem = await MenuItem.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true, runValidators: true }
-    ).populate('categoryId', 'name');
+    const { categoryId, name, description, price, availability, isAvailable } = req.body;
 
-    if (!updatedMenuItem) return res.status(404).json({ message: 'Menu item not found' });
+    const menuItem = await MenuItem.findById(req.params.id);
+    if (!menuItem) return res.status(404).json({ message: 'Menu item not found' });
+
+    // Update fields only if they are provided in the body
+    if (categoryId) menuItem.categoryId = categoryId;
+    if (name) menuItem.name = name;
+    if (description !== undefined) menuItem.description = description;
+    if (price !== undefined) menuItem.price = parseFloat(price);
+
+    // Checkboxes sent via FormData are strings "true"/"false"
+    if (availability !== undefined) {
+      menuItem.availability = availability === 'true' || availability === true;
+    }
+    if (isAvailable !== undefined) {
+      menuItem.isAvailable = isAvailable === 'true' || isAvailable === true;
+    }
+
+    if (req.file) {
+      // Delete old image file if it exists
+      if (menuItem.image) {
+        const oldPath = path.join(__dirname, '..', menuItem.image);
+        if (fs.existsSync(oldPath)) {
+          try {
+            fs.unlinkSync(oldPath);
+          } catch (err) {
+            console.error("Failed to delete old image:", err);
+          }
+        }
+      }
+      // Save new relative path
+      menuItem.image = `uploads/${req.file.filename}`;
+    }
+
+    const updatedMenuItem = await menuItem.save();
+    // Re-populate for response
+    await updatedMenuItem.populate('categoryId', 'name');
+
     res.status(200).json(updatedMenuItem);
   } catch (error) {
+    if (req.file) {
+      try { fs.unlinkSync(req.file.path); } catch (e) { }
+    }
     res.status(400).json({ message: error.message });
   }
 };
 
 exports.deleteMenuItem = async (req, res) => {
   try {
-    const deletedMenuItem = await MenuItem.findByIdAndDelete(req.params.id);
-    if (!deletedMenuItem) return res.status(404).json({ message: 'Menu item not found' });
+    const menuItem = await MenuItem.findById(req.params.id);
+    if (!menuItem) return res.status(404).json({ message: 'Menu item not found' });
+
+    if (menuItem.image) {
+      const filePath = path.join(__dirname, '..', menuItem.image);
+      if (fs.existsSync(filePath)) {
+        try {
+          fs.unlinkSync(filePath);
+        } catch (err) {
+          console.error("Failed to delete image file:", err);
+        }
+      }
+    }
+
+    await MenuItem.findByIdAndDelete(req.params.id);
     res.status(200).json({ message: 'Menu item deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });

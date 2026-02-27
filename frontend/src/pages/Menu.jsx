@@ -15,8 +15,8 @@ const Menu = () => {
     const fetchData = async () => {
       try {
         const [menuRes, catRes] = await Promise.all([
-          axios.get('http://localhost:5050/api/menu'),
-          axios.get('http://localhost:5050/api/categories')
+          axios.get('/api/menu'),
+          axios.get('/api/categories')
         ]);
         setMenuItems(menuRes.data);
         setCategories(catRes.data);
@@ -40,7 +40,7 @@ const Menu = () => {
         <img
           alt={item.name}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-          src={item.image || 'https://via.placeholder.com/400x300?text=KUKI+Dish'}
+          src={item.image ? (item.image.startsWith('uploads') ? `/${item.image}` : item.image) : 'https://via.placeholder.com/400x300?text=KUKI+Dish'}
         />
         {!item.availability && (
           <div className="absolute inset-0 bg-black/60 flex items-center justify-center">

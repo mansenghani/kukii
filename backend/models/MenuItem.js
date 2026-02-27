@@ -28,6 +28,10 @@ const menuItemSchema = new mongoose.Schema({
         type: Boolean,
         default: true
     },
+    isAvailable: { // Adding as requested by user
+        type: Boolean,
+        default: true
+    },
     totalOrdered: {
         type: Number,
         default: 0

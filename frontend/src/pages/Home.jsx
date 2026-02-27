@@ -146,7 +146,7 @@ const Home = () => {
                 <div className="relative h-72 overflow-hidden">
                   <div
                     className="w-full h-full bg-center bg-cover transition-transform duration-700 group-hover:scale-[1.03]"
-                    style={{ backgroundImage: `url("${item.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&q=80&w=1000'}")` }}
+                    style={{ backgroundImage: `url("${item.image ? (item.image.startsWith('uploads') ? `/${item.image}` : item.image) : 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&q=80&w=1000'}")` }}
                   ></div>
                 </div>
                 <div className="p-8 flex flex-col gap-3">
