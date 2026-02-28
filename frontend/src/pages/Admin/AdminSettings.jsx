@@ -308,8 +308,8 @@ const AdminSettings = ({ onError, onSuccess }) => {
                                     </div>
                                     <div className="flex items-center justify-between p-4 hover:bg-background-ivory/30 rounded-2xl transition-colors">
                                         <div>
-                                            <p className="font-bold text-charcoal">Algorithmic Confirmation</p>
-                                            <p className="text-[10px] text-soft-grey italic">Automatically validated requests without human intervention.</p>
+                                            <p className="font-bold text-charcoal">Auto Booking Approval</p>
+                                            <p className="text-[10px] text-soft-grey italic">Automatically approve new bookings without human intervention.</p>
                                         </div>
                                         <label className="relative inline-flex items-center cursor-pointer">
                                             <input checked={booking.autoConfirmation} onChange={e => setBooking({ ...booking, autoConfirmation: e.target.checked })} className="sr-only peer" type="checkbox" />

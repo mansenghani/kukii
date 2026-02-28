@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { Calendar, Clock, Users, CheckCircle, AlertCircle } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const EventBooking = () => {
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
         name: '',
         phone: '',
@@ -134,11 +135,14 @@ const EventBooking = () => {
                                 <div className="space-y-6">
                                     <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-charcoal">WANT TO PRE-ARRANGE THE CATERING?</p>
                                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                                        <Link to={`/preorder?id=${bookingResult._id}&type=event`} className="inline-block px-10 py-3 bg-primary text-white text-[10px] uppercase font-bold tracking-[0.2em] transition-soft hover:bg-primary-hover rounded-sm text-center">
+                                        <Link to={`/preorder?id=${bookingResult._id}&type=event`} className="inline-block px-10 py-3 bg-primary text-white text-[10px] uppercase font-bold tracking-[0.2em] transition-soft hover:bg-primary-hover rounded-sm text-center shadow-lg shadow-primary/20">
                                             PRE-ORDER FOOD NOW
                                         </Link>
+                                        <button onClick={() => navigate('/')} className="inline-block px-10 py-3 border border-border-neutral text-soft-grey text-[10px] uppercase font-bold tracking-[0.2em] transition-soft hover:bg-background-ivory rounded-sm text-center">
+                                            SKIP PRE-ORDER
+                                        </button>
                                         <button onClick={() => setStatus('idle')} className="inline-block px-10 py-3 border border-border-neutral text-soft-grey text-[10px] uppercase font-bold tracking-[0.2em] transition-soft hover:bg-background-ivory rounded-sm text-center">
-                                            SKIP / NEW EVENT
+                                            NEW EVENT
                                         </button>
                                     </div>
                                 </div>

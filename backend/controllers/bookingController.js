@@ -1,5 +1,6 @@
 const Booking = require('../models/Booking');
 const Event = require('../models/Event');
+const BookingSettings = require('../models/BookingSettings');
 const { sendUserBookingEmail, sendAdminNotificationEmail } = require('../utils/sendEmail');
 
 exports.createBooking = async (req, res) => {
@@ -39,16 +40,37 @@ exports.createBooking = async (req, res) => {
       return res.status(400).json({ message: 'Table already booked for selected date and time' });
     }
 
+    // Fetch booking settings for auto confirmation
+    const settings = await BookingSettings.findOne();
+    const isAutoApprove = settings ? settings.autoConfirmation : false;
+
     const booking = new Booking({
       customerId,
       tableId,
       date: new Date(date),
       time,
       guests,
-      status: 'pending'
+      status: isAutoApprove ? 'approved' : 'pending'
     });
 
     await booking.save();
+
+    // Trigger instant email notification if auto-approved
+    if (isAutoApprove) {
+      const populatedBooking = await Booking.findById(booking._id)
+        .populate('customerId')
+        .populate('tableId');
+
+      (async () => {
+        try {
+          await sendUserBookingEmail(populatedBooking, 'approved');
+          await sendAdminNotificationEmail(populatedBooking);
+        } catch (emailErr) {
+          console.error("Auto-Approve Email Notification Error:", emailErr);
+        }
+      })();
+    }
+
     res.status(201).json(booking);
   } catch (error) {
     res.status(400).json({ message: error.message });

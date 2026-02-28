@@ -48,3 +48,21 @@
 2026-02-27T15:39:00.408Z - ✅ Success: Email sent to admin@kukirestaurant.com. MessageID: <f1f27889-7d7c-d52f-bac2-b9df5fae50f8@gmail.com>
 2026-02-27T16:04:52.432Z - Attempting to send email to harrowgame09@gmail.com - Subject: Event Confirmed – KUKI Restaurant
 2026-02-27T16:04:55.939Z - ✅ Success: Email sent to harrowgame09@gmail.com. MessageID: <23d8ee96-236b-4a61-1a99-0a8a7b640815@gmail.com>
+2026-02-28T08:54:00.945Z - Attempting to send email to mansenghani6@gmail.com - Subject: Your Reservation is Confirmed – KUKI Restaurant
+2026-02-28T08:54:03.875Z - ✅ Success: Email sent to mansenghani6@gmail.com. MessageID: <48bbe4d3-2b2f-8928-721b-817cf191b012@gmail.com>
+2026-02-28T08:54:04.049Z - Attempting to send email to admin@kukirestaurant.com - Subject: Booking Update: admin - approved
+2026-02-28T08:54:06.465Z - ✅ Success: Email sent to admin@kukirestaurant.com. MessageID: <7173a3c8-6ced-6a10-516d-be64a8e1d0b5@gmail.com>
+2026-02-28T09:21:53.859Z - Attempting to send email to mansenghani6@gmail.com - Subject: Event Confirmed – KUKI Restaurant
+2026-02-28T09:21:57.023Z - ✅ Success: Email sent to mansenghani6@gmail.com. MessageID: <39bccff4-cfb7-08bf-01d8-7e1a31d40f33@gmail.com>
+2026-02-28T09:25:54.115Z - Attempting to send email to mansenghani6@gmail.com - Subject: Event Confirmed – KUKI Restaurant
+2026-02-28T09:25:56.676Z - ✅ Success: Email sent to mansenghani6@gmail.com. MessageID: <8eb5ded6-9211-7ae3-7cd2-6398b7c5262c@gmail.com>
+2026-02-28T09:34:13.171Z - Attempting to send email to mansenghani6@gmail.com - Subject: Your Reservation is Confirmed – KUKI Restaurant
+2026-02-28T09:34:16.046Z - ✅ Success: Email sent to mansenghani6@gmail.com. MessageID: <2bbcd960-ca0c-4565-fdbc-cd8dda88d361@gmail.com>
+2026-02-28T09:34:16.585Z - Attempting to send email to admin@kukirestaurant.com - Subject: Booking Update: new - approved
+2026-02-28T09:34:19.159Z - ✅ Success: Email sent to admin@kukirestaurant.com. MessageID: <5ab01ec5-a6bf-5996-acfc-ab8effbd084c@gmail.com>
+2026-02-28T09:39:30.515Z - Attempting to send email to mansenghani6@gmail.com - Subject: Event Confirmed – KUKI Restaurant
+2026-02-28T09:39:33.281Z - ✅ Success: Email sent to mansenghani6@gmail.com. MessageID: <0cfc5766-ada4-2c22-3bc3-4e29ad449d09@gmail.com>
+2026-02-28T09:46:43.237Z - Attempting to send email to mansenghani6@gmail.com - Subject: Your Private Event is Confirmed – KUKI Restaurant
+2026-02-28T09:46:45.633Z - ✅ Success: Email sent to mansenghani6@gmail.com. MessageID: <89f80f1d-3623-217c-7761-1d406c240ded@gmail.com>
+2026-02-28T09:46:45.825Z - Attempting to send email to noreply.ecart27@gmail.com - Subject: Booking Update: aupanishd - approved (Private Event)
+2026-02-28T09:46:48.234Z - ✅ Success: Email sent to noreply.ecart27@gmail.com. MessageID: <85f87020-910f-6584-b734-8f556c8c8802@gmail.com>

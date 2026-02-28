@@ -19,6 +19,9 @@ const AdminEvents = ({ onError, onSuccess }) => {
     const [loadingPreOrder, setLoadingPreOrder] = useState(false);
     const [showAddModal, setShowAddModal] = useState(false);
 
+    // Custom confirmation modal state
+    const [confirmModal, setConfirmModal] = useState({ isOpen: false, id: null, status: null });
+
     const [submitting, setSubmitting] = useState(false);
     const [formData, setFormData] = useState({
         name: '',
@@ -76,14 +79,21 @@ const AdminEvents = ({ onError, onSuccess }) => {
         }
     };
 
-    const handleStatusUpdate = async (id, status) => {
-        if (!window.confirm(`Are you sure you want to ${status} this event?`)) return;
+    const handleStatusUpdate = (id, status) => {
+        setConfirmModal({ isOpen: true, id, status });
+    };
+
+    const confirmStatusUpdate = async () => {
+        const { id, status } = confirmModal;
+        setConfirmModal({ isOpen: false, id: null, status: null });
 
         try {
             await axios.put(`${API_URL}/${id}/status`, { status });
             onSuccess(`Event successfully ${status}!`);
             fetchEvents();
-            setSelectedEvent(null);
+            if (selectedEvent && selectedEvent._id === id) {
+                setSelectedEvent(null);
+            }
         } catch (error) {
             onError(`Failed to update event: ${error.response?.data?.message || 'Unknown error'}`);
         }
@@ -218,10 +228,9 @@ const AdminEvents = ({ onError, onSuccess }) => {
                 )}
             </div>
 
-            {/* Event Detail Modal */}
             {selectedEvent && (
                 <div className="fixed inset-0 bg-charcoal/60 backdrop-blur-sm flex justify-center items-center z-[2000] p-4 animate-fade-in">
-                    <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-2xl overflow-hidden relative border border-primary/10">
+                    <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto custom-scrollbar relative border border-primary/10">
                         {/* Header */}
                         <div className="bg-background-ivory/50 px-10 py-8 border-b border-primary/10 flex justify-between items-start">
                             <div className="pr-8">
@@ -331,6 +340,36 @@ const AdminEvents = ({ onError, onSuccess }) => {
                     </div>
                 </div>
             )}
+
+            {/* Confirmation Modal */}
+            {confirmModal.isOpen && (
+                <div className="fixed inset-0 bg-charcoal/60 backdrop-blur-sm flex justify-center items-center z-[3000] p-4 animate-fade-in">
+                    <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-sm p-8 text-center border border-primary/10">
+                        <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 ${confirmModal.status === 'approved' ? 'bg-emerald-50 text-emerald-500 border border-emerald-100' : 'bg-rose-50 text-rose-500 border border-rose-100'}`}>
+                            {confirmModal.status === 'approved' ? <CheckCircle2 size={32} /> : <XCircle size={32} />}
+                        </div>
+                        <h3 className="serif-heading text-2xl text-charcoal mb-2">Confirm Action</h3>
+                        <p className="text-soft-grey text-sm mb-8 font-medium">Are you sure you want to mark this event reservation as <strong className={confirmModal.status === 'approved' ? 'text-emerald-600' : 'text-rose-600'}>{confirmModal.status}</strong>?</p>
+
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setConfirmModal({ isOpen: false, id: null, status: null })}
+                                className="flex-1 py-3 border border-border-neutral text-soft-grey text-[10px] font-bold uppercase tracking-widest rounded-xl hover:bg-background-ivory transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={confirmStatusUpdate}
+                                className={`flex-1 py-3 text-white text-[10px] font-bold uppercase tracking-widest rounded-xl transition-all shadow-lg flex justify-center items-center gap-2 ${confirmModal.status === 'approved' ? 'bg-primary hover:bg-primary-hover shadow-primary/20' : 'bg-rose-500 hover:bg-rose-600 shadow-rose-500/20'}`}
+                            >
+                                {confirmModal.status === 'approved' ? <CheckCircle2 size={14} /> : <XCircle size={14} />}
+                                Confirm
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Add Event Modal */}
             {showAddModal && (
                 <div className="fixed inset-0 bg-charcoal/60 backdrop-blur-sm flex justify-center items-center z-[2000] p-4 animate-fade-in">

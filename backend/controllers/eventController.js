@@ -1,7 +1,7 @@
 const Event = require('../models/Event');
 const Booking = require('../models/Booking');
 const Table = require('../models/Table');
-const sendEmail = require('../utils/sendEmail');
+const { sendUserBookingEmail, sendAdminNotificationEmail } = require('../utils/sendEmail');
 
 // Helper to check if a booking time "HH:mm" falls into a named time slot
 const fallsInSlot = (timeStr, timeSlot) => {
@@ -62,6 +62,16 @@ exports.createEvent = async (req, res) => {
         });
 
         await newEvent.save();
+
+        // Notify Admin of new pending event
+        (async () => {
+            try {
+                await sendAdminNotificationEmail(newEvent);
+            } catch (err) {
+                console.error("Admin Event Email Error:", err);
+            }
+        })();
+
         res.status(201).json(newEvent);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -157,23 +167,19 @@ exports.updateEventStatus = async (req, res) => {
             return res.status(400).json({ message: 'Invalid status' });
         }
 
-        const event = await Event.findByIdAndUpdate(req.params.id, { status }, { new: true });
+        const event = await Event.findByIdAndUpdate(req.params.id, { status }, { new: true }).populate('preOrderId');
         if (!event) return res.status(404).json({ message: 'Event not found' });
 
         // Email Notification Logic for Events
         if (status === 'approved' || status === 'rejected') {
-            const isApproved = status === 'approved';
-            const subject = isApproved ? 'Event Confirmed – KUKI Restaurant' : 'Event Update – KUKI Restaurant';
-
-            const message = isApproved
-                ? `Hello ${event.name},\n\nWe are pleased to inform you that your private event booking has been confirmed.\n\nEvent Details:\nDate: ${new Date(event.eventDate).toDateString()}\nTime Slot: ${event.timeSlot}\nGuests: ${event.guests} pax\nType: Private Event\n\nWe look forward to hosting your event.\n\nBest Regards,\nKUKI Restaurant`
-                : `Hello ${event.name},\n\nUnfortunately, your private event booking could not be confirmed.\n\nPlease contact us for further assistance.\n\nRegards,\nKUKI Restaurant`;
-
-            await sendEmail({
-                email: event.email,
-                subject,
-                message
-            });
+            (async () => {
+                try {
+                    await sendUserBookingEmail(event, status);
+                    await sendAdminNotificationEmail(event);
+                } catch (emailErr) {
+                    console.error("Event Status Email Error:", emailErr);
+                }
+            })();
         }
 
         if (status === 'rejected' && event.preOrderId) {
@@ -212,6 +218,17 @@ exports.createAdminEvent = async (req, res) => {
         });
 
         await newEvent.save();
+
+        // Send confirmation email to both user and admin for admin-created booking
+        (async () => {
+            try {
+                await sendUserBookingEmail(newEvent, 'approved');
+                await sendAdminNotificationEmail(newEvent);
+            } catch (err) {
+                console.error("Admin Creative Event Email Error:", err);
+            }
+        })();
+
         res.status(201).json(newEvent);
     } catch (error) {
         res.status(500).json({ message: error.message });

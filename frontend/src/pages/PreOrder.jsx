@@ -43,11 +43,16 @@ const PreOrder = () => {
         try {
             setLoading(true);
             const [menuRes, catRes] = await Promise.all([
-                axios.get('/api/menu'),
+                axios.get('/api/menu?limit=1000'), // Large limit for pre-order menu
                 axios.get('/api/categories')
             ]);
-            setMenuItems(menuRes.data);
-            setCategories(catRes.data);
+
+            // Handle pagination objects by extracting data arrays safely
+            const menuData = menuRes.data?.data || menuRes.data || [];
+            const catData = catRes.data?.data || catRes.data || [];
+
+            setMenuItems(Array.isArray(menuData) ? menuData : []);
+            setCategories(Array.isArray(catData) ? catData : []);
         } catch (error) {
             setErrorMessage('Unable to load menu. Please try again later.');
         } finally {
@@ -195,7 +200,7 @@ const PreOrder = () => {
                         {loading ? (
                             <div className="flex justify-center py-20"><span className="material-symbols-outlined animate-spin text-primary text-4xl">refresh</span></div>
                         ) : categories.map(category => {
-                            const items = menuItems.filter(item => item.categoryId._id === category._id || item.categoryId === category._id);
+                            const items = Array.isArray(menuItems) ? menuItems.filter(item => item.categoryId._id === category._id || item.categoryId === category._id) : [];
                             if (items.length === 0) return null;
 
                             return (
@@ -203,27 +208,36 @@ const PreOrder = () => {
                                     <h3 className="serif-heading text-2xl text-charcoal mb-8 border-b border-border-neutral pb-3 inline-block pr-10">{category.name}</h3>
                                     <div className="space-y-4">
                                         {items.map(item => (
-                                            <div key={item._id} className="bg-white p-6 rounded-sm border border-border-neutral shadow-sm hover:shadow-md transition-all flex items-center justify-between group">
-                                                <div className="flex-1 pr-6">
-                                                    <h4 className="font-bold text-charcoal group-hover:text-primary transition-colors uppercase tracking-widest text-[13px]">{item.name}</h4>
-                                                    <p className="text-soft-grey text-[11px] mt-1 font-light italic leading-relaxed">{item.description}</p>
-                                                    <p className="text-primary font-black mt-3 text-sm">₹{item.price}</p>
+                                            <div key={item._id} className="bg-white p-4 rounded-sm border border-border-neutral shadow-sm hover:shadow-md transition-all flex items-center group">
+                                                <div className="w-20 h-20 md:w-24 md:h-24 shrink-0 overflow-hidden rounded-md bg-background-ivory mr-4 border border-border-neutral/20">
+                                                    <img
+                                                        src={item.image ? (item.image.startsWith('uploads') ? `/${item.image}` : item.image) : 'https://via.placeholder.com/150?text=KUKI'}
+                                                        alt={item.name}
+                                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                                    />
                                                 </div>
-                                                <div className="flex items-center gap-4 bg-background-ivory p-2 rounded-sm border border-border-neutral/30">
-                                                    <button
-                                                        onClick={() => updateQuantity(item._id, -1)}
-                                                        className="size-8 flex items-center justify-center hover:text-primary transition-colors disabled:opacity-20"
-                                                        disabled={!selectedItems[item._id]}
-                                                    >
-                                                        <Minus size={14} />
-                                                    </button>
-                                                    <span className="w-6 text-center font-black text-charcoal text-xs">{selectedItems[item._id] || 0}</span>
-                                                    <button
-                                                        onClick={() => updateQuantity(item._id, 1)}
-                                                        className="size-8 flex items-center justify-center hover:text-primary transition-colors"
-                                                    >
-                                                        <Plus size={14} />
-                                                    </button>
+                                                <div className="flex-1 flex justify-between items-center pr-2">
+                                                    <div className="pr-4">
+                                                        <h4 className="font-bold text-charcoal group-hover:text-primary transition-colors uppercase tracking-widest text-[13px]">{item.name}</h4>
+                                                        <p className="text-soft-grey text-[11px] mt-1 font-light italic leading-relaxed line-clamp-2">{item.description}</p>
+                                                        <p className="text-primary font-black mt-2 text-sm">₹{item.price}</p>
+                                                    </div>
+                                                    <div className="flex items-center gap-3 bg-background-ivory p-2 rounded-sm border border-border-neutral/30 shrink-0">
+                                                        <button
+                                                            onClick={() => updateQuantity(item._id, -1)}
+                                                            className="size-7 flex items-center justify-center hover:text-primary transition-colors disabled:opacity-20"
+                                                            disabled={!selectedItems[item._id]}
+                                                        >
+                                                            <Minus size={14} />
+                                                        </button>
+                                                        <span className="w-5 text-center font-black text-charcoal text-xs">{selectedItems[item._id] || 0}</span>
+                                                        <button
+                                                            onClick={() => updateQuantity(item._id, 1)}
+                                                            className="size-7 flex items-center justify-center hover:text-primary transition-colors"
+                                                        >
+                                                            <Plus size={14} />
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         ))}

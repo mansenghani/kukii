@@ -105,7 +105,7 @@ const AdminPreOrders = ({ onError, onSuccess }) => {
 
             {selectedOrder && (
                 <div className="fixed inset-0 bg-charcoal/60 backdrop-blur-sm flex justify-center items-center z-[2000] p-4">
-                    <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-xl p-10 relative border border-primary/10">
+                    <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-xl p-10 relative border border-primary/10 max-h-[90vh] overflow-y-auto custom-scrollbar">
                         <button onClick={() => setSelectedOrder(null)} className="absolute top-6 right-6 text-soft-grey hover:text-primary"><XCircle size={24} /></button>
                         <h3 className="serif-heading text-3xl mb-8 flex items-center gap-3">
                             <ShoppingBag className="text-primary" /> Pre-Order Details

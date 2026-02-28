@@ -109,13 +109,20 @@ const Booking = () => {
 
   const fetchTables = async () => {
     try {
-      const res = await axios.get('/api/tables');
-      setTables(res.data);
-      if (res.data.length > 0) {
-        setFormData(prev => ({ ...prev, tableId: res.data[0]._id }));
+      // Add a high limit to ensure we get all tables for the dropdown
+      const res = await axios.get('/api/tables?limit=100');
+      // The API returns { data: [...tables], totalRecords... }
+      const tablesData = res.data.data || res.data || [];
+      const tablesArray = Array.isArray(tablesData) ? tablesData : [];
+
+      setTables(tablesArray);
+
+      if (tablesArray.length > 0) {
+        setFormData(prev => ({ ...prev, tableId: tablesArray[0]._id }));
       }
     } catch (error) {
       console.error("Error fetching tables:", error);
+      setTables([]); // Fallback to empty array
     }
   };
 
@@ -368,15 +375,15 @@ const Booking = () => {
                 </div>
               </div>
 
-              {tables.length > 0 && (
+              <div className="grid grid-cols-1 gap-6">
                 <div className="flex flex-col">
                   <label className="text-xs uppercase tracking-widest text-charcoal font-semibold mb-2" htmlFor="tableId">Select Table</label>
                   <select value={formData.tableId} onChange={handleChange} className="border border-border-neutral rounded-sm p-3 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all bg-background-ivory" id="tableId" name="tableId" required>
-                    <option value="">Choose a table</option>
-                    {tables.map(t => <option key={t._id} value={t._id}>Table {t.tableNumber} (Cap: {t.capacity})</option>)}
+                    <option value="">{tables.length === 0 ? "No tables configured yet" : "Choose a table"}</option>
+                    {Array.isArray(tables) && tables.map(t => <option key={t._id} value={t._id}>Table {t.tableNumber} (Cap: {t.capacity})</option>)}
                   </select>
                 </div>
-              )}
+              </div>
 
               {/* Special Requests */}
               <div className="flex flex-col">

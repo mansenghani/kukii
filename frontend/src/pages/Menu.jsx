@@ -1,11 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useCart } from '../context/CartContext';
-import { ShoppingBag } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 
 const Menu = () => {
-  const { addToCart } = useCart();
   const [activeTab, setActiveTab] = useState('all');
   const [menuItems, setMenuItems] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -60,17 +57,6 @@ const Menu = () => {
         <p className="text-soft-grey text-sm leading-relaxed line-clamp-2">{item.description}</p>
       </div>
 
-      {item.availability && (
-        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-          <button
-            onClick={() => addToCart({ ...item, quantity: 1 })}
-            className="bg-primary hover:bg-primary-hover text-white px-6 py-3 rounded-full font-medium flex items-center gap-2 transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 shadow-xl"
-          >
-            <ShoppingBag size={18} />
-            Add to Cart
-          </button>
-        </div>
-      )}
     </div>
   );
 
