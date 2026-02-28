@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useLocation, useNavigate, Link } from 'react-router-dom';
+import { useLocation, useNavigate, Link, useParams } from 'react-router-dom';
 import { ShoppingBag, ChevronRight, Plus, Minus, CheckCircle, AlertCircle, Clock, Utensils } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 
 const PreOrder = () => {
+    const { id: paramId } = useParams();
     const location = useLocation();
     const navigate = useNavigate();
     const { cart, clearCart } = useCart();
     const queryParams = new URLSearchParams(location.search);
-    const bookingId = queryParams.get('id');
-    const type = queryParams.get('type');
+    const bookingId = paramId || queryParams.get('id');
+    const type = queryParams.get('type') || (paramId ? 'event' : null);
 
     const [menuItems, setMenuItems] = useState([]);
     const [categories, setCategories] = useState([]);

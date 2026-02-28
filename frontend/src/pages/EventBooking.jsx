@@ -19,6 +19,22 @@ const EventBooking = () => {
     const [errorMessage, setErrorMessage] = useState('');
     const [bookingResult, setBookingResult] = useState(null);
 
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [countdown, setCountdown] = useState(3);
+
+    const handleFinalize = () => {
+        setShowSuccessModal(true);
+        let timer = 3;
+        const interval = setInterval(() => {
+            timer -= 1;
+            setCountdown(timer);
+            if (timer <= 0) {
+                clearInterval(interval);
+                navigate('/');
+            }
+        }, 1000);
+    };
+
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
@@ -75,7 +91,21 @@ const EventBooking = () => {
 
     if (status === 'success') {
         return (
-            <div className="fade-in bg-background-ivory min-h-screen">
+            <div className="fade-in bg-background-ivory min-h-screen relative">
+                {/* Success Redirect Modal */}
+                {showSuccessModal && (
+                    <div className="fixed inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm z-[5000] animate-fade-in p-4">
+                        <div className="bg-white rounded-[2rem] p-10 text-center shadow-2xl max-w-sm w-full border border-primary/10">
+                            <div className="w-20 h-20 bg-green-50 text-green-500 rounded-full flex items-center justify-center text-5xl mb-6 mx-auto border border-green-100 shadow-inner">✓</div>
+                            <h2 className="serif-heading text-3xl text-charcoal mb-3">Booking Confirmed!</h2>
+                            <p className="text-soft-grey mb-6 font-medium">Your event has been booked successfully!</p>
+                            <div className="bg-background-ivory py-3 px-6 rounded-full inline-block">
+                                <p className="text-[11px] font-bold text-primary italic uppercase tracking-widest">Redirecting to home in {countdown} seconds...</p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 <section className="pt-20 pb-16 text-center">
                     <div className="max-w-3xl mx-auto px-4">
                         <span className="text-primary font-medium tracking-[0.3em] text-xs uppercase mb-4 block">Private Events</span>
@@ -132,18 +162,20 @@ const EventBooking = () => {
                                     </div>
                                 </div>
                                 <div className="w-full h-[1px] bg-border-neutral mb-12"></div>
-                                <div className="space-y-6">
+                                <div className="space-y-6 w-full">
                                     <p className="text-[10px] uppercase tracking-[0.3em] font-bold text-charcoal">WANT TO PRE-ARRANGE THE CATERING?</p>
-                                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                                        <Link to={`/preorder?id=${bookingResult._id}&type=event`} className="inline-block px-10 py-3 bg-primary text-white text-[10px] uppercase font-bold tracking-[0.2em] transition-soft hover:bg-primary-hover rounded-sm text-center shadow-lg shadow-primary/20">
-                                            PRE-ORDER FOOD NOW
-                                        </Link>
-                                        <button onClick={() => navigate('/')} className="inline-block px-10 py-3 border border-border-neutral text-soft-grey text-[10px] uppercase font-bold tracking-[0.2em] transition-soft hover:bg-background-ivory rounded-sm text-center">
-                                            SKIP PRE-ORDER
+                                    <div className="flex flex-col gap-4">
+                                        <button onClick={() => navigate(`/preorder/${bookingResult._id}`)} className="w-full py-4 bg-primary text-white text-[10px] uppercase font-bold tracking-[0.2em] transition-all hover:bg-primary-hover rounded-xl shadow-lg shadow-primary/20">
+                                            Pre-Order Food Now
                                         </button>
-                                        <button onClick={() => setStatus('idle')} className="inline-block px-10 py-3 border border-border-neutral text-soft-grey text-[10px] uppercase font-bold tracking-[0.2em] transition-soft hover:bg-background-ivory rounded-sm text-center">
-                                            NEW EVENT
-                                        </button>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <button onClick={handleFinalize} className="py-4 border border-border-neutral text-soft-grey text-[10px] uppercase font-bold tracking-[0.2em] transition-all hover:bg-background-ivory rounded-xl">
+                                                Skip Pre-Order
+                                            </button>
+                                            <button onClick={handleFinalize} className="py-4 bg-charcoal text-white text-[10px] uppercase font-bold tracking-[0.2em] transition-all hover:bg-black rounded-xl">
+                                                Confirm Booking
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

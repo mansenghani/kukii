@@ -32,6 +32,7 @@ const AppContent = () => {
                 <Route path="/booking" element={<Booking />} />
                 <Route path="/events" element={<EventBooking />} />
                 <Route path="/preorder" element={<PreOrder />} />
+                <Route path="/preorder/:id" element={<PreOrder />} />
 
                 <Route path="*" element={<div>Page Not Found</div>} />
               </Routes>
