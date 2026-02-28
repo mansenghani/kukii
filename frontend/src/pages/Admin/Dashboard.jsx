@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { LayoutDashboard, Utensils, Table as TableIcon, CalendarDays, ShoppingBag, Plus, Trash2, CheckCircle2, XCircle, X, Lock, Settings, LogOut, MessageSquare, BarChart, Layers, Tag, Pencil, AlertCircle, Clock, Eye, Star } from 'lucide-react';
+import { LayoutDashboard, Utensils, Table as TableIcon, CalendarDays, ShoppingBag, Plus, Trash2, CheckCircle2, XCircle, X, Lock, Settings, LogOut, MessageSquare, BarChart, Layers, Tag, Pencil, AlertCircle, Clock, Eye, Star, Filter } from 'lucide-react';
 import AdminFeedback from './AdminFeedback';
 import ReportsPage from './ReportsPage';
 import FooterSettingsCard from './FooterSettingsCard';
@@ -12,6 +12,7 @@ import AdminHeader from './AdminHeader';
 import AdminTimeSlots from './AdminTimeSlots';
 import AdminSettings from './AdminSettings';
 import AdminFeaturedMenu from './AdminFeaturedMenu';
+import Pagination from '../../components/Pagination';
 
 const AdminDashboard = () => {
   const { tab } = useParams();
@@ -21,18 +22,27 @@ const AdminDashboard = () => {
   const [password, setPassword] = useState('');
   const [activeTab, setActiveTab] = useState(tab || 'overview');
 
+  // Pagination & Filtering states
+  const [page, setPage] = useState(1);
+  const [limit] = useState(5);
+  const [paginationData, setPaginationData] = useState({ totalPages: 1, totalRecords: 0, currentPage: 1 });
+  const [categoryFilter, setCategoryFilter] = useState('All');
+
   useEffect(() => {
     if (tab && tab !== activeTab) {
       setActiveTab(tab);
-    }
-    if (localStorage.getItem('kuki_admin_auth') === 'true') {
-      setIsAuthorized(true);
-      fetchAll();
+      setPage(1);
+      setCategoryFilter('All');
     }
   }, [tab]);
 
+  useEffect(() => {
+    if (isAuthorized) {
+      fetchAll();
+    }
+  }, [activeTab, page, categoryFilter, isAuthorized]);
+
   const handleTabChange = (newTab) => {
-    setActiveTab(newTab);
     navigate(`/admin/${newTab}`);
   };
 
@@ -79,7 +89,6 @@ const AdminDashboard = () => {
     const authStatus = localStorage.getItem('kuki_admin_auth');
     if (authStatus === 'true') {
       setIsAuthorized(true);
-      fetchAll();
     }
   }, []);
 
@@ -109,14 +118,24 @@ const AdminDashboard = () => {
   const fetchAll = async () => {
     setLoading(true);
     try {
+      const endpoints = {
+        bookings: `${API_BASE_URL}/bookings?page=${activeTab === 'bookings' ? page : 1}&limit=${activeTab === 'bookings' ? limit : 100}`,
+        menu: `${API_BASE_URL}/menu?page=${activeTab === 'menu' ? page : 1}&limit=${activeTab === 'menu' ? limit : 100}${activeTab === 'menu' && categoryFilter !== 'All' ? `&category=${categoryFilter}` : ''}`,
+        tables: `${API_BASE_URL}/tables?page=${activeTab === 'tables' ? page : 1}&limit=${activeTab === 'tables' ? limit : 100}`,
+        categories: `${API_BASE_URL}/categories`,
+        preorders: `${API_BASE_URL}/admin/preorders/all?page=1&limit=100`, // fetched for stats
+        stats: `${API_BASE_URL}/admin/preorders/stats`,
+        slots: `${API_BASE_URL}/admin/slots`
+      };
+
       const results = await Promise.allSettled([
-        axios.get(`${API_BASE_URL}/bookings`),
-        axios.get(`${API_BASE_URL}/menu`),
-        axios.get(`${API_BASE_URL}/tables`),
-        axios.get(`${API_BASE_URL}/admin/preorders/all`),
-        axios.get(`${API_BASE_URL}/categories`),
-        axios.get(`${API_BASE_URL}/admin/preorders/stats`),
-        axios.get(`${API_BASE_URL}/admin/slots`)
+        axios.get(endpoints.bookings),
+        axios.get(endpoints.menu),
+        axios.get(endpoints.tables),
+        axios.get(endpoints.preorders),
+        axios.get(endpoints.categories),
+        axios.get(endpoints.stats),
+        axios.get(endpoints.slots)
       ]);
 
       const [bookings, menu, tables, preorders, categories, stats, slots] = results.map(r =>
@@ -127,13 +146,26 @@ const AdminDashboard = () => {
         setPreorderStats(results[5].value.data);
       }
 
+      let activeResultData = null;
+      if (activeTab === 'bookings') activeResultData = bookings.data;
+      else if (activeTab === 'menu') activeResultData = menu.data;
+      else if (activeTab === 'tables') activeResultData = tables.data;
+
+      if (['bookings', 'menu', 'tables'].includes(activeTab) && activeResultData) {
+        setPaginationData({
+          totalPages: activeResultData.totalPages || 1,
+          totalRecords: activeResultData.totalRecords || 0,
+          currentPage: activeResultData.currentPage || 1
+        });
+      }
+
       const newData = {
-        bookings: Array.isArray(bookings.data) ? bookings.data : [],
-        menu: Array.isArray(menu.data) ? menu.data : [],
-        tables: Array.isArray(tables.data) ? tables.data : [],
-        preorders: Array.isArray(preorders.data) ? preorders.data : [],
-        categories: Array.isArray(categories.data) ? categories.data : [],
-        slots: Array.isArray(slots.data) ? slots.data : []
+        bookings: Array.isArray(bookings.data) ? bookings.data : (bookings.data?.data || []),
+        menu: Array.isArray(menu.data) ? menu.data : (menu.data?.data || []),
+        tables: Array.isArray(tables.data) ? tables.data : (tables.data?.data || []),
+        preorders: Array.isArray(preorders.data) ? preorders.data : (preorders.data?.data || []),
+        categories: Array.isArray(categories.data) ? categories.data : (categories.data?.data || []),
+        slots: Array.isArray(slots.data) ? slots.data : (slots.data?.data || [])
       };
 
       console.log("Fetched Data:", newData);
@@ -389,72 +421,86 @@ const AdminDashboard = () => {
 
       default:
         return (
-          <div className="animate-fade-in">
-            {loading ? (
-              <div className="text-center py-20 text-soft-grey animate-pulse">Synchronizing with server...</div>
-            ) : (
-              <div className="bg-white rounded-xl shadow-sm border border-border-neutral overflow-hidden">
-                <table className="w-full text-left border-collapse">
-                  <thead className="bg-background-ivory/50 border-b border-border-neutral">
-                    <tr>
-                      <th className="p-5 text-[10px] uppercase tracking-widest text-soft-grey font-bold">
-                        {activeTab === 'menu' ? 'Item / Category' : activeTab === 'categories' ? 'Category Details' : 'Info'}
-                      </th>
-                      <th className="p-5 text-[10px] uppercase tracking-widest text-soft-grey font-bold">
-                        {activeTab === 'menu' ? 'Price' : activeTab === 'categories' ? 'Created' : 'Details'}
-                      </th>
-                      <th className="p-5 text-[10px] uppercase tracking-widest text-soft-grey font-bold">Status</th>
-                      <th className="p-5 text-[10px] uppercase tracking-widest text-soft-grey font-bold">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border-neutral">
-                    {data[activeTab]?.map((item) => (
-                      <tr key={item._id} className="hover:bg-primary/5 transition-colors">
-                        <td className="p-5 text-sm">
-                          {activeTab === 'menu' && (
-                            <div className="flex items-center gap-3">
-                              {item.image && <img src={item.image.startsWith('uploads') ? `/${item.image}` : item.image} alt="" className="w-10 h-10 rounded object-cover border border-border-neutral" />}
-                              <div>
-                                <span className="font-bold text-charcoal">{item.name}</span> <br />
-                                <span className="text-primary text-[10px] font-bold uppercase tracking-widest">{item.categoryId?.name || 'Standard'}</span>
-                              </div>
-                            </div>
-                          )}
-                          {activeTab === 'categories' && <div><span className="font-bold text-charcoal">{item.name}</span> <br /> <span className="text-soft-grey text-xs line-clamp-1">{item.description}</span></div>}
-                          {activeTab === 'bookings' && <div><span className="font-bold text-charcoal">Table {item.tableId?.tableNumber}</span> <br /> <span className="text-soft-grey text-xs">{item.date?.split('T')[0]} @ {item.time}</span></div>}
-                          {activeTab === 'tables' && <div><span className="font-bold text-charcoal">Table {item.tableNumber}</span> <br /> <span className="text-soft-grey text-xs">Cap: {item.capacity}</span></div>}
-                        </td>
-                        <td className="p-5 text-sm">
-                          {activeTab === 'menu' && <div className="font-bold text-primary">₹{item.price}</div>}
-                          {activeTab === 'categories' && <div className="text-soft-grey italic">{new Date(item.createdAt).toLocaleDateString()}</div>}
-                          {activeTab === 'bookings' && <div>{item.customerId?.name} <br /> <span className="text-soft-grey text-[10px]">{item.customerId?.phone}</span></div>}
-                          {activeTab === 'tables' && <div>{item.capacity} Persons</div>}
-                        </td>
-                        <td className="p-5 text-sm">
-                          <span className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border border-current ${activeTab === 'menu' ? (item.availability ? 'text-green-600 border-green-200 bg-green-50' : 'text-red-600 border-red-200 bg-red-50') : getStatusColorClass(item.status)}`}>
-                            {activeTab === 'menu' ? (item.availability ? 'Available' : 'Out of Stock') : (item.status || 'Active')}
-                          </span>
-                        </td>
-                        <td className="p-5">
-                          <div className="flex gap-2 text-soft-grey">
-                            {['menu', 'categories', 'tables', 'bookings'].includes(activeTab) && (
-                              <button onClick={() => handleEdit(item)} className="p-2 hover:bg-primary/10 hover:text-primary rounded-lg transition-all"><Pencil size={18} /></button>
-                            )}
-                            {activeTab === 'bookings' && (
-                              <button onClick={() => setSelectedBooking(item)} className="p-2 hover:bg-primary/10 hover:text-primary rounded-lg transition-all"><Eye size={18} /></button>
-                            )}
-                            <button onClick={() => activeTab === 'menu' ? deleteMenuItem(item._id) : activeTab === 'categories' ? deleteCategory(item._id) : activeTab === 'tables' ? deleteTable(item._id) : deleteBooking(item._id)} className="p-2 hover:bg-rose-50 hover:text-rose-500 rounded-lg transition-all"><Trash2 size={18} /></button>
+          <div className="animate-fade-in flex flex-col h-full">
 
-                          </div>
-                        </td>
+            {loading ? (
+              <div className="text-center py-20 text-soft-grey animate-pulse bg-white rounded-[2rem] border border-border-neutral">Synchronizing with server...</div>
+            ) : (
+              <>
+                <div className="bg-white rounded-t-[2rem] shadow-sm border border-border-neutral overflow-hidden">
+                  <table className="w-full text-left border-collapse">
+                    <thead className="bg-background-ivory/50 border-b border-border-neutral">
+                      <tr>
+                        <th className="p-5 text-[10px] uppercase tracking-widest text-soft-grey font-bold">
+                          {activeTab === 'menu' ? 'Item / Category' : activeTab === 'categories' ? 'Category Details' : 'Info'}
+                        </th>
+                        <th className="p-5 text-[10px] uppercase tracking-widest text-soft-grey font-bold">
+                          {activeTab === 'menu' ? 'Price' : activeTab === 'categories' ? 'Created' : 'Details'}
+                        </th>
+                        <th className="p-5 text-[10px] uppercase tracking-widest text-soft-grey font-bold">Status</th>
+                        <th className="p-5 text-[10px] uppercase tracking-widest text-soft-grey font-bold">Actions</th>
                       </tr>
-                    ))}
-                    {(!data[activeTab] || data[activeTab].length === 0) && (
-                      <tr><td colSpan="4" className="p-20 text-center text-soft-grey italic text-sm">No data found in this category.</td></tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody className="divide-y divide-border-neutral">
+                      {data[activeTab]?.map((item) => (
+                        <tr key={item._id} className="hover:bg-primary/5 transition-colors">
+                          <td className="p-5 text-sm">
+                            {activeTab === 'menu' && (
+                              <div className="flex items-center gap-3">
+                                {item.image && <img src={item.image.startsWith('uploads') ? `/${item.image}` : item.image} alt="" className="w-10 h-10 rounded object-cover border border-border-neutral" />}
+                                <div>
+                                  <span className="font-bold text-charcoal">{item.name}</span> <br />
+                                  <span className="text-primary text-[10px] font-bold uppercase tracking-widest">{item.categoryId?.name || 'Standard'}</span>
+                                </div>
+                              </div>
+                            )}
+                            {activeTab === 'categories' && <div><span className="font-bold text-charcoal">{item.name}</span> <br /> <span className="text-soft-grey text-xs line-clamp-1">{item.description}</span></div>}
+                            {activeTab === 'bookings' && <div><span className="font-bold text-charcoal">Table {item.tableId?.tableNumber}</span> <br /> <span className="text-soft-grey text-xs">{item.date?.split('T')[0]} @ {item.time}</span></div>}
+                            {activeTab === 'tables' && <div><span className="font-bold text-charcoal">Table {item.tableNumber}</span> <br /> <span className="text-soft-grey text-xs">Cap: {item.capacity}</span></div>}
+                          </td>
+                          <td className="p-5 text-sm">
+                            {activeTab === 'menu' && <div className="font-bold text-primary">₹{item.price}</div>}
+                            {activeTab === 'categories' && <div className="text-soft-grey italic">{new Date(item.createdAt).toLocaleDateString()}</div>}
+                            {activeTab === 'bookings' && <div>{item.customerId?.name} <br /> <span className="text-soft-grey text-[10px]">{item.customerId?.phone}</span></div>}
+                            {activeTab === 'tables' && <div>{item.capacity} Persons</div>}
+                          </td>
+                          <td className="p-5 text-sm">
+                            <span className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border border-current ${activeTab === 'menu' ? (item.availability ? 'text-green-600 border-green-200 bg-green-50' : 'text-red-600 border-red-200 bg-red-50') : getStatusColorClass(item.status)}`}>
+                              {activeTab === 'menu' ? (item.availability ? 'Available' : 'Out of Stock') : (item.status || 'Active')}
+                            </span>
+                          </td>
+                          <td className="p-5">
+                            <div className="flex gap-2 text-soft-grey">
+                              {['menu', 'categories', 'tables', 'bookings'].includes(activeTab) && (
+                                <button onClick={() => handleEdit(item)} className="p-2 hover:bg-primary/10 hover:text-primary rounded-lg transition-all"><Pencil size={18} /></button>
+                              )}
+                              {activeTab === 'bookings' && (
+                                <button onClick={() => setSelectedBooking(item)} className="p-2 hover:bg-primary/10 hover:text-primary rounded-lg transition-all"><Eye size={18} /></button>
+                              )}
+                              <button onClick={() => activeTab === 'menu' ? deleteMenuItem(item._id) : activeTab === 'categories' ? deleteCategory(item._id) : activeTab === 'tables' ? deleteTable(item._id) : deleteBooking(item._id)} className="p-2 hover:bg-rose-50 hover:text-rose-500 rounded-lg transition-all"><Trash2 size={18} /></button>
+
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                      {(!data[activeTab] || data[activeTab].length === 0) && (
+                        <tr><td colSpan="4" className="p-20 text-center text-soft-grey italic text-sm">No data found in this category.</td></tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Pagination UI for Main Tabs */}
+                {['menu', 'bookings', 'tables', 'categories'].includes(activeTab) && (
+                  <Pagination
+                    currentPage={page}
+                    totalPages={paginationData.totalPages}
+                    totalRecords={paginationData.totalRecords}
+                    limit={limit}
+                    onPageChange={(newPage) => setPage(newPage)}
+                  />
+                )}
+              </>
             )}
           </div>
         );
@@ -462,19 +508,13 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#f4efec] text-[#2b2b2b]">
+    <div className="flex flex-col h-screen bg-[#f4efec] text-[#2b2b2b]">
       <AdminHeader activeTab={activeTab} />
       <div className="flex flex-1 overflow-hidden">
-        <aside className="w-[260px] flex-shrink-0 flex flex-col border-r border-[#e3dbd4] bg-[#f4efec] py-8 px-6">
-          <div className="flex items-center gap-3 mb-10">
-            <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center text-primary"><Layers size={22} /></div>
-            <div>
-              <h2 className="serif-heading text-xl leading-none text-charcoal tracking-widest">KUKI</h2>
-              <p className="text-[8px] uppercase tracking-widest text-primary font-bold mt-1">Admin Panel</p>
-            </div>
-          </div>
-          <nav className="space-y-2 flex-grow overflow-y-auto">
-            <h5 className="text-[10px] font-bold text-soft-grey uppercase tracking-[0.2em] mb-4 pl-4">Main</h5>
+        <aside className="w-[260px] flex-shrink-0 flex flex-col border-r border-[#e3dbd4] bg-[#f4efec] py-6 px-5 overflow-hidden">
+
+          <nav className="flex flex-col gap-[2px]">
+            <h5 className="text-[10px] font-bold text-soft-grey uppercase tracking-[0.2em] mb-2 pl-4">Main</h5>
             <SidebarLink icon={<LayoutDashboard size={18} />} label="Overview" active={activeTab === 'overview'} onClick={() => handleTabChange('overview')} />
             <SidebarLink icon={<CalendarDays size={18} />} label="Events" active={activeTab === 'events'} onClick={() => handleTabChange('events')} />
             <SidebarLink icon={<CalendarDays size={18} />} label="Bookings" active={activeTab === 'bookings'} onClick={() => handleTabChange('bookings')} />
@@ -489,22 +529,50 @@ const AdminDashboard = () => {
             <SidebarLink icon={<BarChart size={18} />} label="Reports" active={activeTab === 'reports'} onClick={() => handleTabChange('reports')} />
             <SidebarLink icon={<Settings size={18} />} label="Settings" active={activeTab === 'settings'} onClick={() => handleTabChange('settings')} />
           </nav>
-          <div className="mt-8 border-t border-primary/10 pt-8">
+          <div className="mt-4 border-t border-primary/10 pt-4 mb-2">
             <button onClick={handleLogout} className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-primary hover:bg-primary/5 transition-colors font-medium text-sm"><LogOut size={18} /> Logout</button>
           </div>
         </aside>
 
         <main className="flex-1 overflow-y-auto px-10 py-8 relative">
           {/* Header for dynamic actions */}
-          <div className="flex justify-between items-center mb-8">
-            <div>
-              <h1 className="serif-heading text-4xl text-charcoal capitalize">{activeTab}</h1>
-              <p className="text-soft-grey text-sm mt-1">Manage {activeTab} section of the restaurant.</p>
+          {!['events', 'featured', 'feedback'].includes(activeTab) && (
+            <div className="flex justify-between items-center mb-8">
+              <div>
+                <h1 className="serif-heading text-4xl text-charcoal capitalize">{activeTab}</h1>
+                <p className="text-soft-grey text-sm mt-1">Manage {activeTab} section of the restaurant.</p>
+              </div>
+
+              {/* Dynamic Right Side Header Elements */}
+              <div className="flex items-center gap-4">
+                {activeTab === 'menu' && (
+                  <div className="flex items-center gap-2 bg-white border border-primary/10 rounded-xl px-4 h-10 shadow-sm hover:border-primary/30 transition-all">
+                    <Filter size={14} className="text-soft-grey" />
+                    <select
+                      value={categoryFilter}
+                      onChange={(e) => { setCategoryFilter(e.target.value); setPage(1); }}
+                      className="bg-transparent bg-none border-none outline-none text-xs text-charcoal font-bold cursor-pointer appearance-none"
+                    >
+                      <option value="All">All Categories</option>
+                      {data.categories?.map(cat => (
+                        <option key={cat._id} value={cat._id}>{cat.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {['menu', 'categories', 'tables', 'bookings'].includes(activeTab) && (
+                  <button onClick={() => { setFormData({}); setIsEditing(false); setShowModal(true); }} className="px-6 py-2.5 bg-primary text-white text-[10px] font-bold uppercase tracking-widest rounded-xl hover:bg-primary-hover transition-all flex items-center gap-2 shadow-sm"><Plus size={16} /> Add New</button>
+                )}
+                {activeTab === 'reports' && (
+                  <div className="hidden md:flex flex-col items-end gap-1 text-right">
+                    <p className="text-[10px] font-bold text-primary uppercase tracking-widest">Status Overview</p>
+                    <p className="text-xs text-soft-grey">Last Generated: <span className="font-semibold text-charcoal">{new Date().toLocaleString()}</span></p>
+                  </div>
+                )}
+              </div>
             </div>
-            {['menu', 'categories', 'tables', 'bookings'].includes(activeTab) && (
-              <button onClick={() => { setFormData({}); setIsEditing(false); setShowModal(true); }} className="px-6 py-2.5 bg-primary text-white text-[10px] font-bold uppercase tracking-widest rounded-xl hover:bg-primary-hover transition-all flex items-center gap-2 shadow-sm"><Plus size={16} /> Add New</button>
-            )}
-          </div>
+          )}
 
           {renderContent()}
 

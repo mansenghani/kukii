@@ -63,21 +63,21 @@ const AdminFeaturedMenu = ({ menuItems = [], onError, onSuccess }) => {
 
     return (
         <div className="animate-fade-in space-y-8">
-            {/* Header section */}
-            <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-primary/5 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            {/* Header for dynamic actions */}
+            <div className="flex justify-between items-center mb-8">
                 <div>
-                    <h2 className="serif-heading text-3xl text-charcoal">Featured Menu Selection</h2>
+                    <h1 className="serif-heading text-4xl text-charcoal capitalize">Featured</h1>
                     <p className="text-soft-grey text-sm mt-1">Select exactly 3 premium dishes to showcase in the "From Our Kitchen" section on your Home Page.</p>
                 </div>
-                <div className="flex items-center gap-3">
-                    <div className="px-4 py-2 bg-background-ivory rounded-xl border border-primary/10 flex items-center gap-2">
+                <div className="flex items-center gap-4">
+                    <div className="px-4 py-2.5 bg-white rounded-xl border border-primary/10 flex items-center gap-2 shadow-sm">
                         <span className={`w-3 h-3 rounded-full ${selectedIds.length === 3 ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
                         <span className="text-[10px] font-bold uppercase tracking-widest text-charcoal">Selected: {selectedIds.length} / 3</span>
                     </div>
                     <button
                         onClick={handleSave}
                         disabled={saving || selectedIds.length !== 3}
-                        className="bg-primary text-white px-8 py-3 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-primary-hover disabled:opacity-50 transition-all flex items-center gap-2 shadow-lg shadow-primary/20"
+                        className="px-6 py-2.5 bg-primary text-white text-[10px] font-bold uppercase tracking-widest rounded-xl hover:bg-primary-hover disabled:opacity-50 transition-all flex items-center gap-2 shadow-sm"
                     >
                         {saving ? 'Updating...' : <><Save size={16} /> Save Selection</>}
                     </button>

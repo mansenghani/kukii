@@ -1,17 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { ShoppingBag, Eye, CheckCircle2, XCircle, Clock, Utensils } from 'lucide-react';
+import Pagination from '../../components/Pagination';
 
 const AdminPreOrders = ({ onError, onSuccess }) => {
     const [preorders, setPreorders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedOrder, setSelectedOrder] = useState(null);
 
+    // Pagination states
+    const [page, setPage] = useState(1);
+    const [limit] = useState(5);
+    const [paginationData, setPaginationData] = useState({ totalPages: 1, totalRecords: 0 });
+
     const fetchPreOrders = async () => {
         try {
             setLoading(true);
-            const res = await axios.get('/api/admin/preorders/all');
-            setPreorders(res.data);
+            const res = await axios.get(`/api/admin/preorders/all?page=${page}&limit=${limit}`);
+            if (res.data.data) {
+                setPreorders(res.data.data);
+                setPaginationData({
+                    totalPages: res.data.totalPages,
+                    totalRecords: res.data.totalRecords
+                });
+            } else {
+                setPreorders(res.data);
+                setPaginationData({ totalPages: 1, totalRecords: res.data.length || 0 });
+            }
         } catch (error) {
             onError('Failed to fetch pre-orders');
         } finally {
@@ -21,7 +36,7 @@ const AdminPreOrders = ({ onError, onSuccess }) => {
 
     useEffect(() => {
         fetchPreOrders();
-    }, []);
+    }, [page]);
 
     const handleStatusUpdate = async (id, status) => {
         if (!window.confirm(`Mark pre-order as ${status}?`)) return;
@@ -76,6 +91,17 @@ const AdminPreOrders = ({ onError, onSuccess }) => {
                     </tbody>
                 </table>
             </div>
+
+            {/* Pagination Component */}
+            {!loading && preorders.length > 0 && (
+                <Pagination
+                    currentPage={page}
+                    totalPages={paginationData.totalPages}
+                    totalRecords={paginationData.totalRecords}
+                    limit={limit}
+                    onPageChange={(newPage) => setPage(newPage)}
+                />
+            )}
 
             {selectedOrder && (
                 <div className="fixed inset-0 bg-charcoal/60 backdrop-blur-sm flex justify-center items-center z-[2000] p-4">

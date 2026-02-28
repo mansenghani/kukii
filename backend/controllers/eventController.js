@@ -114,11 +114,25 @@ exports.getAdminEvents = async (req, res) => {
             filter.status = status.toLowerCase();
         }
 
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 5;
+        const skip = (page - 1) * limit;
+
+        const totalRecords = await Event.countDocuments(filter);
+        const totalPages = Math.ceil(totalRecords / limit);
+
         const events = await Event.find(filter)
             .populate('preOrderId')
-            .sort({ eventDate: -1, createdAt: -1 });
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
 
-        res.status(200).json(events);
+        res.status(200).json({
+            data: events,
+            totalRecords,
+            totalPages,
+            currentPage: page
+        });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

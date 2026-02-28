@@ -42,9 +42,13 @@ exports.addSlot = async (req, res) => {
 
 exports.updateMaxTables = async (req, res) => {
     try {
+        const updateData = {};
+        if (req.body.maxTables !== undefined) updateData.maxTables = req.body.maxTables;
+        if (req.body.time !== undefined) updateData.time = req.body.time;
+
         const slot = await TimeSlot.findByIdAndUpdate(
             req.params.id,
-            { maxTables: req.body.maxTables },
+            updateData,
             { new: true }
         );
         res.json(slot);

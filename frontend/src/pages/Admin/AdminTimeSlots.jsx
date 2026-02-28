@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Table, Clock, TrendingUp, Star, Zap, AlertTriangle, Check, X } from 'lucide-react';
+import { Table, Clock, TrendingUp, Star, AlertTriangle, Check, X, Pencil, Trash2 } from 'lucide-react';
 
 const AdminTimeSlots = ({ onError, onSuccess }) => {
     const [slots, setSlots] = useState([]);
@@ -16,15 +16,51 @@ const AdminTimeSlots = ({ onError, onSuccess }) => {
     const [newSlotTime, setNewSlotTime] = useState('');
     const [newSlotMax, setNewSlotMax] = useState(30);
 
+    // Edit Slot State
+    const [showEditSlotModal, setShowEditSlotModal] = useState(false);
+    const [editSlotId, setEditSlotId] = useState(null);
+    const [editSlotTime, setEditSlotTime] = useState('');
+    const [editSlotMax, setEditSlotMax] = useState(30);
+
+    // Delete Slot State
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [slotToDelete, setSlotToDelete] = useState(null);
+
     useEffect(() => {
         fetchSlots();
     }, []);
+
+    const convertTo24Hour = (timeStr) => {
+        if (!timeStr) return 0;
+        const lowerTime = timeStr.toLowerCase().trim();
+        let hours = 0; let minutes = 0;
+
+        if (lowerTime.includes('am') || lowerTime.includes('pm')) {
+            const match = lowerTime.match(/(\d+):?(\d+)?\s*(am|pm)/);
+            if (match) {
+                let h = parseInt(match[1]);
+                const m = parseInt(match[2] || '0');
+                const period = match[3];
+                if (period === 'pm' && h < 12) h += 12;
+                if (period === 'am' && h === 12) h = 0;
+                hours = h; minutes = m;
+            }
+        } else {
+            const match = lowerTime.match(/(\d+):(\d+)/);
+            if (match) {
+                hours = parseInt(match[1]); minutes = parseInt(match[2]);
+            } else hours = parseInt(timeStr) || 0;
+        }
+        return hours + (minutes / 60);
+    };
 
     const fetchSlots = async () => {
         try {
             setLoading(true);
             const res = await axios.get('/api/admin/slots');
-            setSlots(res.data);
+            let fetchedSlots = res.data;
+            fetchedSlots.sort((a, b) => convertTo24Hour(a.time) - convertTo24Hour(b.time));
+            setSlots(fetchedSlots);
         } catch (err) {
             if (onError) onError('Failed to load slots');
         } finally {
@@ -84,15 +120,35 @@ const AdminTimeSlots = ({ onError, onSuccess }) => {
         }
     };
 
-    const handleBulkUpdate = async () => {
-        if (!bulkValue || isNaN(bulkValue)) return;
+    const openEditModal = (slot) => {
+        setEditSlotId(slot._id);
+        setEditSlotTime(slot.time);
+        setEditSlotMax(slot.maxTables);
+        setShowEditSlotModal(true);
+    };
+
+    const handleEditSlot = async () => {
+        if (!editSlotTime) return;
         try {
-            await axios.patch('/api/admin/slots/bulk-update', { maxTables: bulkValue });
-            setBulkValue('');
+            await axios.put(`/api/admin/slots/${editSlotId}`, { time: editSlotTime, maxTables: editSlotMax });
+            setShowEditSlotModal(false);
             fetchSlots();
-            if (onSuccess) onSuccess(`Bulk update applied: ${bulkValue} tables`);
+            if (onSuccess) onSuccess('Slot updated');
         } catch (err) {
-            if (onError) onError('Bulk update failed');
+            if (onError) onError('Failed to update slot');
+        }
+    };
+
+    const confirmDelete = async () => {
+        if (!slotToDelete) return;
+        try {
+            await axios.delete(`/api/admin/slots/${slotToDelete._id}`);
+            fetchSlots();
+            setShowDeleteModal(false);
+            setSlotToDelete(null);
+            if (onSuccess) onSuccess('Slot deleted completely');
+        } catch (err) {
+            if (onError) onError('Failed to delete slot');
         }
     };
 
@@ -157,6 +213,7 @@ const AdminTimeSlots = ({ onError, onSuccess }) => {
                                 <th className="px-6 py-4 text-[10px] font-bold text-soft-grey uppercase tracking-widest">Remaining</th>
                                 <th className="px-6 py-4 text-[10px] font-bold text-soft-grey uppercase tracking-widest text-center">Slot Status</th>
                                 <th className="px-6 py-4 text-[10px] font-bold text-soft-grey uppercase tracking-widest text-center">Peak Hour</th>
+                                <th className="px-6 py-4 text-[10px] font-bold text-soft-grey uppercase tracking-widest text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-primary/5">
@@ -242,6 +299,22 @@ const AdminTimeSlots = ({ onError, onSuccess }) => {
                                                 </button>
                                             </div>
                                         </td>
+                                        <td className="px-6 py-5">
+                                            <div className="flex justify-end gap-2">
+                                                <button
+                                                    onClick={() => openEditModal(slot)}
+                                                    className="p-2 text-soft-grey hover:text-primary transition-colors hover:bg-primary/5 rounded-lg"
+                                                >
+                                                    <Pencil size={18} />
+                                                </button>
+                                                <button
+                                                    onClick={() => { setSlotToDelete(slot); setShowDeleteModal(true); }}
+                                                    className="p-2 text-soft-grey hover:text-red-500 transition-colors hover:bg-red-50 rounded-lg"
+                                                >
+                                                    <Trash2 size={18} />
+                                                </button>
+                                            </div>
+                                        </td>
                                     </tr>
                                 );
                             })}
@@ -258,34 +331,6 @@ const AdminTimeSlots = ({ onError, onSuccess }) => {
                         className="px-4 py-2 rounded-lg bg-white border border-primary/10 text-charcoal text-[10px] font-bold uppercase tracking-widest hover:bg-primary/5 transition-all flex items-center gap-2"
                     >
                         Add New Slot +
-                    </button>
-                </div>
-            </div>
-
-            {/* Bulk Actions Banner */}
-            <div className="bg-primary/5 border border-primary/20 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 p-8 shadow-sm">
-                <div className="flex gap-4 items-center">
-                    <div className="w-12 h-12 rounded-xl bg-primary text-white flex items-center justify-center shadow-md">
-                        <Zap size={24} />
-                    </div>
-                    <div>
-                        <h4 className="text-lg font-black text-charcoal leading-tight">Bulk Capacity Update</h4>
-                        <p className="text-sm text-soft-grey font-medium">Quickly adjust max tables across all active slots.</p>
-                    </div>
-                </div>
-                <div className="flex items-center gap-3">
-                    <input
-                        className="w-24 px-4 py-2.5 rounded-xl border border-primary/20 bg-white text-charcoal text-sm font-bold focus:outline-none focus:border-primary"
-                        placeholder="Value"
-                        type="number"
-                        value={bulkValue}
-                        onChange={(e) => setBulkValue(e.target.value)}
-                    />
-                    <button
-                        onClick={handleBulkUpdate}
-                        className="px-6 py-2.5 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary-hover shadow-md transition-all whitespace-nowrap"
-                    >
-                        Apply to All
                     </button>
                 </div>
             </div>
@@ -328,6 +373,43 @@ const AdminTimeSlots = ({ onError, onSuccess }) => {
                 </div>
             )}
 
+            {/* Edit Slot Modal */}
+            {showEditSlotModal && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-charcoal/60 backdrop-blur-sm animate-fade-in">
+                    <div className="bg-white w-full max-w-md rounded-3xl auto shadow-2xl p-8 border border-primary/10 relative">
+                        <button onClick={() => setShowEditSlotModal(false)} className="absolute top-6 right-6 text-soft-grey hover:text-primary"><X size={24} /></button>
+                        <h3 className="serif-heading text-2xl text-charcoal text-center mb-6">Edit Time Slot</h3>
+                        <div className="space-y-4 mb-8">
+                            <div>
+                                <label className="text-xs font-bold uppercase tracking-widest text-soft-grey mb-2 block">Time string</label>
+                                <input type="text" value={editSlotTime} onChange={e => setEditSlotTime(e.target.value)} className="w-full border border-primary/20 rounded-xl p-3 text-sm focus:border-primary outline-none" />
+                            </div>
+                            <div>
+                                <label className="text-xs font-bold uppercase tracking-widest text-soft-grey mb-2 block">Max Capacity</label>
+                                <input type="number" value={editSlotMax} onChange={e => setEditSlotMax(e.target.value)} className="w-full border border-primary/20 rounded-xl p-3 text-sm focus:border-primary outline-none" />
+                            </div>
+                        </div>
+                        <button onClick={handleEditSlot} className="w-full px-6 py-3 rounded-xl bg-primary text-white font-bold hover:bg-primary-hover shadow-md transition-all text-xs tracking-widest uppercase">Save Changes</button>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Notice Modal */}
+            {showDeleteModal && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-charcoal/60 backdrop-blur-sm animate-fade-in">
+                    <div className="bg-white w-full max-w-md rounded-3xl auto shadow-2xl p-8 border border-primary/10 relative">
+                        <div className="w-14 h-14 rounded-full bg-red-50 text-red-600 flex items-center justify-center mb-6 mx-auto">
+                            <Trash2 size={32} />
+                        </div>
+                        <h3 className="serif-heading text-2xl text-charcoal text-center mb-2">Permanently Delete Slot?</h3>
+                        <p className="text-sm text-soft-grey text-center mb-8">This will immediately remove {slotToDelete?.time} from the database. This action cannot be undone.</p>
+                        <div className="flex gap-3">
+                            <button onClick={() => setShowDeleteModal(false)} className="flex-1 px-6 py-3 rounded-xl border border-primary/10 text-charcoal font-bold hover:bg-background-ivory transition-all text-xs tracking-widest uppercase">Cancel</button>
+                            <button onClick={confirmDelete} className="flex-1 px-6 py-3 rounded-xl bg-red-600 text-white font-bold hover:bg-red-700 shadow-md transition-all text-xs tracking-widest uppercase">Delete Forever</button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

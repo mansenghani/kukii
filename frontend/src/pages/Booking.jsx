@@ -12,7 +12,7 @@ const Booking = () => {
     email: '',
     phone: '',
     date: '',
-    time: '18:00',
+    time: '',
     guests: '2 People',
     requests: '',
     tableId: '' // We will auto-assign or handle table manually, for now keep logic
@@ -21,9 +21,91 @@ const Booking = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [bookingResult, setBookingResult] = useState(null);
 
+  const [slots, setSlots] = useState([]);
+
+  // Time conversion helper
+  const convertTo24Hour = (timeStr) => {
+    if (!timeStr) return 0;
+    const lowerTime = timeStr.toLowerCase().trim();
+    let hours = 0;
+    let minutes = 0;
+
+    if (lowerTime.includes('am') || lowerTime.includes('pm')) {
+      const match = lowerTime.match(/(\d+):?(\d+)?\s*(am|pm)/);
+      if (match) {
+        let h = parseInt(match[1]);
+        const m = parseInt(match[2] || '0');
+        const period = match[3];
+        if (period === 'pm' && h < 12) h += 12;
+        if (period === 'am' && h === 12) h = 0;
+        hours = h;
+        minutes = m;
+      }
+    } else {
+      const match = lowerTime.match(/(\d+):(\d+)/);
+      if (match) {
+        hours = parseInt(match[1]);
+        minutes = parseInt(match[2]);
+      } else {
+        hours = parseInt(timeStr) || 0;
+      }
+    }
+    return hours + (minutes / 60);
+  };
+
+  // Dynamically filter slots based on selected date and current time
+  const getFilteredSlots = () => {
+    if (!formData.date) return slots;
+
+    const today = new Date();
+    // Normalize safely to local date string matching input type="date"
+    const localToday = new Date(today.getTime() - (today.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+
+    // If selected date is today, hide past slots
+    if (formData.date === localToday) {
+      const currentHours = today.getHours() + (today.getMinutes() / 60);
+      return slots.filter(slot => convertTo24Hour(slot.time) > currentHours);
+    }
+
+    // If future date, return all active slots
+    return slots;
+  };
+
+  const availableSlots = getFilteredSlots();
+
+  // Reset time if user selects a date where the current selected time is already past
+  useEffect(() => {
+    if (availableSlots.length > 0) {
+      const isTimeAvailable = availableSlots.some(s => s.time === formData.time);
+      if (!formData.time || !isTimeAvailable) {
+        setFormData(prev => ({ ...prev, time: availableSlots[0].time }));
+      }
+    } else if (slots.length > 0 && formData.date) {
+      setFormData(prev => ({ ...prev, time: '' }));
+    }
+  }, [formData.date, slots]); // Reacts only when date changes or slots load
+
   useEffect(() => {
     fetchTables();
+    fetchSlots();
   }, []);
+
+  const fetchSlots = async () => {
+    try {
+      const res = await axios.get('/api/slots');
+      let activeSlots = res.data.filter(s => s.isActive);
+
+      // Sort slots chronologically using the 24-hour converter
+      activeSlots.sort((a, b) => convertTo24Hour(a.time) - convertTo24Hour(b.time));
+
+      setSlots(activeSlots);
+      if (activeSlots.length > 0) {
+        setFormData(prev => ({ ...prev, time: activeSlots[0].time }));
+      }
+    } catch (error) {
+      console.error("Error fetching slots:", error);
+    }
+  };
 
   const fetchTables = async () => {
     try {
@@ -58,7 +140,7 @@ const Booking = () => {
         email: '',
         phone: '',
         date: '',
-        time: '18:00',
+        time: slots.length > 0 ? slots[0].time : '',
         guests: '2 People',
         requests: '',
         tableId: tables.length > 0 ? tables[0]._id : ''
@@ -274,11 +356,14 @@ const Booking = () => {
                 {/* Time */}
                 <div className="flex flex-col">
                   <label className="text-xs uppercase tracking-widest text-charcoal font-semibold mb-2" htmlFor="time">Preferred Time</label>
-                  <select value={formData.time} onChange={handleChange} className="border border-border-neutral rounded-sm p-3 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all bg-background-ivory" id="time" name="time">
-                    <option value="18:00">18:00</option>
-                    <option value="19:00">19:00</option>
-                    <option value="20:00">20:00</option>
-                    <option value="21:00">21:00</option>
+                  <select value={formData.time} onChange={handleChange} className="border border-border-neutral rounded-sm p-3 text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all bg-background-ivory" id="time" name="time" required>
+                    {availableSlots.length === 0 ? (
+                      <option value="">No Slots Available</option>
+                    ) : (
+                      availableSlots.map((slot) => (
+                        <option key={slot._id} value={slot.time}>{slot.time}</option>
+                      ))
+                    )}
                   </select>
                 </div>
               </div>

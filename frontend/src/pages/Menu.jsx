@@ -15,10 +15,14 @@ const Menu = () => {
     const fetchData = async () => {
       try {
         const [menuRes, catRes] = await Promise.all([
-          axios.get('/api/menu'),
+          axios.get('/api/menu?limit=100'), // Override limit=5 from backend config
           axios.get('/api/categories')
         ]);
-        setMenuItems(menuRes.data);
+
+        // Pagination extraction: Safely check if nested in .data, otherwise use direct response
+        const fetchedMenu = menuRes.data?.data ? menuRes.data.data : menuRes.data;
+
+        setMenuItems(Array.isArray(fetchedMenu) ? fetchedMenu : []);
         setCategories(catRes.data);
       } catch (error) {
         console.error("Error fetching menu data:", error);

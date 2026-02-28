@@ -4,10 +4,31 @@ const path = require('path');
 
 exports.getMenuItems = async (req, res) => {
   try {
-    const menuItems = await MenuItem.find()
+    const { category } = req.query;
+    let filter = {};
+    if (category && category !== 'All' && category !== 'all') {
+      filter.categoryId = category; // assuming the frontend passes the category ID
+    }
+
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 5;
+    const skip = (page - 1) * limit;
+
+    const totalRecords = await MenuItem.countDocuments(filter);
+    const totalPages = Math.ceil(totalRecords / limit);
+
+    const menuItems = await MenuItem.find(filter)
       .populate('categoryId', 'name')
-      .sort({ createdAt: -1 });
-    res.status(200).json(menuItems);
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    res.status(200).json({
+      data: menuItems,
+      totalRecords,
+      totalPages,
+      currentPage: page
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

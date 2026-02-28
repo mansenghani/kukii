@@ -94,9 +94,18 @@ exports.getAdminPreOrders = async (req, res) => {
   try {
     const Customer = require('../models/Customer');
 
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 5;
+    const skip = (page - 1) * limit;
+
+    const totalRecords = await PreOrder.countDocuments();
+    const totalPages = Math.ceil(totalRecords / limit);
+
     let preOrders = await PreOrder.find()
       .populate('bookingId')
       .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
       .lean();
 
     // Manually attach customer details for 'table' bookings to avoid silent Mongoose deep populate failures
@@ -109,7 +118,12 @@ exports.getAdminPreOrders = async (req, res) => {
       }
     }
 
-    res.status(200).json(preOrders);
+    res.status(200).json({
+      data: preOrders,
+      totalRecords,
+      totalPages,
+      currentPage: page
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

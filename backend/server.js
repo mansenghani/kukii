@@ -30,6 +30,7 @@ app.use('/api/menu', require('./routes/menuRoutes'));
 app.use('/api/tables', require('./routes/tableRoutes'));
 app.use('/api/feedback', require('./routes/feedbackRoutes'));
 app.use('/api/featured-menu', require('./routes/featuredMenuRoutes'));
+app.get('/api/slots', require('./controllers/timeSlotController').getSlots);
 
 // Business Logic Routes
 app.use('/api/customers', require('./routes/customerRoutes'));
@@ -51,10 +52,11 @@ app.use('/api/admin', require('./routes/adminRoutes'));
 // Protected Admin Routes
 app.use('/api/admin/feedback', protect, require('./routes/adminFeedbackRoutes'));
 app.use('/api/admin/reports', protect, require('./routes/adminReportRoutes'));
-app.use('/api/admin/footer', protect, require('./routes/adminFooterRoutes'));
+app.use('/api/admin/footer', require('./routes/adminFooterRoutes'));
 app.use('/api/admin/events', protect, require('./routes/adminEventRoutes'));
 app.use('/api/admin/preorders', protect, require('./routes/adminPreOrderRoutes'));
 app.use('/api/admin/slots', protect, require('./routes/adminTimeSlotRoutes'));
+app.use('/api/admin/sidebar', require('./routes/adminSidebarRoutes')); // Using internal protect
 app.use('/api/settings', protect, require('./routes/settingsRoutes'));
 
 // Serve Uploads
@@ -99,10 +101,16 @@ app.use('/api', (req, res) => {
 const PORT = process.env.PORT || 5050;
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/kuki';
 
+const { seedSidebarItems } = require('./controllers/sidebarController');
+
 console.log('Connecting to MongoDB...');
 mongoose.connect(MONGODB_URI)
-  .then(() => {
+  .then(async () => {
     console.log('✅ MongoDB connected successfully');
+
+    // Auto-Seed Admin Sidebar 
+    await seedSidebarItems();
+
     app.listen(PORT, () => {
       console.log(`🚀 Server is running on port ${PORT}`);
       console.log(`API BASE: http://localhost:${PORT}/api`);

@@ -2,14 +2,18 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { CalendarDays, Filter, ChevronLeft, ChevronRight, Eye, CheckCircle2, XCircle, Utensils } from 'lucide-react';
 
+import Pagination from '../../components/Pagination';
+
 const AdminEvents = ({ onError, onSuccess }) => {
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filterStatus, setFilterStatus] = useState('All');
 
-    // Pagination state
-    const [currentPage, setCurrentPage] = useState(1);
-    const [eventsPerPage] = useState(10);
+    // Pagination states
+    const [page, setPage] = useState(1);
+    const [limit] = useState(5);
+    const [paginationData, setPaginationData] = useState({ totalPages: 1, totalRecords: 0 });
+
     const [selectedEvent, setSelectedEvent] = useState(null);
     const [preOrder, setPreOrder] = useState(null);
     const [loadingPreOrder, setLoadingPreOrder] = useState(false);
@@ -31,8 +35,16 @@ const AdminEvents = ({ onError, onSuccess }) => {
     const fetchEvents = async () => {
         try {
             setLoading(true);
-            const res = await axios.get(`${API_URL}?status=${filterStatus}`);
-            setEvents(res.data);
+            const res = await axios.get(`${API_URL}?status=${filterStatus}&page=${page}&limit=${limit}`);
+            if (res.data.data) {
+                setEvents(res.data.data);
+                setPaginationData({
+                    totalPages: res.data.totalPages,
+                    totalRecords: res.data.totalRecords
+                });
+            } else {
+                setEvents(res.data);
+            }
         } catch (error) {
             onError('Failed to fetch events');
         } finally {
@@ -42,7 +54,7 @@ const AdminEvents = ({ onError, onSuccess }) => {
 
     useEffect(() => {
         fetchEvents();
-    }, [filterStatus]);
+    }, [filterStatus, page]);
 
     useEffect(() => {
         if (selectedEvent) {
@@ -103,34 +115,28 @@ const AdminEvents = ({ onError, onSuccess }) => {
         }
     };
 
-    // Pagination Calculation
-    const indexOfLastEvent = currentPage * eventsPerPage;
-    const indexOfFirstEvent = indexOfLastEvent - eventsPerPage;
-    const currentEvents = events.slice(indexOfFirstEvent, indexOfLastEvent);
-    const totalPages = Math.ceil(events.length / eventsPerPage);
-
     return (
         <div className="animate-fade-in space-y-6">
-            {/* Header & Filters */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-primary/5">
+            {/* Header for dynamic actions */}
+            <div className="flex justify-between items-center mb-8">
                 <div>
-                    <h2 className="serif-heading text-2xl font-bold text-charcoal">Event Management</h2>
-                    <p className="text-soft-grey text-sm mt-1">Review and manage private event requests.</p>
+                    <h1 className="serif-heading text-4xl text-charcoal capitalize">Events</h1>
+                    <p className="text-soft-grey text-sm mt-1">Manage events section of the restaurant.</p>
                 </div>
 
                 <div className="flex items-center gap-4">
                     <button
                         onClick={() => setShowAddModal(true)}
-                        className="px-4 py-2 bg-primary text-white text-[10px] font-bold uppercase tracking-widest rounded-xl hover:bg-primary-hover transition-all flex items-center gap-2 shadow-sm"
+                        className="px-6 py-2.5 bg-primary text-white text-[10px] font-bold uppercase tracking-widest rounded-xl hover:bg-primary-hover transition-all flex items-center gap-2 shadow-sm"
                     >
                         + Add Event
                     </button>
-                    <div className="flex items-center gap-2 bg-background-ivory/50 border border-border-neutral rounded-xl px-4 py-2">
-                        <Filter size={16} className="text-soft-grey" />
+                    <div className="flex items-center gap-2 bg-white border border-primary/10 rounded-xl px-4 h-10 shadow-sm hover:border-primary/30 transition-all">
+                        <Filter size={14} className="text-soft-grey" />
                         <select
-                            className="bg-transparent border-none outline-none text-sm text-charcoal font-medium cursor-pointer"
+                            className="bg-transparent bg-none border-none outline-none text-xs text-charcoal font-bold cursor-pointer appearance-none"
                             value={filterStatus}
-                            onChange={(e) => { setFilterStatus(e.target.value); setCurrentPage(1); }}
+                            onChange={(e) => { setFilterStatus(e.target.value); setPage(1); }}
                         >
                             <option value="All">All Statuses</option>
                             <option value="pending">Pending</option>
@@ -159,12 +165,12 @@ const AdminEvents = ({ onError, onSuccess }) => {
                                 <tr>
                                     <td colSpan="5" className="px-6 py-12 text-center text-soft-grey">Loading events...</td>
                                 </tr>
-                            ) : currentEvents.length === 0 ? (
+                            ) : events.length === 0 ? (
                                 <tr>
                                     <td colSpan="5" className="px-6 py-12 text-center text-soft-grey">No events found matching your criteria.</td>
                                 </tr>
                             ) : (
-                                currentEvents.map(event => (
+                                events.map(event => (
                                     <tr key={event._id} className="hover:bg-background-ivory/20 transition-colors">
                                         <td className="px-6 py-4">
                                             <div className="font-bold text-charcoal text-sm">{event.name}</div>
@@ -202,28 +208,13 @@ const AdminEvents = ({ onError, onSuccess }) => {
 
                 {/* Pagination Controls */}
                 {!loading && events.length > 0 && (
-                    <div className="px-6 py-4 border-t border-border-neutral bg-background-ivory/20 flex items-center justify-between">
-                        <span className="text-xs text-soft-grey font-medium">
-                            Showing {indexOfFirstEvent + 1} to {Math.min(indexOfLastEvent, events.length)} of {events.length} events
-                        </span>
-                        <div className="flex items-center gap-2">
-                            <button
-                                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                                disabled={currentPage === 1}
-                                className="size-8 rounded-lg border border-border-neutral flex items-center justify-center text-charcoal hover:bg-white hover:text-primary hover:border-primary/20 transition-all disabled:opacity-30 disabled:hover:bg-transparent"
-                            >
-                                <ChevronLeft size={16} />
-                            </button>
-                            <span className="text-xs font-bold text-charcoal px-2">Page {currentPage} of {totalPages}</span>
-                            <button
-                                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                                disabled={currentPage === totalPages}
-                                className="size-8 rounded-lg border border-border-neutral flex items-center justify-center text-charcoal hover:bg-white hover:text-primary hover:border-primary/20 transition-all disabled:opacity-30 disabled:hover:bg-transparent"
-                            >
-                                <ChevronRight size={16} />
-                            </button>
-                        </div>
-                    </div>
+                    <Pagination
+                        currentPage={page}
+                        totalPages={paginationData.totalPages}
+                        totalRecords={paginationData.totalRecords}
+                        limit={limit}
+                        onPageChange={(newPage) => setPage(newPage)}
+                    />
                 )}
             </div>
 

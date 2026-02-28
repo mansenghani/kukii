@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Search, Star, MessageSquare, Trash2, Check, X, Eye, X as XClose, Loader2, AlertCircle } from 'lucide-react';
+import { Search, Star, MessageSquare, Trash2, Check, X, Eye, X as XClose, Loader2, AlertCircle, Filter } from 'lucide-react';
+
+import Pagination from '../../components/Pagination';
 
 const AdminFeedback = () => {
     const [feedbacks, setFeedbacks] = useState([]);
@@ -10,18 +12,30 @@ const AdminFeedback = () => {
     const [statusFilter, setStatusFilter] = useState('all');
     const [errorMsg, setErrorMsg] = useState('');
 
+    const [page, setPage] = useState(1);
+    const [limit] = useState(5);
+    const [paginationData, setPaginationData] = useState({ totalPages: 1, totalRecords: 0 });
+
     const API_BASE_URL = '/api/admin/feedback';
 
     useEffect(() => {
         fetchFeedbacks();
-    }, []);
+    }, [page]);
 
     const fetchFeedbacks = async () => {
         setLoading(true);
         setErrorMsg('');
         try {
-            const response = await axios.get(API_BASE_URL);
-            setFeedbacks(response.data);
+            const response = await axios.get(`${API_BASE_URL}?page=${page}&limit=${limit}`);
+            if (response.data.data) {
+                setFeedbacks(response.data.data);
+                setPaginationData({
+                    totalPages: response.data.totalPages,
+                    totalRecords: response.data.totalRecords
+                });
+            } else {
+                setFeedbacks(response.data);
+            }
         } catch (error) {
             console.error('Error fetching feedbacks:', error);
             setErrorMsg('Failed to sync feedback data from server.');
@@ -92,26 +106,54 @@ const AdminFeedback = () => {
 
     return (
         <div className="animate-fade-in font-sans">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+            {/* Header for dynamic actions */}
+            <div className="flex justify-between items-center mb-8">
                 <div>
-                    <h2 className="serif-heading text-4xl text-charcoal tracking-tight">Guest Feedback</h2>
-                    <p className="text-soft-grey text-sm mt-1">Review, approve, or moderate customer stories.</p>
+                    <h1 className="serif-heading text-4xl text-charcoal capitalize">Feedback</h1>
+                    <p className="text-soft-grey text-sm mt-1">Manage feedback section of the restaurant.</p>
                 </div>
-                <div className="relative w-full md:w-96 flex gap-4">
-                    <div className="relative flex-1">
+
+                <div className="flex items-center gap-4">
+                    <div className="relative w-64 hidden md:block">
                         <input
                             type="text"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             placeholder="Search names, emails..."
-                            className="w-full bg-white border border-border-neutral rounded-xl pl-11 pr-4 py-3 text-sm focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all shadow-sm outline-none"
+                            className="w-full bg-white border border-primary/10 rounded-xl pl-10 pr-4 h-10 text-sm focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all shadow-sm outline-none"
                         />
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-soft-grey" size={16} />
                     </div>
-                    <button onClick={fetchFeedbacks} className="p-3 bg-white border border-border-neutral rounded-xl hover:bg-primary/5 transition-colors text-soft-grey hover:text-primary">
-                        <svg className={`size-5 ${loading ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+
+                    <div className="flex items-center gap-2 bg-white border border-primary/10 rounded-xl px-4 h-10 shadow-sm hover:border-primary/30 transition-all">
+                        <Filter size={14} className="text-soft-grey" />
+                        <select
+                            className="bg-transparent bg-none border-none outline-none text-xs text-charcoal font-bold cursor-pointer appearance-none capitalize"
+                            value={statusFilter}
+                            onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+                        >
+                            <option value="all">All Statuses</option>
+                            <option value="pending">Pending</option>
+                            <option value="approved">Approved</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
+                    </div>
+
+                    <button onClick={fetchFeedbacks} className="flex items-center justify-center size-10 bg-white border border-primary/10 rounded-xl hover:bg-primary/5 transition-colors text-soft-grey hover:text-primary shadow-sm">
+                        <svg className={`size-4 ${loading ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
                     </button>
                 </div>
+            </div>
+
+            <div className="relative w-full md:hidden mb-6 block">
+                <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search names, emails..."
+                    className="w-full bg-white border border-primary/10 rounded-xl pl-10 pr-4 h-12 text-sm focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all shadow-sm outline-none"
+                />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-soft-grey" size={16} />
             </div>
 
             {errorMsg && (
@@ -119,22 +161,6 @@ const AdminFeedback = () => {
                     <AlertCircle size={18} /> {errorMsg}
                 </div>
             )}
-
-            <div className="flex gap-2 mb-8 items-center overflow-x-auto pb-2">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-soft-grey mr-2">Filters:</span>
-                {['all', 'pending', 'approved', 'rejected'].map(status => (
-                    <button
-                        key={status}
-                        onClick={() => setStatusFilter(status)}
-                        className={`px-5 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest border transition-all whitespace-nowrap ${statusFilter === status
-                            ? 'bg-primary text-white border-primary shadow-md'
-                            : 'bg-white text-soft-grey border-border-neutral hover:border-primary/40'
-                            }`}
-                    >
-                        {status}
-                    </button>
-                ))}
-            </div>
 
             <section className="bg-white border border-border-neutral rounded-2xl overflow-hidden shadow-sm">
                 <div className="overflow-x-auto">
@@ -207,6 +233,16 @@ const AdminFeedback = () => {
                         </tbody>
                     </table>
                 </div>
+                {/* Pagination Controls */}
+                {!loading && feedbacks.length > 0 && (
+                    <Pagination
+                        currentPage={page}
+                        totalPages={paginationData.totalPages}
+                        totalRecords={paginationData.totalRecords}
+                        limit={limit}
+                        onPageChange={(newPage) => setPage(newPage)}
+                    />
+                )}
             </section>
 
             {/* Modal */}

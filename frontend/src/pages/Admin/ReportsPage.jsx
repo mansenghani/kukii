@@ -4,10 +4,7 @@ import axios from 'axios';
 const ReportsPage = () => {
     const [loading, setLoading] = useState(true);
     const [dailyStats, setDailyStats] = useState({ totalBookings: 0, totalRevenue: 0 });
-    const [monthlyStats, setMonthlyStats] = useState({ currentCount: 0, prevCount: 0, growth: 0 });
-    const [topFood, setTopFood] = useState([]);
     const [peakHour, setPeakHour] = useState({ _id: 'N/A', count: 0 });
-    const [loyalty, setLoyalty] = useState({ repeatPercentage: 0, total: 0 });
     const [transactions, setTransactions] = useState([]);
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
@@ -31,19 +28,13 @@ const ReportsPage = () => {
 
     const fetchReports = async () => {
         try {
-            const [daily, monthly, food, peak, visit] = await Promise.all([
+            const [daily, peak] = await Promise.all([
                 axios.get(`${API_BASE_URL}/daily`),
-                axios.get(`${API_BASE_URL}/monthly`),
-                axios.get(`${API_BASE_URL}/top-food?limit=3`),
-                axios.get(`${API_BASE_URL}/peak-hours`),
-                axios.get(`${API_BASE_URL}/visit-frequency`)
+                axios.get(`${API_BASE_URL}/peak-hours`)
             ]);
 
             setDailyStats(daily.data);
-            setMonthlyStats(monthly.data);
-            setTopFood(food.data);
             setPeakHour(peak.data);
-            setLoyalty(visit.data);
         } catch (err) {
             console.error("Report Fetch Error:", err);
         } finally {
@@ -77,134 +68,6 @@ const ReportsPage = () => {
 
     return (
         <div className="animate-fade-in space-y-12">
-            {/* Header Area */}
-            <div className="flex justify-between items-start">
-                <div>
-                    <h1 className="serif-heading text-4xl text-charcoal">Report Generation</h1>
-                    <p className="text-soft-grey mt-1 text-sm font-medium">Generate analytics and performance reports for restaurant management.</p>
-                </div>
-                <div className="hidden md:flex flex-col items-end gap-1 text-right">
-                    <p className="text-[10px] font-bold text-primary uppercase tracking-widest">Status Overview</p>
-                    <p className="text-xs text-soft-grey">Last Generated: <span className="font-semibold text-charcoal">{new Date().toLocaleString()}</span></p>
-                    <p className="text-xs text-soft-grey">Reports Created: <span className="font-semibold text-charcoal">128</span></p>
-                </div>
-            </div>
-
-            {/* Report Configuration Cards */}
-            <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-20">
-                {/* Daily Booking Report */}
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-primary/5 hover:shadow-lg transition-all duration-300 h-full flex flex-col justify-between group">
-                    <div className="flex justify-between items-start mb-4">
-                        <div className="p-2 bg-primary/10 rounded-lg text-primary group-hover:scale-110 transition-transform">
-                            <Icon name="event_available" />
-                        </div>
-                        <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-1 rounded uppercase">Daily</span>
-                    </div>
-                    <h3 className="font-bold text-lg mb-2 text-charcoal">Daily Booking Report</h3>
-                    <p className="text-xs text-soft-grey mb-4 font-medium">Summary: Total {dailyStats.totalBookings} bookings today</p>
-                    <div className="space-y-4">
-                        <input className="w-full rounded-lg border-primary/20 focus:ring-primary focus:border-primary bg-background-ivory/50 text-sm py-2 px-3 outline-none" type="date" />
-                        <button className="w-full bg-primary text-white py-2 rounded-lg text-sm font-bold hover:bg-primary-hover transition-colors shadow-sm">Generate</button>
-                    </div>
-                </div>
-
-                {/* Monthly Reservation Report */}
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-primary/5 hover:shadow-lg transition-all duration-300 h-full flex flex-col justify-between group">
-                    <div className="flex justify-between items-start mb-4">
-                        <div className="p-2 bg-primary/10 rounded-lg text-primary group-hover:scale-110 transition-transform">
-                            <Icon name="calendar_month" />
-                        </div>
-                        <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-1 rounded uppercase">Monthly</span>
-                    </div>
-                    <h3 className="font-bold text-lg mb-2 text-charcoal">Monthly Reservation Report</h3>
-                    <p className={`text-xs ${parseFloat(monthlyStats.growth) >= 0 ? 'text-emerald-600' : 'text-red-500'} mb-4 flex items-center gap-1 font-bold`}>
-                        <Icon name={parseFloat(monthlyStats.growth) >= 0 ? "trending_up" : "trending_down"} className="text-sm" />
-                        Trend: {monthlyStats.growth > 0 ? '+' : ''}{monthlyStats.growth}% from last month
-                    </p>
-                    <div className="space-y-4">
-                        <select className="w-full rounded-lg border-primary/20 focus:ring-primary focus:border-primary bg-background-ivory/50 text-sm py-2 px-3 outline-none">
-                            <option>{new Date().toLocaleString('default', { month: 'long', year: 'numeric' })}</option>
-                            <option>Previous Month</option>
-                        </select>
-                        <button className="w-full bg-primary text-white py-2 rounded-lg text-sm font-bold hover:bg-primary-hover transition-colors shadow-sm">Generate</button>
-                    </div>
-                </div>
-
-                {/* Most Ordered Food */}
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-primary/5 hover:shadow-lg transition-all duration-300 h-full flex flex-col justify-between group">
-                    <div className="flex justify-between items-start mb-4">
-                        <div className="p-2 bg-primary/10 rounded-lg text-primary group-hover:scale-110 transition-transform">
-                            <Icon name="restaurant_menu" />
-                        </div>
-                        <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-1 rounded uppercase">Menu</span>
-                    </div>
-                    <h3 className="font-bold text-lg mb-2 text-charcoal">Most Ordered Food</h3>
-                    <div className="text-[11px] text-soft-grey mb-4 flex flex-wrap gap-2">
-                        {topFood.map((item, i) => (
-                            <span key={i} className="px-2 py-0.5 bg-background-ivory rounded-full border border-primary/5 font-medium">{item.name}</span>
-                        ))}
-                    </div>
-                    <div className="space-y-4">
-                        <select className="w-full rounded-lg border-primary/20 focus:ring-primary focus:border-primary bg-background-ivory/50 text-sm py-2 px-3 outline-none">
-                            <option>Top 10 Dishes</option>
-                            <option>Top 25 Dishes</option>
-                        </select>
-                        <button className="w-full bg-primary text-white py-2 rounded-lg text-sm font-bold hover:bg-primary-hover transition-colors shadow-sm">Generate</button>
-                    </div>
-                </div>
-
-                {/* Peak Hour Booking */}
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-primary/5 hover:shadow-lg transition-all duration-300 h-full flex flex-col justify-between group">
-                    <div className="flex justify-between items-start mb-4">
-                        <div className="p-2 bg-primary/10 rounded-lg text-primary group-hover:scale-110 transition-transform">
-                            <Icon name="schedule" />
-                        </div>
-                        <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-1 rounded uppercase">Analytics</span>
-                    </div>
-                    <h3 className="font-bold text-lg mb-2 text-charcoal">Peak Hour Booking</h3>
-                    <p className="text-xs text-soft-grey mb-4 font-medium uppercase tracking-wider">Busiest window: <span className="text-primary font-bold">{peakHour._id}</span></p>
-                    <div className="space-y-4">
-                        <div className="flex gap-2">
-                            <input className="w-1/2 rounded-lg border-primary/20 bg-background-ivory/50 text-xs py-2 px-3" type="time" defaultValue="17:00" />
-                            <input className="w-1/2 rounded-lg border-primary/20 bg-background-ivory/50 text-xs py-2 px-3" type="time" defaultValue="23:00" />
-                        </div>
-                        <button className="w-full bg-primary text-white py-2 rounded-lg text-sm font-bold hover:bg-primary-hover transition-colors shadow-sm">Generate</button>
-                    </div>
-                </div>
-
-                {/* Customer Visit Frequency */}
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-primary/5 hover:shadow-lg transition-all duration-300 h-full flex flex-col justify-between group">
-                    <div className="flex justify-between items-start mb-4">
-                        <div className="p-2 bg-primary/10 rounded-lg text-primary group-hover:scale-110 transition-transform">
-                            <Icon name="group_work" />
-                        </div>
-                        <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-1 rounded uppercase">Loyalty</span>
-                    </div>
-                    <h3 className="font-bold text-lg mb-2 text-charcoal">Customer Visit Frequency</h3>
-                    <div className="mb-4">
-                        <div className="flex justify-between text-[10px] font-bold mb-1 text-soft-grey tracking-widest uppercase">
-                            <span>Repeat Rate</span>
-                            <span className="text-primary">{loyalty.repeatPercentage}%</span>
-                        </div>
-                        <div className="w-full bg-background-ivory h-1.5 rounded-full overflow-hidden border border-primary/5">
-                            <div className="bg-primary h-full transition-all duration-1000" style={{ width: `${loyalty.repeatPercentage}%` }}></div>
-                        </div>
-                    </div>
-                    <div className="space-y-4">
-                        <select className="w-full rounded-lg border-primary/20 bg-background-ivory/50 text-sm py-2 px-3 outline-none">
-                            <option>Last Quarter</option>
-                            <option>Year to Date</option>
-                        </select>
-                        <button className="w-full bg-primary text-white py-2 rounded-lg text-sm font-bold hover:bg-primary-hover transition-colors shadow-sm">Generate</button>
-                    </div>
-                </div>
-
-                {/* Create Custom Report */}
-                <div className="bg-primary/5 border-2 border-dashed border-primary/20 p-6 rounded-2xl flex flex-col items-center justify-center text-center hover:bg-primary/10 transition-all duration-300 group cursor-pointer">
-                    <Icon name="add_circle" className="text-primary/40 text-4xl mb-4 group-hover:scale-110 group-hover:text-primary transition-all shadow-rose-200" />
-                    <p className="text-sm font-bold text-primary/60 group-hover:text-primary uppercase tracking-widest">Create Custom Report</p>
-                </div>
-            </section>
 
             {/* Preview Summary Row */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
