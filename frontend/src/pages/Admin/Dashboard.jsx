@@ -114,8 +114,36 @@ const AdminDashboard = () => {
 
   const handleLogout = () => {
     localStorage.removeItem('kuki_admin_auth');
+    localStorage.removeItem('kuki_admin_token');
+    localStorage.removeItem('kuki_admin_user');
     setIsAuthorized(false);
+    navigate('/admin');
   };
+
+  // Auto Logout on Inactivity (15 Minutes)
+  useEffect(() => {
+    let idleTimeout;
+
+    const resetTimer = () => {
+      if (idleTimeout) clearTimeout(idleTimeout);
+      if (isAuthorized) {
+        idleTimeout = setTimeout(() => {
+          handleLogout();
+        }, 15 * 60 * 1000); // 15 minutes = 900,000ms
+      }
+    };
+
+    if (isAuthorized) {
+      const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
+      events.forEach(event => window.addEventListener(event, resetTimer));
+      resetTimer();
+
+      return () => {
+        if (idleTimeout) clearTimeout(idleTimeout);
+        events.forEach(event => window.removeEventListener(event, resetTimer));
+      };
+    }
+  }, [isAuthorized]);
 
   const fetchAll = async () => {
     setLoading(true);
