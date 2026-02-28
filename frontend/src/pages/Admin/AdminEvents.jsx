@@ -3,11 +3,16 @@ import axios from 'axios';
 import { CalendarDays, Filter, ChevronLeft, ChevronRight, Eye, CheckCircle2, XCircle, Utensils } from 'lucide-react';
 
 import Pagination from '../../components/Pagination';
+import AdminCancelModal from '../../components/AdminCancelModal';
 
 const AdminEvents = ({ onError, onSuccess }) => {
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filterStatus, setFilterStatus] = useState('All');
+
+    // Cancellation states
+    const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+    const [eventToCancel, setEventToCancel] = useState(null);
 
     // Pagination states
     const [page, setPage] = useState(1);
@@ -202,12 +207,22 @@ const AdminEvents = ({ onError, onSuccess }) => {
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 text-right">
-                                            <button
-                                                onClick={() => setSelectedEvent(event)}
-                                                className="inline-flex items-center gap-1 px-3 py-1.5 bg-primary/5 text-primary rounded-lg hover:bg-primary/10 transition-colors text-xs font-bold uppercase tracking-wider"
-                                            >
-                                                <Eye size={14} /> View
-                                            </button>
+                                            <div className="flex justify-end gap-2">
+                                                <button
+                                                    onClick={() => setSelectedEvent(event)}
+                                                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-primary/5 text-primary rounded-lg hover:bg-primary/10 transition-colors text-xs font-bold uppercase tracking-wider"
+                                                >
+                                                    <Eye size={14} /> View
+                                                </button>
+                                                {(event.status === 'confirmed' || event.status === 'pending' || event.status === 'approved') && (
+                                                    <button
+                                                        onClick={() => { setEventToCancel(event); setIsCancelModalOpen(true); }}
+                                                        className="px-3 py-1.5 bg-rose-50 text-rose-500 rounded-lg hover:bg-rose-100 transition-colors text-[10px] font-bold uppercase tracking-widest"
+                                                    >
+                                                        Cancel
+                                                    </button>
+                                                )}
+                                            </div>
                                         </td>
                                     </tr>
                                 ))
@@ -417,6 +432,20 @@ const AdminEvents = ({ onError, onSuccess }) => {
                     </div>
                 </div>
             )}
+            {/* Cancellation Modal */}
+            <AdminCancelModal
+                isOpen={isCancelModalOpen}
+                onClose={() => setIsCancelModalOpen(false)}
+                booking={eventToCancel}
+                type="event"
+                onSuccess={() => {
+                    onSuccess(`Event successfully cancelled.`);
+                    fetchEvents();
+                    if (selectedEvent && selectedEvent._id === eventToCancel._id) {
+                        setSelectedEvent(null);
+                    }
+                }}
+            />
         </div>
     );
 };

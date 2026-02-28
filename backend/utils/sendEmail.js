@@ -226,9 +226,12 @@ const sendAdminNotificationEmail = async (data) => {
     });
 };
 
+/**
+ * Send Booking Confirmation Email with KUKI ID
+ */
 const sendConfirmationWithIdEmail = async (data, type) => {
     const isEvent = type === 'event';
-    const customerName = isEvent ? data.name : (data.customerId?.name || 'Guest');
+    const customerName = isEvent ? data.name : (data.customerId?.name || 'Valued Guest');
     const customerEmail = isEvent ? data.email : data.customerId?.email;
 
     if (!customerEmail) return;
@@ -236,30 +239,38 @@ const sendConfirmationWithIdEmail = async (data, type) => {
     const bookingId = data.uniqueBookingId;
     const dateStr = new Date(isEvent ? data.eventDate : data.date).toDateString();
     const timeStr = isEvent ? data.timeSlot : data.time;
+    const guests = data.guests;
 
     const htmlTemplate = `
-    <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 40px; border: 1px solid #efefef;">
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 30px; border: 1px solid #efefef; color: #333;">
         <h1 style="color: #2b2b2b; text-align: center; letter-spacing: 5px;">KUKI</h1>
-        <div style="background: #c67c7c; padding: 15px; text-align: center; color: white; font-weight: bold; text-transform: uppercase; letter-spacing: 2px;">
-            Booking Confirmed
-        </div>
-        <p style="margin-top: 30px; font-size: 16px; color: #555;">Dear <strong>${customerName}</strong>,</p>
-        <p style="font-size: 15px; color: #555; line-height: 1.6;">Your ${type === 'event' ? 'event' : 'table'} booking is confirmed! Here are your details:</p>
+        <p style="text-align: center; font-size: 14px; color: #888; text-transform: uppercase;">Fine Dining Redefined</p>
         
-        <div style="background: #fdfaf7; padding: 25px; margin: 25px 0;">
-            <p><strong>Booking ID:</strong> <span style="color: #c67c7c; font-size: 18px; font-weight: bold;">${bookingId}</span></p>
-            <p><strong>Type:</strong> ${type.toUpperCase()}</p>
-            <p><strong>Date:</strong> ${dateStr}</p>
-            <p><strong>Time:</strong> ${timeStr}</p>
-            <p><strong>Guests:</strong> ${data.guests} PAX</p>
+        <div style="background: #c67c7c; padding: 15px; text-align: center; color: white; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; margin-top: 30px;">
+            Booking Confirmed ✓
         </div>
 
-        <div style="border: 1px dashed #c67c7c; padding: 20px; text-align: center;">
-            <p style="font-size: 12px; color: #c67c7c; margin: 0; font-weight: bold; text-transform: uppercase;">Manage Your Booking</p>
-            <p style="font-size: 14px; color: #555;">Use the ID above to cancel or modify your booking on our website.</p>
+        <p style="margin-top: 30px; font-size: 16px;">Dear <strong>${customerName}</strong>,</p>
+        <p style="font-size: 15px; line-height: 1.6;">Your booking at <strong>KUKI Restaurant</strong> is confirmed! We look forward to serving you.</p>
+        
+        <div style="background: #fdfaf7; padding: 25px; margin: 25px 0; border: 1px solid #e3dbd4;">
+            <p style="border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px; font-weight: bold; text-transform: uppercase; font-size: 12px; color: #c67c7c;">Booking Details</p>
+            <p style="margin: 8px 0;"><strong>Booking ID:</strong> <span style="color: #c67c7c; font-weight: bold; letter-spacing: 1px;">${bookingId}</span></p>
+            <p style="margin: 8px 0;"><strong>Type:</strong> ${type === 'event' ? 'Private Event' : 'Table Reservation'}</p>
+            <p style="margin: 8px 0;"><strong>Date:</strong> ${dateStr}</p>
+            <p style="margin: 8px 0;"><strong>Time:</strong> ${timeStr}</p>
+            <p style="margin: 8px 0;"><strong>Guests:</strong> ${guests}</p>
+            <p style="margin: 8px 0;"><strong>Status:</strong> <span style="color: #2e7d32; font-weight: bold;">CONFIRMED</span></p>
+        </div>
+
+        <div style="border: 2px dashed #c67c7c; padding: 25px; text-align: center; background-color: #fff9f9;">
+            <p style="font-size: 14px; color: #c67c7c; margin: 0 0 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">⚠ IMPORTANT - Save Your Booking ID</p>
+            <p style="font-size: 24px; color: #2b2b2b; margin: 0; font-weight: bold; letter-spacing: 2px;">${bookingId}</p>
+            <p style="font-size: 13px; color: #666; margin-top: 10px;">You will need this ID if you want to cancel your booking.</p>
         </div>
         
-        <p style="text-align: center; font-size: 12px; color: #888; margin-top: 40px;">&copy; 2026 KUKI Restaurant. Fine Dining Redefined.</p>
+        <p style="margin-top: 30px; font-size: 15px;">Thank you for choosing KUKI Restaurant!</p>
+        <p style="font-size: 14px; color: #888; margin-top: 40px; border-top: 1px solid #eee; pt-20">KUKI Restaurant Team</p>
     </div>
     `;
 
@@ -270,36 +281,96 @@ const sendConfirmationWithIdEmail = async (data, type) => {
     });
 };
 
-const sendOTPEmail = async (email, otp) => {
+/**
+ * Send OTP for Cancellation
+ */
+const sendOTPEmail = async (data, otp, type) => {
+    const isEvent = type === 'event';
+    const customerName = isEvent ? data.name : (data.customerId?.name || 'Valued Guest');
+    const customerEmail = isEvent ? data.email : data.customerId?.email;
+
+    if (!customerEmail) return;
+
+    const bookingId = data.uniqueBookingId;
+    const dateStr = new Date(isEvent ? data.eventDate : data.date).toDateString();
+    const timeStr = isEvent ? data.timeSlot : data.time;
+
     const htmlTemplate = `
-    <div style="font-family: sans-serif; max-width: 500px; margin: auto; padding: 40px; border: 1px solid #efefef; text-align: center;">
-        <h1 style="color: #2b2b2b; letter-spacing: 5px;">KUKI</h1>
-        <h2 style="color: #c67c7c; text-transform: uppercase; font-size: 16px; margin-bottom: 30px;">Cancellation OTP</h2>
-        <p style="color: #555;">You requested an OTP for booking cancellation.</p>
-        <div style="font-size: 42px; font-weight: bold; color: #2b2b2b; letter-spacing: 12px; margin: 30px 0;">${otp}</div>
-        <p style="font-size: 13px; color: #888;">Valid for 10 minutes only. Please do not share this OTP.</p>
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 30px; border: 1px solid #efefef; color: #333;">
+        <h1 style="color: #2b2b2b; text-align: center; letter-spacing: 5px;">KUKI</h1>
+        <h2 style="color: #c67c7c; text-align: center; text-transform: uppercase; font-size: 16px; margin: 20px 0;">Cancellation OTP</h2>
+        
+        <p>Dear <strong>${customerName}</strong>,</p>
+        <p style="line-height: 1.6;">A cancellation request has been initiated for your booking at <strong>KUKI Restaurant</strong>.</p>
+        
+        <div style="background: #fcfbf9; border: 1px solid #e3dbd4; text-align: center; padding: 40px 20px; margin: 30px 0;">
+            <p style="font-size: 13px; color: #888; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 15px;">Your OTP</p>
+            <div style="font-size: 48px; font-weight: bold; color: #2b2b2b; letter-spacing: 15px; margin: 20px 0; border: 2px solid #2b2b2b; display: inline-block; padding: 10px 30px;">${otp}</div>
+            <p style="font-size: 13px; color: #c67c7c; font-weight: bold; margin-top: 15px;">Valid for 10 minutes only.</p>
+        </div>
+
+        <p style="font-size: 14px; color: #555;">Share this OTP with our staff to confirm cancellation. Do NOT share with anyone else.</p>
+
+        <div style="background: #f9f9f9; padding: 20px; border-left: 4px solid #c67c7c; margin: 20px 0;">
+            <p style="margin: 0; font-size: 12px; font-weight: bold; text-transform: uppercase;">Booking Details:</p>
+            <p style="margin: 5px 0; font-size: 14px;"><strong>Booking ID:</strong> ${bookingId}</p>
+            <p style="margin: 5px 0; font-size: 14px;"><strong>Date:</strong> ${dateStr}</p>
+            <p style="margin: 5px 0; font-size: 14px;"><strong>Time:</strong> ${timeStr}</p>
+            <p style="margin: 5px 0; font-size: 14px;"><strong>Type:</strong> ${isEvent ? 'Private Event' : 'Table Reservation'}</p>
+        </div>
+
+        <p style="font-size: 13px; color: #888; font-style: italic;">If you did NOT request cancellation, please contact us immediately!</p>
+        
+        <p style="margin-top: 30px; font-size: 14px; border-top: 1px solid #eee; padding-top: 20px;">KUKI Restaurant Team</p>
     </div>
     `;
 
     return sendEmail({
-        email,
-        subject: "OTP for Booking Cancellation - KUKI",
+        email: customerEmail,
+        subject: `OTP for Booking Cancellation - ${bookingId}`,
         html: htmlTemplate
     });
 };
 
-const sendCancellationConfirmedEmail = async (email, bookingId) => {
+/**
+ * Send Cancellation Confirmation
+ */
+const sendCancellationConfirmedEmail = async (data, type) => {
+    const isEvent = type === 'event';
+    const customerName = isEvent ? data.name : (data.customerId?.name || 'Valued Guest');
+    const customerEmail = isEvent ? data.email : data.customerId?.email;
+
+    if (!customerEmail) return;
+
+    const bookingId = data.uniqueBookingId;
+    const dateStr = new Date(isEvent ? data.eventDate : data.date).toDateString();
+    const timeStr = isEvent ? data.timeSlot : data.time;
+
     const htmlTemplate = `
-    <div style="font-family: sans-serif; max-width: 500px; margin: auto; padding: 40px; border: 1px solid #efefef; text-align: center;">
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 30px; border: 1px solid #efefef; color: #333; text-align: center;">
         <h1 style="color: #2b2b2b; letter-spacing: 5px;">KUKI</h1>
-        <div style="background: #2b2b2b; color: white; padding: 10px; margin: 20px 0; font-weight: bold;">BOOKING CANCELLED</div>
-        <p style="color: #555; line-height: 1.6;">Your booking <strong>${bookingId}</strong> has been successfully cancelled. We hope to serve you again in the future.</p>
-        <p style="font-size: 12px; color: #888; margin-top: 40px;">&copy; 2026 KUKI Restaurant.</p>
+        <div style="background: #2b2b2b; color: white; padding: 15px; margin: 30px 0; font-weight: bold; text-transform: uppercase; letter-spacing: 3px;">
+            Booking Cancelled ✓
+        </div>
+
+        <p style="text-align: left;">Dear <strong>${customerName}</strong>,</p>
+        <p style="text-align: left; line-height: 1.6;">Your booking has been successfully cancelled.</p>
+        
+        <div style="background: #fcfbf9; border: 1px solid #e3dbd4; text-align: left; padding: 25px; margin: 30px 0; display: inline-block; width: 100%; box-sizing: border-box;">
+            <p style="margin: 5px 0;"><strong>Booking ID:</strong> ${bookingId}</p>
+            <p style="margin: 5px 0;"><strong>Date:</strong> ${dateStr}</p>
+            <p style="margin: 5px 0;"><strong>Time:</strong> ${timeStr}</p>
+            <p style="margin: 5px 0;"><strong>Status:</strong> <span style="color: #dc2626; font-weight: bold; text-transform: uppercase;">CANCELLED</span></p>
+        </div>
+
+        <p style="margin-top: 30px;">We hope to see you again at <strong>KUKI Restaurant</strong> soon!</p>
+        
+        <p style="font-size: 14px; color: #888; margin-top: 40px; border-top: 1px solid #eee; padding-top: 20px;">KUKI Restaurant Team</p>
     </div>
     `;
 
     return sendEmail({
-        email,
+        email: customerEmail,
         subject: `Booking Cancelled - ${bookingId}`,
         html: htmlTemplate
     });

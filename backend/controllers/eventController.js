@@ -218,7 +218,9 @@ exports.createAdminEvent = async (req, res) => {
         }
 
         const newEvent = new Event({
-            name, phone, email, eventDate: targetDate, timeSlot, guests, specialRequest, status: 'approved'
+            name, phone, email, eventDate: targetDate, timeSlot, guests, specialRequest,
+            uniqueBookingId: generateUniqueId(),
+            status: 'approved'
         });
 
         await newEvent.save();

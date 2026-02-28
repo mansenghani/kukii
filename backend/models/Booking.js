@@ -26,9 +26,16 @@ const bookingSchema = new mongoose.Schema({
   uniqueBookingId: {
     type: String,
     unique: true,
+    default: () => `KUKI-${Math.floor(100000 + Math.random() * 900000)}`
   },
-  otp: String,
-  otpExpiry: Date,
+  otp: {
+    type: String,
+    default: null
+  },
+  otpExpiry: {
+    type: Date,
+    default: null
+  },
   status: {
     type: String,
     enum: ['pending', 'approved', 'rejected', 'cancelled'],

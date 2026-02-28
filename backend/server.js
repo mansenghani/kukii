@@ -58,6 +58,7 @@ app.use('/api/admin/events', protect, require('./routes/adminEventRoutes'));
 app.use('/api/admin/preorders', protect, require('./routes/adminPreOrderRoutes'));
 app.use('/api/admin/slots', protect, require('./routes/adminTimeSlotRoutes'));
 app.use('/api/admin/sidebar', require('./routes/adminSidebarRoutes')); // Using internal protect
+app.use('/api/admin/cancel', protect, require('./routes/adminCancelRoutes'));
 app.use('/api/dashboard', protect, require('./routes/dashboardRoutes'));
 app.use('/api/settings', protect, require('./routes/settingsRoutes'));
 

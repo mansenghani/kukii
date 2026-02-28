@@ -12,6 +12,7 @@ import AdminHeader from './AdminHeader';
 import AdminTimeSlots from './AdminTimeSlots';
 import AdminSettings from './AdminSettings';
 import AdminFeaturedMenu from './AdminFeaturedMenu';
+import AdminBookings from './AdminBookings';
 import Overview from './Overview';
 import Pagination from '../../components/Pagination';
 
@@ -379,6 +380,7 @@ const AdminDashboard = () => {
       case 'timeslots': return <AdminTimeSlots onError={(msg) => setMessage({ text: msg, type: 'error' })} onSuccess={(msg) => setMessage({ text: msg, type: 'success' })} />;
       case 'settings': return <AdminSettings onError={(msg) => setMessage({ text: msg, type: 'error' })} onSuccess={(msg) => setMessage({ text: msg, type: 'success' })} />;
       case 'featured': return <AdminFeaturedMenu menuItems={data.menu} onError={(msg) => setMessage({ text: msg, type: 'error' })} onSuccess={(msg) => setMessage({ text: msg, type: 'success' })} />;
+      case 'bookings': return <AdminBookings onError={(msg) => setMessage({ text: msg, type: 'error' })} onSuccess={(msg) => setMessage({ text: msg, type: 'success' })} />;
 
       default:
         return (
@@ -432,11 +434,8 @@ const AdminDashboard = () => {
                           </td>
                           <td className="p-5">
                             <div className="flex gap-2 text-soft-grey">
-                              {['menu', 'categories', 'tables', 'bookings'].includes(activeTab) && (
+                              {['menu', 'categories', 'tables'].includes(activeTab) && (
                                 <button onClick={() => handleEdit(item)} className="p-2 hover:bg-primary/10 hover:text-primary rounded-lg transition-all"><Pencil size={18} /></button>
-                              )}
-                              {activeTab === 'bookings' && (
-                                <button onClick={() => setSelectedBooking(item)} className="p-2 hover:bg-primary/10 hover:text-primary rounded-lg transition-all"><Eye size={18} /></button>
                               )}
                               <button onClick={() => activeTab === 'menu' ? deleteMenuItem(item._id) : activeTab === 'categories' ? deleteCategory(item._id) : activeTab === 'tables' ? deleteTable(item._id) : deleteBooking(item._id)} className="p-2 hover:bg-rose-50 hover:text-rose-500 rounded-lg transition-all"><Trash2 size={18} /></button>
 
@@ -452,7 +451,7 @@ const AdminDashboard = () => {
                 </div>
 
                 {/* Pagination UI for Main Tabs */}
-                {['menu', 'bookings', 'tables', 'categories'].includes(activeTab) && (
+                {['menu', 'tables', 'categories'].includes(activeTab) && (
                   <Pagination
                     currentPage={page}
                     totalPages={paginationData.totalPages}
@@ -497,7 +496,7 @@ const AdminDashboard = () => {
 
         <main className="flex-1 overflow-y-auto px-10 py-8 relative">
           {/* Header for dynamic actions */}
-          {!['events', 'featured', 'feedback'].includes(activeTab) && (
+          {!['events', 'featured', 'feedback', 'bookings'].includes(activeTab) && (
             <div className="flex justify-between items-center mb-8">
               <div>
                 <h1 className="serif-heading text-4xl text-charcoal capitalize">{activeTab}</h1>
@@ -522,7 +521,7 @@ const AdminDashboard = () => {
                   </div>
                 )}
 
-                {['menu', 'categories', 'tables', 'bookings'].includes(activeTab) && (
+                {['menu', 'categories', 'tables'].includes(activeTab) && (
                   <button onClick={() => { setFormData({}); setIsEditing(false); setShowModal(true); }} className="px-6 py-2.5 bg-primary text-white text-[10px] font-bold uppercase tracking-widest rounded-xl hover:bg-primary-hover transition-all flex items-center gap-2 shadow-sm"><Plus size={16} /> Add New</button>
                 )}
                 {activeTab === 'reports' && (

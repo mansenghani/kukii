@@ -82,14 +82,20 @@ exports.createBooking = async (req, res) => {
 
 exports.getBookings = async (req, res) => {
   try {
+    const { status } = req.query;
+    let filter = {};
+    if (status && status !== 'All') {
+      filter.status = status.toLowerCase();
+    }
+
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 5;
     const skip = (page - 1) * limit;
 
-    const totalRecords = await Booking.countDocuments();
+    const totalRecords = await Booking.countDocuments(filter);
     const totalPages = Math.ceil(totalRecords / limit);
 
-    const bookings = await Booking.find()
+    const bookings = await Booking.find(filter)
       .populate('customerId')
       .populate('tableId')
       .populate('preOrderId')
@@ -168,6 +174,50 @@ exports.deleteBooking = async (req, res) => {
     const booking = await Booking.findByIdAndDelete(req.params.id);
     if (!booking) return res.status(404).json({ message: 'Booking not found' });
     res.status(200).json({ message: 'Booking deleted successfully' });
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+exports.createAdminBooking = async (req, res) => {
+  try {
+    const { name, email, phone, tableId, date, time, guests } = req.body;
+    const Customer = require('../models/Customer');
+
+    // Find or Create Customer
+    let customer = await Customer.findOne({ $or: [{ email: email.toLowerCase() }, { phone }] });
+    if (!customer) {
+      customer = new Customer({ name, email: email.toLowerCase(), phone });
+      await customer.save();
+    }
+
+    const booking = new Booking({
+      customerId: customer._id,
+      tableId,
+      date: new Date(date),
+      time,
+      guests,
+      uniqueBookingId: generateUniqueId(),
+      status: 'approved'
+    });
+
+    await booking.save();
+
+    // Populate and send email
+    const populatedBooking = await Booking.findById(booking._id)
+      .populate('customerId')
+      .populate('tableId');
+
+    try {
+      if (populatedBooking) {
+        await sendConfirmationWithIdEmail(populatedBooking, 'table');
+        await sendAdminNotificationEmail(populatedBooking);
+      }
+    } catch (err) {
+      console.error("Admin Manual Booking Email Error:", err);
+    }
+
+    res.status(201).json(booking);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }

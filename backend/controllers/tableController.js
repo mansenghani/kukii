@@ -52,3 +52,11 @@ exports.deleteTable = async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 };
+exports.getAllTables = async (req, res) => {
+  try {
+    const tables = await Table.find().sort({ tableNumber: 1 });
+    res.status(200).json(tables);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
