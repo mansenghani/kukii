@@ -45,6 +45,7 @@ const { protect } = require('./middleware/auth');
 app.use('/api/bookings', require('./routes/bookingRoutes'));
 app.use('/api/events', require('./routes/eventRoutes'));
 app.use('/api/preorders', require('./routes/preOrderRoutes'));
+app.use('/api/cancel', require('./routes/cancelRoutes')); // Added cancelRoutes
 
 // Admin Auth (Public Login)
 app.use('/api/admin', require('./routes/adminRoutes'));

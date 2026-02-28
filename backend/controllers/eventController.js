@@ -1,7 +1,8 @@
 const Event = require('../models/Event');
 const Booking = require('../models/Booking');
 const Table = require('../models/Table');
-const { sendUserBookingEmail, sendAdminNotificationEmail } = require('../utils/sendEmail');
+const { sendUserBookingEmail, sendAdminNotificationEmail, sendConfirmationWithIdEmail } = require('../utils/sendEmail');
+const { generateUniqueId } = require('../utils/uniqueIdHelper');
 
 // Helper to check if a booking time "HH:mm" falls into a named time slot
 const fallsInSlot = (timeStr, timeSlot) => {
@@ -58,17 +59,20 @@ exports.createEvent = async (req, res) => {
 
         // 4. Create pending event
         const newEvent = new Event({
-            name, phone, email, eventDate: targetDate, timeSlot, guests, specialRequest, status: 'pending'
+            name, phone, email, eventDate: targetDate, timeSlot, guests, specialRequest,
+            uniqueBookingId: generateUniqueId(),
+            status: 'pending'
         });
 
         await newEvent.save();
 
-        // Notify Admin of new pending event
+        // Notify USER and ADMIN
         (async () => {
             try {
+                await sendConfirmationWithIdEmail(newEvent, 'event');
                 await sendAdminNotificationEmail(newEvent);
             } catch (err) {
-                console.error("Admin Event Email Error:", err);
+                console.error("Event Confirmation Email Error:", err);
             }
         })();
 

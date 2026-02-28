@@ -23,9 +23,15 @@ const bookingSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+  uniqueBookingId: {
+    type: String,
+    unique: true,
+  },
+  otp: String,
+  otpExpiry: Date,
   status: {
     type: String,
-    enum: ['pending', 'approved', 'rejected'],
+    enum: ['pending', 'approved', 'rejected', 'cancelled'],
     default: 'pending',
   },
   totalAmount: {

@@ -70,3 +70,29 @@
 2026-02-28T10:35:38.877Z - ✅ Success: Email sent to noreply.ecart27@gmail.com. MessageID: <22af161b-11d8-111e-e948-fd19dcd33934@gmail.com>
 2026-02-28T10:40:34.521Z - Attempting to send email to noreply.ecart27@gmail.com - Subject: Booking Update: admin - pending (Private Event)
 2026-02-28T10:40:38.118Z - ✅ Success: Email sent to noreply.ecart27@gmail.com. MessageID: <0d8c4e0f-a04e-266e-858c-50351a1b53fe@gmail.com>
+2026-02-28T11:06:12.794Z - Attempting to send email to mansenghani6@gmail.com - Subject: Booking Confirmed - RMS-2025-923537
+2026-02-28T11:06:15.722Z - ✅ Success: Email sent to mansenghani6@gmail.com. MessageID: <d073ca0b-975c-228e-73b4-891c54885da8@gmail.com>
+2026-02-28T11:06:15.786Z - Attempting to send email to noreply.ecart27@gmail.com - Subject: Booking Update: man - approved (Table Reservation)
+2026-02-28T11:06:18.490Z - ✅ Success: Email sent to noreply.ecart27@gmail.com. MessageID: <884fe3fe-1caf-0ed0-e717-5b14d1cb2feb@gmail.com>
+2026-02-28T11:07:05.965Z - Attempting to send email to mansenghani6@gmail.com - Subject: OTP for Booking Cancellation - KUKI
+2026-02-28T11:07:08.324Z - ✅ Success: Email sent to mansenghani6@gmail.com. MessageID: <f7fe10e7-3846-7009-48db-e3edebc3a22e@gmail.com>
+2026-02-28T11:07:24.550Z - Attempting to send email to mansenghani6@gmail.com - Subject: Booking Cancelled - RMS-2025-923537
+2026-02-28T11:07:26.993Z - ✅ Success: Email sent to mansenghani6@gmail.com. MessageID: <6be260e5-1c55-e664-8f7c-73d6aa95f1f5@gmail.com>
+2026-02-28T11:09:06.527Z - Attempting to send email to mansenghani6@gmail.com - Subject: Booking Confirmed - RMS-2025-972458
+2026-02-28T11:09:09.009Z - ✅ Success: Email sent to mansenghani6@gmail.com. MessageID: <390e9640-e1b7-e688-0f58-0eb89a2c3d16@gmail.com>
+2026-02-28T11:09:09.011Z - Attempting to send email to noreply.ecart27@gmail.com - Subject: Booking Update: man - approved (Table Reservation)
+2026-02-28T11:09:11.377Z - ✅ Success: Email sent to noreply.ecart27@gmail.com. MessageID: <6df90237-9f7e-bdde-1e60-f118fc6b97e0@gmail.com>
+2026-02-28T11:25:34.907Z - Attempting to send email to mansenghani6@gmail.com - Subject: OTP for Booking Cancellation - KUKI
+2026-02-28T11:25:37.647Z - ✅ Success: Email sent to mansenghani6@gmail.com. MessageID: <1e17b095-df65-92a8-af4b-e5657a7a124f@gmail.com>
+2026-02-28T11:25:54.969Z - Attempting to send email to mansenghani6@gmail.com - Subject: Booking Cancelled - RMS-2025-972458
+2026-02-28T11:25:57.489Z - ✅ Success: Email sent to mansenghani6@gmail.com. MessageID: <bf2e30dd-e269-ea28-66cb-713fd4af8f2c@gmail.com>
+2026-02-28T11:28:19.643Z - Attempting to send email to mansenghani6@gmail.com - Subject: Booking Confirmed - RMS-2025-789532
+2026-02-28T11:28:22.152Z - ✅ Success: Email sent to mansenghani6@gmail.com. MessageID: <935e756e-bd8e-f2f1-cdc8-be16d7eefe2e@gmail.com>
+2026-02-28T11:28:22.156Z - Attempting to send email to noreply.ecart27@gmail.com - Subject: Booking Update: man - approved (Table Reservation)
+2026-02-28T11:28:24.579Z - ✅ Success: Email sent to noreply.ecart27@gmail.com. MessageID: <d160e1cd-d93e-0a23-0c2e-9509242d7a01@gmail.com>
+2026-02-28T11:32:21.436Z - Attempting to send email to mansenghani6@gmail.com - Subject: OTP for Booking Cancellation - KUKI
+2026-02-28T11:32:24.756Z - ✅ Success: Email sent to mansenghani6@gmail.com. MessageID: <24c802f4-28ee-0055-b01e-95306857292a@gmail.com>
+2026-02-28T11:32:39.420Z - Attempting to send email to mansenghani6@gmail.com - Subject: OTP for Booking Cancellation - KUKI
+2026-02-28T11:32:41.962Z - ✅ Success: Email sent to mansenghani6@gmail.com. MessageID: <778d95da-27a4-6d21-382f-0c8b7e80f8de@gmail.com>
+2026-02-28T11:39:56.409Z - Attempting to send email to mansenghani6@gmail.com - Subject: OTP for Booking Cancellation - KUKI
+2026-02-28T11:39:59.452Z - ✅ Success: Email sent to mansenghani6@gmail.com. MessageID: <211f001c-8c27-ba87-ee61-598291de1861@gmail.com>

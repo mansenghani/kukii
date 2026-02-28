@@ -1,7 +1,8 @@
 const Booking = require('../models/Booking');
 const Event = require('../models/Event');
 const BookingSettings = require('../models/BookingSettings');
-const { sendUserBookingEmail, sendAdminNotificationEmail } = require('../utils/sendEmail');
+const { sendUserBookingEmail, sendAdminNotificationEmail, sendConfirmationWithIdEmail } = require('../utils/sendEmail');
+const { generateUniqueId } = require('../utils/uniqueIdHelper');
 
 exports.createBooking = async (req, res) => {
   try {
@@ -50,26 +51,28 @@ exports.createBooking = async (req, res) => {
       date: new Date(date),
       time,
       guests,
+      uniqueBookingId: generateUniqueId(),
       status: isAutoApprove ? 'approved' : 'pending'
     });
 
     await booking.save();
 
-    // Trigger instant email notification if auto-approved
-    if (isAutoApprove) {
-      const populatedBooking = await Booking.findById(booking._id)
-        .populate('customerId')
-        .populate('tableId');
+    // Population for email details
+    const populatedBooking = await Booking.findById(booking._id)
+      .populate('customerId')
+      .populate('tableId');
 
-      (async () => {
-        try {
-          await sendUserBookingEmail(populatedBooking, 'approved');
+    // Send confirmation email with Unique ID to USER + Notify ADMIN
+    (async () => {
+      try {
+        await sendConfirmationWithIdEmail(populatedBooking, 'table');
+        if (isAutoApprove) {
           await sendAdminNotificationEmail(populatedBooking);
-        } catch (emailErr) {
-          console.error("Auto-Approve Email Notification Error:", emailErr);
         }
-      })();
-    }
+      } catch (err) {
+        console.error("Booking Confirmation Email Error:", err);
+      }
+    })();
 
     res.status(201).json(booking);
   } catch (error) {

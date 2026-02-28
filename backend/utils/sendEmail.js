@@ -226,6 +226,88 @@ const sendAdminNotificationEmail = async (data) => {
     });
 };
 
+const sendConfirmationWithIdEmail = async (data, type) => {
+    const isEvent = type === 'event';
+    const customerName = isEvent ? data.name : (data.customerId?.name || 'Guest');
+    const customerEmail = isEvent ? data.email : data.customerId?.email;
+
+    if (!customerEmail) return;
+
+    const bookingId = data.uniqueBookingId;
+    const dateStr = new Date(isEvent ? data.eventDate : data.date).toDateString();
+    const timeStr = isEvent ? data.timeSlot : data.time;
+
+    const htmlTemplate = `
+    <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 40px; border: 1px solid #efefef;">
+        <h1 style="color: #2b2b2b; text-align: center; letter-spacing: 5px;">KUKI</h1>
+        <div style="background: #c67c7c; padding: 15px; text-align: center; color: white; font-weight: bold; text-transform: uppercase; letter-spacing: 2px;">
+            Booking Confirmed
+        </div>
+        <p style="margin-top: 30px; font-size: 16px; color: #555;">Dear <strong>${customerName}</strong>,</p>
+        <p style="font-size: 15px; color: #555; line-height: 1.6;">Your ${type === 'event' ? 'event' : 'table'} booking is confirmed! Here are your details:</p>
+        
+        <div style="background: #fdfaf7; padding: 25px; margin: 25px 0;">
+            <p><strong>Booking ID:</strong> <span style="color: #c67c7c; font-size: 18px; font-weight: bold;">${bookingId}</span></p>
+            <p><strong>Type:</strong> ${type.toUpperCase()}</p>
+            <p><strong>Date:</strong> ${dateStr}</p>
+            <p><strong>Time:</strong> ${timeStr}</p>
+            <p><strong>Guests:</strong> ${data.guests} PAX</p>
+        </div>
+
+        <div style="border: 1px dashed #c67c7c; padding: 20px; text-align: center;">
+            <p style="font-size: 12px; color: #c67c7c; margin: 0; font-weight: bold; text-transform: uppercase;">Manage Your Booking</p>
+            <p style="font-size: 14px; color: #555;">Use the ID above to cancel or modify your booking on our website.</p>
+        </div>
+        
+        <p style="text-align: center; font-size: 12px; color: #888; margin-top: 40px;">&copy; 2026 KUKI Restaurant. Fine Dining Redefined.</p>
+    </div>
+    `;
+
+    return sendEmail({
+        email: customerEmail,
+        subject: `Booking Confirmed - ${bookingId}`,
+        html: htmlTemplate
+    });
+};
+
+const sendOTPEmail = async (email, otp) => {
+    const htmlTemplate = `
+    <div style="font-family: sans-serif; max-width: 500px; margin: auto; padding: 40px; border: 1px solid #efefef; text-align: center;">
+        <h1 style="color: #2b2b2b; letter-spacing: 5px;">KUKI</h1>
+        <h2 style="color: #c67c7c; text-transform: uppercase; font-size: 16px; margin-bottom: 30px;">Cancellation OTP</h2>
+        <p style="color: #555;">You requested an OTP for booking cancellation.</p>
+        <div style="font-size: 42px; font-weight: bold; color: #2b2b2b; letter-spacing: 12px; margin: 30px 0;">${otp}</div>
+        <p style="font-size: 13px; color: #888;">Valid for 10 minutes only. Please do not share this OTP.</p>
+    </div>
+    `;
+
+    return sendEmail({
+        email,
+        subject: "OTP for Booking Cancellation - KUKI",
+        html: htmlTemplate
+    });
+};
+
+const sendCancellationConfirmedEmail = async (email, bookingId) => {
+    const htmlTemplate = `
+    <div style="font-family: sans-serif; max-width: 500px; margin: auto; padding: 40px; border: 1px solid #efefef; text-align: center;">
+        <h1 style="color: #2b2b2b; letter-spacing: 5px;">KUKI</h1>
+        <div style="background: #2b2b2b; color: white; padding: 10px; margin: 20px 0; font-weight: bold;">BOOKING CANCELLED</div>
+        <p style="color: #555; line-height: 1.6;">Your booking <strong>${bookingId}</strong> has been successfully cancelled. We hope to serve you again in the future.</p>
+        <p style="font-size: 12px; color: #888; margin-top: 40px;">&copy; 2026 KUKI Restaurant.</p>
+    </div>
+    `;
+
+    return sendEmail({
+        email,
+        subject: `Booking Cancelled - ${bookingId}`,
+        html: htmlTemplate
+    });
+};
+
 module.exports = sendEmail;
 module.exports.sendUserBookingEmail = sendUserBookingEmail;
 module.exports.sendAdminNotificationEmail = sendAdminNotificationEmail;
+module.exports.sendConfirmationWithIdEmail = sendConfirmationWithIdEmail;
+module.exports.sendOTPEmail = sendOTPEmail;
+module.exports.sendCancellationConfirmedEmail = sendCancellationConfirmedEmail;

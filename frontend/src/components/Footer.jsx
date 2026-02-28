@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
 
 const Footer = () => {
     const [settings, setSettings] = useState({
@@ -121,7 +122,8 @@ const Footer = () => {
             </div>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 border-t border-border-neutral/30 flex flex-col items-center gap-4 text-center">
                 <p className="text-soft-grey text-[10px] uppercase tracking-widest opacity-80">{settings.copyrightText}</p>
-                <div className="flex gap-6 text-[10px] uppercase tracking-widest text-soft-grey">
+                <div className="flex gap-6 text-[10px] uppercase tracking-widest text-soft-grey font-bold">
+                    <Link className="hover:text-primary transition-colors relative after:content-[''] after:absolute after:w-0 after:h-[1px] after:bottom-[-2px] after:left-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full" to="/cancel-booking">CANCEL BOOKING</Link>
                     <a className="hover:text-primary transition-colors relative after:content-[''] after:absolute after:w-0 after:h-[1px] after:bottom-[-2px] after:left-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full" href="#">PRIVACY POLICY</a>
                     <a className="hover:text-primary transition-colors relative after:content-[''] after:absolute after:w-0 after:h-[1px] after:bottom-[-2px] after:left-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full" href="#">TERMS OF SERVICE</a>
                 </div>

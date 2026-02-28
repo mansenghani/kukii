@@ -20,6 +20,7 @@ const Navbar = () => {
           <Link to="/events" className="hover:text-primary transition-colors">Events</Link>
           <Link to="/about" className="hover:text-primary transition-colors">About</Link>
           <Link to="/feedback" className="hover:text-primary transition-colors">Reviews</Link>
+          <Link to="/cancel-booking" className="hover:text-primary transition-colors font-bold text-primary/80">Cancel Booking</Link>
         </div>
 
         {/* Action Button */}

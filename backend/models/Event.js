@@ -31,9 +31,15 @@ const eventSchema = new mongoose.Schema({
         type: String,
         default: '',
     },
+    uniqueBookingId: {
+        type: String,
+        unique: true,
+    },
+    otp: String,
+    otpExpiry: Date,
     status: {
         type: String,
-        enum: ['pending', 'approved', 'rejected'],
+        enum: ['pending', 'approved', 'rejected', 'cancelled'],
         default: 'pending',
     },
     preOrderId: {

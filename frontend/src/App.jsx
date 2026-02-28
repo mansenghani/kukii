@@ -10,6 +10,7 @@ import Cart from './pages/Cart';
 import Booking from './pages/Booking';
 import EventBooking from './pages/EventBooking';
 import PreOrder from './pages/PreOrder';
+import CancelBooking from './pages/CancelBooking';
 
 import AdminDashboard from './pages/Admin/Dashboard';
 import { CartProvider } from './context/CartContext';
@@ -33,6 +34,7 @@ const AppContent = () => {
                 <Route path="/events" element={<EventBooking />} />
                 <Route path="/preorder" element={<PreOrder />} />
                 <Route path="/preorder/:id" element={<PreOrder />} />
+                <Route path="/cancel-booking" element={<CancelBooking />} />
 
                 <Route path="*" element={<div>Page Not Found</div>} />
               </Routes>
