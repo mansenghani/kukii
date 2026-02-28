@@ -12,6 +12,7 @@ import AdminHeader from './AdminHeader';
 import AdminTimeSlots from './AdminTimeSlots';
 import AdminSettings from './AdminSettings';
 import AdminFeaturedMenu from './AdminFeaturedMenu';
+import Overview from './Overview';
 import Pagination from '../../components/Pagination';
 
 const AdminDashboard = () => {
@@ -370,47 +371,7 @@ const AdminDashboard = () => {
   const renderContent = () => {
     switch (activeTab) {
       case 'overview':
-        return (
-          <div className="animate-fade-in">
-            <section className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
-              <StatCard title="Pending Bookings" value={pendingReservations} icon="event_seat" trend="Action required" />
-              <StatCard title="Pre-Order Revenue" value={`₹${preorderStats.summary.totalRevenue || 0}`} icon="payments" trend={`${preorderStats.summary.approvedCount || 0} orders approved`} />
-              <StatCard title="Pending Orders" value={preorderStats.summary.pendingCount || 0} icon="shopping_cart" trend="Awaiting review" />
-              <StatCard title="Menu Items" value={totalDishes} icon="restaurant" trend="Total catalog" />
-
-            </section>
-            <h4 className="serif-heading font-bold text-charcoal mb-6 text-2xl">Quick Access</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-              <ModuleCard title="Manage Categories" desc="Organize your menu with custom categories." icon={<Tag />} onClick={() => handleTabChange('categories')} />
-              <ModuleCard title="Manage Menu" desc="Update your dishes, prices and availability." icon={<Utensils />} onClick={() => handleTabChange('menu')} />
-              <ModuleCard title="Reservations" desc="Approve or manage customer table bookings." icon={<CalendarDays />} onClick={() => handleTabChange('bookings')} />
-              <ModuleCard title="Private Events" desc="Manage full-venue private event requests." icon={<CalendarDays className="text-primary" />} onClick={() => handleTabChange('events')} />
-              <ModuleCard title="Featured Menu" desc="Select 3 items to showcase on your homepage." icon={<Star className="text-primary" />} onClick={() => handleTabChange('featured')} />
-              <ModuleCard title="Pre-Orders" desc="Review meal selections for upcoming guests." icon={<ShoppingBag />} onClick={() => handleTabChange('preorders')} />
-              <ModuleCard title="System Settings" desc="Configure restaurant rules and logic." icon={<Settings />} onClick={() => handleTabChange('settings')} />
-              <FooterSettingsCard onClick={() => setShowFooterModal(true)} />
-            </div>
-
-            {preorderStats.popularItems.length > 0 && (
-              <div className="mb-16 animate-fade-in">
-                <h4 className="serif-heading font-bold text-charcoal mb-6 text-2xl">Top Ordered Foods</h4>
-                <div className="bg-white p-8 rounded-[2rem] border border-primary/5 shadow-sm">
-                  <div className="space-y-4">
-                    {preorderStats.popularItems.map((item, i) => (
-                      <div key={i} className="flex justify-between items-center pb-4 border-b border-border-neutral last:border-0 last:pb-0">
-                        <div className="flex items-center gap-4">
-                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">{i + 1}</div>
-                          <span className="font-bold text-charcoal text-sm uppercase tracking-wider">{item._id}</span>
-                        </div>
-                        <span className="text-primary font-black">{item.count} Orders</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        );
+        return <Overview onTabChange={handleTabChange} onFooterClick={() => setShowFooterModal(true)} />;
       case 'feedback': return <AdminFeedback />;
       case 'reports': return <ReportsPage onError={(msg) => setMessage({ text: msg, type: 'error' })} onSuccess={(msg) => setMessage({ text: msg, type: 'success' })} />;
       case 'events': return <AdminEvents onError={(msg) => setMessage({ text: msg, type: 'error' })} onSuccess={(msg) => setMessage({ text: msg, type: 'success' })} />;
