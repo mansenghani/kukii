@@ -99,7 +99,7 @@ const Menu = () => {
       </section>
 
       {/* Menu Grid */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+      <section className="w-full px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-20 pb-16">
         {loading ? (
           <div className="text-center py-20">
             <div className="inline-block animate-spin size-8 border-4 border-primary border-t-transparent rounded-full mb-4"></div>

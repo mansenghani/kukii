@@ -194,7 +194,7 @@ const PreOrder = () => {
                 </div>
             </section>
 
-            <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 pb-32">
+            <section className="w-full px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-20 py-10 pb-32">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-16 items-start">
                     {/* Menu Selection */}
                     <div className="lg:col-span-2 space-y-12">

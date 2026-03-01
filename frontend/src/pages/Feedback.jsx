@@ -79,7 +79,7 @@ const Feedback = () => {
     return (
         <div className="fade-in bg-background-ivory/30">
             {/* Hero Section */}
-            <header className="pt-24 pb-12 text-center max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <header className="pt-24 pb-12 text-center w-full px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-20">
                 <span className="text-[10px] font-bold tracking-[0.4em] uppercase block mb-4 text-primary">Guest Testimonials</span>
                 <h1 className="text-5xl md:text-7xl serif-heading mb-6 text-charcoal tracking-tight lowercase">Refined Voices</h1>
                 <p className="text-soft-grey text-lg max-w-2xl mx-auto italic font-serif">"Every meal tells a story. Share yours with us."</p>
@@ -87,7 +87,7 @@ const Feedback = () => {
             </header>
 
             {/* Approved Reviews Section */}
-            <section className="py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <section className="py-12 w-full px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-20">
                 {loading ? (
                     <div className="text-center py-20 text-soft-grey animate-pulse">Loading experience stories...</div>
                 ) : reviews.length === 0 ? (
@@ -132,7 +132,7 @@ const Feedback = () => {
 
             {/* Rating Summary Section */}
             <section className="py-20 bg-white/50 border-y border-border-neutral">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid md:grid-cols-2 gap-16 items-center">
+                <div className="w-full px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-20 grid md:grid-cols-2 gap-16 items-center">
                     <div className="text-center md:text-left">
                         <div className="text-7xl serif-heading text-charcoal mb-2">{avgRating}</div>
                         <div className="flex justify-center md:justify-start gap-1 mb-4">

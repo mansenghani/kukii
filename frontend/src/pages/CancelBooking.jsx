@@ -107,7 +107,7 @@ const CancelBooking = () => {
                 </div>
             </section>
 
-            <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-32">
+            <section className="w-full px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-20 pb-32">
                 <div className="max-w-2xl mx-auto">
                     <div className="bg-white p-8 md:p-14 border border-border-neutral rounded-sm shadow-[0_4px_25px_rgba(0,0,0,0.02)]">
 

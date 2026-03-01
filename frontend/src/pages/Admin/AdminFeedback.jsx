@@ -13,7 +13,7 @@ const AdminFeedback = () => {
     const [errorMsg, setErrorMsg] = useState('');
 
     const [page, setPage] = useState(1);
-    const [limit] = useState(5);
+    const [limit] = useState(10);
     const [paginationData, setPaginationData] = useState({ totalPages: 1, totalRecords: 0 });
 
     const API_BASE_URL = '/api/admin/feedback';

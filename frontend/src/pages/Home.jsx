@@ -67,8 +67,8 @@ const Home = () => {
   return (
     <div className="fade-in">
       <section className="relative bg-background-ivory py-12 lg:py-20 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-16">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        <div className="w-full px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-20 py-8 lg:py-16">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-10 items-center">
             <div className="order-2 lg:order-1 flex flex-col gap-8">
               <div className="space-y-4">
                 <span className="text-primary font-bold tracking-[0.3em] uppercase text-sm block">Established 1924</span>
@@ -102,8 +102,8 @@ const Home = () => {
 
       {/* About Section */}
       <section className="bg-background-ivory py-16 lg:py-24 border-b border-border-neutral">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+        <div className="w-full px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-20">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-10 items-center">
             <div className="order-1">
               <div className="relative">
                 <div className="absolute -inset-4 border border-primary/10 rounded-xl -translate-x-4 -translate-y-4 -z-10"></div>
@@ -133,7 +133,7 @@ const Home = () => {
 
       {/* Featured Menu */}
       <section className="bg-white py-16 lg:py-24 border-b border-border-neutral">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-20">
           <div className="flex flex-col items-center text-center gap-8">
             <div className="space-y-2">
               <h2 className="serif-heading text-4xl text-charcoal">From Our Kitchen</h2>
@@ -169,7 +169,7 @@ const Home = () => {
 
       {/* Dynamic Stat Section */}
       <section className="bg-[#f4efec] py-20 border-b border-border-neutral">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-2 md:grid-cols-4 gap-12 text-center font-sans">
+        <div className="w-full px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-20 grid grid-cols-2 md:grid-cols-4 gap-12 text-center font-sans">
           <div>
             <div className="text-4xl serif-heading text-primary mb-2">29+</div>
             <div className="text-[10px] font-bold uppercase tracking-widest text-charcoal">Years Excellence</div>
@@ -191,7 +191,7 @@ const Home = () => {
 
       {/* Dynamized Experiences Section */}
       <section className="bg-white py-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-20">
           <div className="text-center mb-16 space-y-4">
             <span className="text-primary font-bold tracking-[0.4em] uppercase text-[10px]">Voices of Excellence</span>
             <h2 className="serif-heading text-5xl text-charcoal tracking-tight lowercase">Guest stories</h2>

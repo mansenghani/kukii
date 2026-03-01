@@ -26,7 +26,7 @@ const AdminDashboard = () => {
 
   // Pagination & Filtering states
   const [page, setPage] = useState(1);
-  const [limit] = useState(5);
+  const [limit] = useState(10);
   const [paginationData, setPaginationData] = useState({ totalPages: 1, totalRecords: 0, currentPage: 1 });
   const [categoryFilter, setCategoryFilter] = useState('All');
 

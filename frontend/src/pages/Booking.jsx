@@ -71,26 +71,7 @@ const Booking = () => {
     return slots;
   };
 
-  const availableSlots = getFilteredSlots();
-
-  // Reset time if user selects a date where the current selected time is already past
-  useEffect(() => {
-    if (availableSlots.length > 0) {
-      const isTimeAvailable = availableSlots.some(s => s.time === formData.time);
-      if (!formData.time || !isTimeAvailable) {
-        setFormData(prev => ({ ...prev, time: availableSlots[0].time }));
-      }
-    } else if (slots.length > 0 && formData.date) {
-      setFormData(prev => ({ ...prev, time: '' }));
-    }
-  }, [formData.date, slots]); // Reacts only when date changes or slots load
-
-  useEffect(() => {
-    fetchTables();
-    fetchSlots();
-  }, []);
-
-  const fetchSlots = async () => {
+    const fetchSlots = async () => {
     try {
       const res = await axios.get('/api/slots');
       let activeSlots = res.data.filter(s => s.isActive);
@@ -125,6 +106,27 @@ const Booking = () => {
       setTables([]); // Fallback to empty array
     }
   };
+
+  const availableSlots = getFilteredSlots();
+
+  // Reset time if user selects a date where the current selected time is already past
+  useEffect(() => {
+    if (availableSlots.length > 0) {
+      const isTimeAvailable = availableSlots.some(s => s.time === formData.time);
+      if (!formData.time || !isTimeAvailable) {
+        setFormData(prev => ({ ...prev, time: availableSlots[0].time }));
+      }
+    } else if (slots.length > 0 && formData.date) {
+      setFormData(prev => ({ ...prev, time: '' }));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.date, slots]); // Reacts only when date changes or slots load
+
+  useEffect(()=>{
+    fetchTables();
+    fetchSlots();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  },[]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });

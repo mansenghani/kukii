@@ -17,7 +17,7 @@ const Footer = () => {
         twitter: '#',
         whatsapp: '#',
         newsletterText: 'Join our club for exclusive events and seasonal updates.',
-        copyrightText: '© 2024 KUKI DINING. ALL RIGHTS RESERVED.'
+        copyrightText: 'KUKI DINING. ALL RIGHTS RESERVED.'
     });
 
     useEffect(() => {
@@ -37,7 +37,7 @@ const Footer = () => {
 
     return (
         <footer className="border-t border-border-neutral bg-background-ivory pt-20 pb-12 shadow-inner">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 mb-20 items-start gap-12 lg:gap-20">
+            <div className="w-full px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-20 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 mb-20 items-start gap-12 lg:gap-20">
                 {/* Brand Column */}
                 <div>
                     <div className="flex items-center gap-2 mb-10 h-8">
@@ -120,8 +120,8 @@ const Footer = () => {
                     </div>
                 </div>
             </div>
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 border-t border-border-neutral/30 flex flex-col items-center gap-4 text-center">
-                <p className="text-soft-grey text-[10px] uppercase tracking-widest opacity-80">{settings.copyrightText}</p>
+            <div className="w-full px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-20 pt-8 border-t border-border-neutral/30 flex flex-col items-center gap-4 text-center">
+                <p className="text-soft-grey text-[10px] uppercase tracking-widest opacity-80">© {new Date().getFullYear()} {settings.copyrightText}</p>
                 <div className="flex gap-6 text-[10px] uppercase tracking-widest text-soft-grey font-bold">
                     <Link className="hover:text-primary transition-colors relative after:content-[''] after:absolute after:w-0 after:h-[1px] after:bottom-[-2px] after:left-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full" to="/cancel-booking">CANCEL BOOKING</Link>
                     <a className="hover:text-primary transition-colors relative after:content-[''] after:absolute after:w-0 after:h-[1px] after:bottom-[-2px] after:left-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full" href="#">PRIVACY POLICY</a>

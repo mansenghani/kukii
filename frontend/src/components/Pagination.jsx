@@ -1,6 +1,7 @@
 import React from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-const Pagination = ({ currentPage, totalPages, totalRecords, onPageChange, limit = 5 }) => {
+const Pagination = ({ currentPage, totalPages, totalRecords, onPageChange, limit = 10 }) => {
     if (totalPages <= 1 && totalRecords === 0) return null;
 
     const startRecord = totalRecords === 0 ? 0 : (currentPage - 1) * limit + 1;
@@ -18,12 +19,13 @@ const Pagination = ({ currentPage, totalPages, totalRecords, onPageChange, limit
                 <button
                     onClick={() => onPageChange(currentPage - 1)}
                     disabled={currentPage === 1}
+                    aria-label="Previous page"
                     className={`px-4 py-2 rounded-xl transition-all border text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 ${currentPage === 1
                             ? 'text-gray-300 border-gray-100 cursor-not-allowed bg-gray-50'
                             : 'text-soft-grey border-border-neutral hover:bg-primary/5 hover:text-primary bg-white shadow-sm'
                         }`}
                 >
-                    Previous
+                    <ChevronLeft size={16} />
                 </button>
 
                 <span className="text-[10px] font-bold text-charcoal uppercase tracking-widest">
@@ -33,12 +35,13 @@ const Pagination = ({ currentPage, totalPages, totalRecords, onPageChange, limit
                 <button
                     onClick={() => onPageChange(currentPage + 1)}
                     disabled={currentPage === totalPages || totalPages === 0}
+                    aria-label="Next page"
                     className={`px-4 py-2 rounded-xl transition-all border text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 ${currentPage === totalPages || totalPages === 0
                             ? 'text-gray-300 border-gray-100 cursor-not-allowed bg-gray-50'
                             : 'text-soft-grey border-border-neutral hover:bg-primary/5 hover:text-primary bg-white shadow-sm'
                         }`}
                 >
-                    Next
+                    <ChevronRight size={16} />
                 </button>
             </div>
         </div>

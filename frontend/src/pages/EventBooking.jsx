@@ -119,7 +119,7 @@ const EventBooking = () => {
                     </div>
                 </section>
 
-                <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-32">
+                <section className="w-full px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-20 pb-32">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
                         <div className="bg-white p-8 md:p-12 shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-border-neutral rounded-sm">
                             <div className="flex flex-col items-center text-center py-6">
@@ -210,7 +210,7 @@ const EventBooking = () => {
                 </div>
             </section>
 
-            <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-32">
+            <section className="w-full px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-20 pb-32">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
                     {/* Event Form Column */}
                     <div className="bg-white p-8 md:p-12 shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-border-neutral rounded-sm">

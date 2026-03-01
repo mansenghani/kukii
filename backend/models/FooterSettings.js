@@ -16,7 +16,7 @@ const footerSettingsSchema = new mongoose.Schema({
     twitter: { type: String, default: '#' },
     whatsapp: { type: String, default: '#' },
     newsletterText: { type: String, default: 'Join our club for exclusive events and seasonal updates.' },
-    copyrightText: { type: String, default: '© 2024 KUKI DINING. ALL RIGHTS RESERVED.' },
+    copyrightText: { type: String, default: 'KUKI DINING. ALL RIGHTS RESERVED.' },
     updatedAt: { type: Date, default: Date.now }
 });
 

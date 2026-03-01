@@ -22,10 +22,10 @@ const About = () => {
             </section>
 
             {/* Section 1: Our Legacy */}
-            <section className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            <section className="py-20 w-full px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-20">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-10 items-center">
                     <div className="relative group">
-                        <div className="aspect-[4/5] overflow-hidden rounded-xl">
+                        <div className="aspect-[7/7] overflow-hidden rounded-xl w-full shadow-lg">
                             <img
                                 alt="Professional chef plating a gourmet dish"
                                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
@@ -64,7 +64,7 @@ const About = () => {
 
             {/* Section 2: Our Philosophy */}
             <section className="py-24 bg-primary/5">
-                <div className="max-w-7xl mx-auto px-6">
+                <div className="w-full px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-20">
                     <div className="text-center mb-16 space-y-4">
                         <h2 className="serif-heading text-4xl md:text-5xl">Our Philosophy</h2>
                         <div className="w-16 h-0.5 bg-primary mx-auto opacity-50"></div>
@@ -99,8 +99,8 @@ const About = () => {
             </section>
 
             {/* Section 3: Atmosphere & Artistry */}
-            <section className="py-24 px-6 lg:px-20 max-w-7xl mx-auto">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            <section className="py-24 w-full px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-20">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-10 items-center">
                     <div className="order-2 lg:order-1 space-y-8">
                         <h2 className="serif-heading text-4xl md:text-5xl">Atmosphere &amp; Artistry</h2>
                         <div className="space-y-6 text-charcoal/80 leading-relaxed text-lg">
@@ -125,8 +125,8 @@ const About = () => {
             </section>
 
             {/* Section 4: Statistics Section */}
-            <section className="bg-charcoal text-white py-20 px-6">
-                <div className="max-w-7xl mx-auto grid grid-cols-2 lg:grid-cols-4 gap-12 text-center">
+            <section className="bg-charcoal text-white py-20">
+                <div className="w-full px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-20 grid grid-cols-2 lg:grid-cols-4 gap-12 text-center">
                     <div className="space-y-2">
                         <span className="serif-heading text-5xl text-primary block">100</span>
                         <span className="text-xs font-bold uppercase tracking-widest opacity-60">Years of Heritage</span>

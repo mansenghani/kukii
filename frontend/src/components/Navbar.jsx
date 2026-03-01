@@ -19,7 +19,7 @@ const Navbar = () => {
 
   return (
     <nav className="bg-white py-5 border-b border-border-neutral sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+      <div className="w-full px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-20 flex justify-between items-center">
         {/* Brand Logo */}
         <Link to="/" className="flex items-center">
           <span className="serif-heading text-3xl font-bold tracking-[0.15em] text-charcoal uppercase leading-none">
@@ -63,7 +63,7 @@ const Navbar = () => {
 
       {isMobileMenuOpen && (
         <div className="md:hidden border-t border-border-neutral mt-4">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-col gap-2 text-charcoal">
+          <div className="w-full px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-20 py-4 flex flex-col gap-2 text-charcoal">
             {navLinks.map((link) => (
               <Link
                 key={link.to}
