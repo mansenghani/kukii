@@ -2,10 +2,16 @@ const nodemailer = require('nodemailer');
 const fs = require('fs');
 const path = require('path');
 
+const LOGS_DIR = path.join(__dirname, '..', 'logs');
+const MAIL_LOG_PATH = path.join(LOGS_DIR, 'mail.log');
+
 const logEmail = (message) => {
     const logMessage = `${new Date().toISOString()} - ${message}\n`;
     try {
-        fs.appendFileSync(path.join(__dirname, 'mail.log'), logMessage);
+        if (!fs.existsSync(LOGS_DIR)) {
+            fs.mkdirSync(LOGS_DIR, { recursive: true });
+        }
+        fs.appendFileSync(MAIL_LOG_PATH, logMessage);
     } catch (err) {
         console.error('Logging failed:', err);
     }
