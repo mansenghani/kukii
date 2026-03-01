@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { Search, Send, ShieldCheck, CheckCircle, AlertCircle, Calendar, Clock, User, ArrowLeft } from 'lucide-react';
+import { Search, CheckCircle, AlertCircle } from 'lucide-react';
 
 const CancelBooking = () => {
     const navigate = useNavigate();
@@ -12,12 +12,20 @@ const CancelBooking = () => {
     const [otp, setOtp] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
-    const [message, setMessage] = useState("");
+    const [toast, setToast] = useState({ visible: false, type: 'success', text: '' });
+
+    const showToast = (text, type = 'success') => {
+        setToast({ visible: true, type, text });
+        setTimeout(() => {
+            setToast((prev) => ({ ...prev, visible: false }));
+        }, 2800);
+    };
 
     // STEP 1: Find Booking
     const handleFindBooking = async (e) => {
         e.preventDefault();
         if (!type || !uniqueId) {
+            showToast("Please select type and enter Booking ID.", 'error');
             return setError("Please select type and enter Booking ID.");
         }
         try {
@@ -25,9 +33,12 @@ const CancelBooking = () => {
             setError("");
             const res = await axios.post('/api/cancel/find-booking', { uniqueBookingId: uniqueId, type });
             setBookingData(res.data);
+            showToast('Reservation found successfully.');
             setStep(2);
         } catch (err) {
-            setError(err.response?.data?.message || "Booking not found.");
+            const msg = err.response?.data?.message || "Booking not found.";
+            setError(msg);
+            showToast(msg, 'error');
         } finally {
             setLoading(false);
         }
@@ -39,10 +50,12 @@ const CancelBooking = () => {
             setLoading(true);
             setError("");
             await axios.post('/api/cancel/send-otp', { uniqueBookingId: uniqueId, type });
-            setMessage("OTP sent to your email.");
+            showToast('OTP sent to your registered email.');
             setStep(3);
         } catch (err) {
-            setError(err.response?.data?.message || "Failed to send OTP.");
+            const msg = err.response?.data?.message || "Failed to send OTP.";
+            setError(msg);
+            showToast(msg, 'error');
         } finally {
             setLoading(false);
         }
@@ -55,12 +68,15 @@ const CancelBooking = () => {
             setLoading(true);
             setError("");
             await axios.post('/api/cancel/verify-otp', { uniqueBookingId: uniqueId, otp, type });
+            showToast('Cancellation confirmed successfully.');
             setStep(4);
             setTimeout(() => {
                 navigate('/');
             }, 3000);
         } catch (err) {
-            setError(err.response?.data?.message || "Invalid OTP.");
+            const msg = err.response?.data?.message || "Invalid OTP.";
+            setError(msg);
+            showToast(msg, 'error');
         } finally {
             setLoading(false);
         }
@@ -68,6 +84,18 @@ const CancelBooking = () => {
 
     return (
         <div className="fade-in bg-background-ivory min-h-screen">
+            {toast.visible && (
+                <div className="fixed top-24 right-4 z-[70]">
+                    <div className={`flex items-center gap-3 px-4 py-3 rounded-sm border shadow-lg text-[10px] font-bold uppercase tracking-widest ${toast.type === 'error'
+                            ? 'bg-rose-50 text-rose-500 border-rose-100'
+                            : 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                        }`}>
+                        {toast.type === 'error' ? <AlertCircle size={14} /> : <CheckCircle size={14} />}
+                        <span>{toast.text}</span>
+                    </div>
+                </div>
+            )}
+
             {/* Header Section */}
             <section className="pt-24 pb-12 text-center">
                 <div className="max-w-3xl mx-auto px-4">

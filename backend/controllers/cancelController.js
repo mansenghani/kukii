@@ -70,8 +70,7 @@ exports.sendCancellationOTP = async (req, res) => {
         booking.otpExpiry = expiry;
         await booking.save();
 
-        const email = type === 'table' ? booking.customerId.email : booking.email;
-        await sendOTPEmail(email, otp);
+        await sendOTPEmail(booking, otp, type);
 
         res.status(200).json({ success: true, message: 'OTP sent to your email' });
     } catch (error) {
@@ -107,8 +106,7 @@ exports.verifyAndCancel = async (req, res) => {
         booking.otpExpiry = undefined;
         await booking.save();
 
-        const email = type === 'table' ? booking.customerId.email : booking.email;
-        await sendCancellationConfirmedEmail(email, uniqueBookingId);
+        await sendCancellationConfirmedEmail(booking, type);
 
         res.status(200).json({ success: true, message: 'Booking cancelled successfully' });
     } catch (error) {

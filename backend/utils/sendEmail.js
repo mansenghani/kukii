@@ -46,6 +46,7 @@ const sendEmail = async (options) => {
     } catch (error) {
         logEmail(`❌ Error: Failed to send to ${options.email}. Reason: ${error.message}`);
         console.error('Nodemailer Error:', error);
+        throw error;
     }
 };
 
