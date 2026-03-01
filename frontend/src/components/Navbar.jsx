@@ -1,7 +1,22 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Menu, X } from 'lucide-react';
 
 const Navbar = () => {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const navLinks = [
+    { to: '/', label: 'Home' },
+    { to: '/menu', label: 'Menu' },
+    { to: '/booking', label: 'Reservations' },
+    { to: '/events', label: 'Events' },
+    { to: '/about', label: 'About' },
+    { to: '/feedback', label: 'Reviews' },
+    { to: '/cancel-booking', label: 'Cancel Booking', className: 'font-bold text-primary/80' },
+  ];
+
+  const handleMobileLinkClick = () => setIsMobileMenuOpen(false);
+
   return (
     <nav className="bg-white py-5 border-b border-border-neutral sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
@@ -14,22 +29,54 @@ const Navbar = () => {
 
         {/* Center Links */}
         <div className="hidden md:flex items-center gap-10 font-medium text-sm text-charcoal">
-          <Link to="/" className="hover:text-primary transition-colors">Home</Link>
-          <Link to="/menu" className="hover:text-primary transition-colors">Menu</Link>
-          <Link to="/booking" className="hover:text-primary transition-colors">Reservations</Link>
-          <Link to="/events" className="hover:text-primary transition-colors">Events</Link>
-          <Link to="/about" className="hover:text-primary transition-colors">About</Link>
-          <Link to="/feedback" className="hover:text-primary transition-colors">Reviews</Link>
-          <Link to="/cancel-booking" className="hover:text-primary transition-colors font-bold text-primary/80">Cancel Booking</Link>
+          {navLinks.map((link) => (
+            <Link
+              key={link.to}
+              to={link.to}
+              className={`hover:text-primary transition-colors ${link.className || ''}`}
+            >
+              {link.label}
+            </Link>
+          ))}
         </div>
 
-        {/* Action Button */}
-        <div className="flex items-center">
-          <Link to="/booking" className="bg-primary text-white px-8 py-2.5 rounded-full font-medium text-sm hover:bg-primary-hover transition-colors shadow-sm whitespace-nowrap">
+        {/* Action Buttons */}
+        <div className="flex items-center gap-2">
+          <Link to="/booking" className="hidden sm:inline-flex bg-primary text-white px-8 py-2.5 rounded-full font-medium text-sm hover:bg-primary-hover transition-colors shadow-sm whitespace-nowrap">
             Book a Table
           </Link>
+
+          <Link to="/booking" className="sm:hidden bg-primary text-white px-4 py-2 rounded-full font-medium text-xs hover:bg-primary-hover transition-colors shadow-sm whitespace-nowrap">
+            Book
+          </Link>
+
+          <button
+            type="button"
+            aria-label="Toggle menu"
+            onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+            className="md:hidden size-10 rounded-full border border-border-neutral flex items-center justify-center text-charcoal hover:text-primary hover:border-primary/30 transition-colors"
+          >
+            {isMobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
+          </button>
         </div>
       </div>
+
+      {isMobileMenuOpen && (
+        <div className="md:hidden border-t border-border-neutral mt-4">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-col gap-2 text-charcoal">
+            {navLinks.map((link) => (
+              <Link
+                key={link.to}
+                to={link.to}
+                onClick={handleMobileLinkClick}
+                className={`py-2 text-sm font-medium hover:text-primary transition-colors ${link.className || ''}`}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
     </nav>
   );
 };

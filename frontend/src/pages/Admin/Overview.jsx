@@ -1,21 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Line, Bar, Doughnut } from 'react-chartjs-2';
 import {
-    Chart as ChartJS, CategoryScale, LinearScale, PointElement,
-    LineElement, BarElement, ArcElement, Title, Tooltip, Legend, Filler
-} from 'chart.js';
+    LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
+    XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
+    Legend as RechartsLegend, ResponsiveContainer
+} from 'recharts';
 import {
-    Calendar, TrendingUp, Users, ShoppingBag, IndianRupee, Clock,
-    Tag, Utensils, CalendarDays, Star, Settings, ArrowRight, HelpCircle
+    Calendar, TrendingUp, Users, ShoppingBag, IndianRupee,
+    Tag, Utensils, CalendarDays, Star, Settings, ArrowRight
 } from 'lucide-react';
 import FooterSettingsCard from './FooterSettingsCard';
-
-// REGISTER CHART.JS MODULES
-ChartJS.register(
-    CategoryScale, LinearScale, PointElement, LineElement,
-    BarElement, ArcElement, Title, Tooltip, Legend, Filler
-);
 
 const Overview = ({ onTabChange, onFooterClick }) => {
     const [loading, setLoading] = useState(true);
@@ -67,6 +61,16 @@ const Overview = ({ onTabChange, onFooterClick }) => {
             </div>
         );
     }
+
+    const dailyData = stats.daily.map((d) => ({ day: d.day, bookings: d.count }));
+    const bookingStatusData = stats.status.map((s) => ({
+        name: s._id.charAt(0).toUpperCase() + s._id.slice(1),
+        value: s.count
+    }));
+    const monthlyData = stats.monthly.map((m) => ({ month: m.month, revenue: m.revenue }));
+    const peakSlotsData = stats.peakSlots.map((p) => ({ slot: p._id, count: p.count }));
+    const topItemsData = stats.topItems.map((i) => ({ item: i._id, quantity: i.totalQuantity }));
+    const statusColors = ['#c67c7c', '#2b2b2b', '#e3dbd4'];
 
     return (
         <div className="space-y-12 pb-16 animate-fade-in">
@@ -124,10 +128,15 @@ const Overview = ({ onTabChange, onFooterClick }) => {
                 <div className="bg-white p-8 rounded-[2rem] border border-primary/5 shadow-sm">
                     <h4 className="serif-heading text-xl text-charcoal mb-6">Daily Bookings (7 Days)</h4>
                     <div className="h-[300px]">
-                        <Line data={{
-                            labels: stats.daily.map(d => d.day),
-                            datasets: [{ label: 'Bookings', data: stats.daily.map(d => d.count), borderColor: '#c67c7c', backgroundColor: 'rgba(198, 124, 124, 0.1)', fill: true, tension: 0.4 }]
-                        }} options={{ responsive: true, maintainAspectRatio: false }} />
+                        <ResponsiveContainer width="100%" height="100%">
+                            <LineChart data={dailyData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#f2eeeb" />
+                                <XAxis dataKey="day" tick={{ fontSize: 12 }} stroke="#8b8b8b" />
+                                <YAxis allowDecimals={false} tick={{ fontSize: 12 }} stroke="#8b8b8b" />
+                                <RechartsTooltip />
+                                <Line type="monotone" dataKey="bookings" stroke="#c67c7c" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+                            </LineChart>
+                        </ResponsiveContainer>
                     </div>
                 </div>
 
@@ -135,10 +144,17 @@ const Overview = ({ onTabChange, onFooterClick }) => {
                 <div className="bg-white p-8 rounded-[2rem] border border-primary/5 shadow-sm flex flex-col items-center">
                     <h4 className="serif-heading text-xl text-charcoal mb-6 self-start">Booking Distribution</h4>
                     <div className="h-[300px] w-full max-w-[300px]">
-                        <Doughnut data={{
-                            labels: stats.status.map(s => s._id.charAt(0).toUpperCase() + s._id.slice(1)),
-                            datasets: [{ data: stats.status.map(s => s.count), backgroundColor: ['#c67c7c', '#2b2b2b', '#e3dbd4'], borderWidth: 0 }]
-                        }} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }} />
+                        <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                                <Pie data={bookingStatusData} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={55} outerRadius={95} paddingAngle={2}>
+                                    {bookingStatusData.map((entry, index) => (
+                                        <Cell key={entry.name} fill={statusColors[index % statusColors.length]} />
+                                    ))}
+                                </Pie>
+                                <RechartsTooltip />
+                                <RechartsLegend verticalAlign="bottom" height={36} />
+                            </PieChart>
+                        </ResponsiveContainer>
                     </div>
                 </div>
 
@@ -146,10 +162,15 @@ const Overview = ({ onTabChange, onFooterClick }) => {
                 <div className="bg-white p-8 rounded-[2rem] border border-primary/5 shadow-sm">
                     <h4 className="serif-heading text-xl text-charcoal mb-6">Monthly Revenue Trend</h4>
                     <div className="h-[300px]">
-                        <Bar data={{
-                            labels: stats.monthly.map(m => m.month),
-                            datasets: [{ label: 'Revenue (₹)', data: stats.monthly.map(m => m.revenue), backgroundColor: '#2b2b2b', borderRadius: 8 }]
-                        }} options={{ responsive: true, maintainAspectRatio: false }} />
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={monthlyData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#f2eeeb" />
+                                <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke="#8b8b8b" />
+                                <YAxis tick={{ fontSize: 12 }} stroke="#8b8b8b" />
+                                <RechartsTooltip formatter={(value) => [`₹${value?.toLocaleString?.() ?? value}`, 'Revenue']} />
+                                <Bar dataKey="revenue" fill="#2b2b2b" radius={[8, 8, 0, 0]} />
+                            </BarChart>
+                        </ResponsiveContainer>
                     </div>
                 </div>
 
@@ -157,10 +178,15 @@ const Overview = ({ onTabChange, onFooterClick }) => {
                 <div className="bg-white p-8 rounded-[2rem] border border-primary/5 shadow-sm">
                     <h4 className="serif-heading text-xl text-charcoal mb-6">Peak Booking Times</h4>
                     <div className="h-[300px]">
-                        <Bar data={{
-                            labels: stats.peakSlots.map(p => p._id),
-                            datasets: [{ label: 'Count', data: stats.peakSlots.map(p => p.count), backgroundColor: '#c67c7c', borderRadius: 6 }]
-                        }} options={{ indexAxis: 'y', responsive: true, maintainAspectRatio: false, scales: { x: { beginAtZero: true } } }} />
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={peakSlotsData} layout="vertical" margin={{ top: 10, right: 20, left: 20, bottom: 0 }}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#f2eeeb" />
+                                <XAxis type="number" allowDecimals={false} tick={{ fontSize: 12 }} stroke="#8b8b8b" />
+                                <YAxis type="category" dataKey="slot" width={90} tick={{ fontSize: 12 }} stroke="#8b8b8b" />
+                                <RechartsTooltip />
+                                <Bar dataKey="count" fill="#c67c7c" radius={[0, 6, 6, 0]} />
+                            </BarChart>
+                        </ResponsiveContainer>
                     </div>
                 </div>
             </div>
@@ -169,10 +195,15 @@ const Overview = ({ onTabChange, onFooterClick }) => {
             <div className="bg-white p-8 rounded-[2rem] border border-primary/5 shadow-sm">
                 <h4 className="serif-heading text-xl text-charcoal mb-6">Top 5 Ordered Food Items</h4>
                 <div className="h-[350px]">
-                    <Bar data={{
-                        labels: stats.topItems.map(i => i._id),
-                        datasets: [{ label: 'Quantity', data: stats.topItems.map(i => i.totalQuantity), backgroundColor: '#c67c7c', borderRadius: 6 }]
-                    }} options={{ responsive: true, maintainAspectRatio: false }} />
+                    <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={topItemsData} margin={{ top: 10, right: 20, left: 0, bottom: 20 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#f2eeeb" />
+                            <XAxis dataKey="item" tick={{ fontSize: 12 }} stroke="#8b8b8b" interval={0} angle={-20} textAnchor="end" height={60} />
+                            <YAxis allowDecimals={false} tick={{ fontSize: 12 }} stroke="#8b8b8b" />
+                            <RechartsTooltip />
+                            <Bar dataKey="quantity" fill="#c67c7c" radius={[6, 6, 0, 0]} />
+                        </BarChart>
+                    </ResponsiveContainer>
                 </div>
             </div>
         </div>
