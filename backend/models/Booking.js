@@ -54,6 +54,10 @@ const bookingSchema = new mongoose.Schema({
     enum: ['pending', 'completed', 'skipped'],
     default: 'pending'
   },
+  notifyMe: {
+    type: Boolean,
+    default: false
+  },
 
   createdAt: {
     type: Date,

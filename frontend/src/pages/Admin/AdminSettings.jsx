@@ -4,18 +4,14 @@ import {
   Store,
   User,
   BookOpen,
-  Bell,
-  Sliders,
-  AlertTriangle,
   Edit,
   Upload,
   Eye,
   EyeOff,
   Save,
-  RotateCcw,
   Trash2,
-  LogOut,
   CheckCircle2,
+  AlertTriangle,
 } from "lucide-react";
 
 const AdminSettings = ({ onError, onSuccess }) => {
@@ -41,16 +37,7 @@ const AdminSettings = ({ onError, onSuccess }) => {
     maxTables: 24,
     bookingDuration: "1.5 Hours",
   });
-  const [notifications, setNotifications] = useState({
-    emailNotifications: true,
-    reservationAlert: true,
-    reviewNotification: true,
-    dailyReportAlert: true,
-  });
-  const [preferences, setPreferences] = useState({
-    currency: "INR",
-    timeFormat: "12-hour (1:00 PM)",
-  });
+
   const [passwords, setPasswords] = useState({
     oldPassword: "",
     newPassword: "",
@@ -71,11 +58,9 @@ const AdminSettings = ({ onError, onSuccess }) => {
   const fetchAllSettings = async () => {
     setLoading(true);
     try {
-      const [resRest, resBook, resNote, resPref, resAdmin] = await Promise.all([
+      const [resRest, resBook, resAdmin] = await Promise.all([
         axios.get("/api/settings/restaurant", config),
         axios.get("/api/settings/booking", config),
-        axios.get("/api/settings/notification", config),
-        axios.get("/api/settings/preferences", config),
         // Since there's no direct profile GET provided in the prompt's API list, we'll use stored admin data or a mock for now
         // Actually the prompt says PUT /api/admin/profile, I'll assume we can get it or just use the local storage one
         Promise.resolve({
@@ -85,8 +70,6 @@ const AdminSettings = ({ onError, onSuccess }) => {
 
       setRestaurant(resRest.data);
       setBooking(resBook.data);
-      setNotifications(resNote.data);
-      setPreferences(resPref.data);
       setAdmin(resAdmin.data);
       setLogoPreview(resRest.data.logo);
     } catch (err) {
@@ -134,6 +117,19 @@ const AdminSettings = ({ onError, onSuccess }) => {
     }
   };
 
+  const handleUpdateBooking = async () => {
+    setSubmitting(true);
+    try {
+      const res = await axios.put("/api/settings/booking", booking, config);
+      setBooking(res.data);
+      if (onSuccess) onSuccess("Booking rules updated");
+    } catch (err) {
+      if (onError) onError("Update failed");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const handlePasswordChange = async (e) => {
     e.preventDefault();
     if (passwords.newPassword !== passwords.confirmPassword) {
@@ -153,67 +149,7 @@ const AdminSettings = ({ onError, onSuccess }) => {
     }
   };
 
-  const handleSaveSection = async (section, data, endpoint) => {
-    setSubmitting(true);
-    try {
-      const res = await axios.put(endpoint, data, config);
-      if (section === "booking") setBooking(res.data);
-      if (section === "notifications") setNotifications(res.data);
-      if (section === "preferences") setPreferences(res.data);
-      if (onSuccess) onSuccess("Settings saved successfully");
-    } catch (err) {
-      if (onError) onError("Failed to save settings");
-    } finally {
-      setSubmitting(false);
-    }
-  };
 
-  const handleResetSystem = async () => {
-    if (
-      !window.confirm(
-        "Reset all system settings to factory defaults? This cannot be undone.",
-      )
-    )
-      return;
-    try {
-      await axios.post("/api/system/reset", {}, config);
-      fetchAllSettings();
-      if (onSuccess) onSuccess("System reset successfully");
-    } catch (err) {
-      if (onError) onError("Reset failed");
-    }
-  };
-
-  const handleDeleteAllData = async () => {
-    if (
-      !window.confirm(
-        "PERMANENTLY DELETE all bookings, preorders, and reports? This is DESTRUCTIVE.",
-      )
-    )
-      return;
-    try {
-      await axios.delete("/api/reports", config);
-      if (onSuccess) onSuccess("All data purged successfully");
-    } catch (err) {
-      if (onError) onError("Purge failed");
-    }
-  };
-
-  const handleLogoutAll = async () => {
-    if (
-      !window.confirm(
-        "Logout all active sessions? You will need to login again.",
-      )
-    )
-      return;
-    try {
-      await axios.post("/api/admin/logout-all", {}, config);
-      localStorage.clear();
-      window.location.href = "/admin";
-    } catch (err) {
-      if (onError) onError("Logout all failed");
-    }
-  };
 
   const handleLogoChange = (e) => {
     const file = e.target.files[0];
@@ -232,15 +168,7 @@ const AdminSettings = ({ onError, onSuccess }) => {
 
   return (
     <div className="animate-fade-in font-sans pb-20">
-      <header className="mb-10">
-        <h2 className="serif-heading text-4xl text-charcoal tracking-tight lowercase italic">
-          System Settings
-        </h2>
-        <p className="text-soft-grey text-sm mt-1">
-          Manage restaurant configuration, admin preferences, and system
-          controls.
-        </p>
-      </header>
+
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
         {/* Sidebar Nav */}
@@ -263,26 +191,7 @@ const AdminSettings = ({ onError, onSuccess }) => {
           >
             <BookOpen size={18} /> Booking Rules
           </button>
-          <button
-            onClick={() => setActiveSection("notifications")}
-            className={`w-full flex items-center gap-3 px-6 py-4 rounded-2xl text-sm font-bold transition-all ${activeSection === "notifications" ? "bg-primary text-white shadow-lg shadow-primary/20" : "bg-white text-soft-grey hover:bg-background-ivory hover:text-primary"}`}
-          >
-            <Bell size={18} /> Notifications
-          </button>
-          <button
-            onClick={() => setActiveSection("system")}
-            className={`w-full flex items-center gap-3 px-6 py-4 rounded-2xl text-sm font-bold transition-all ${activeSection === "system" ? "bg-primary text-white shadow-lg shadow-primary/20" : "bg-white text-soft-grey hover:bg-background-ivory hover:text-primary"}`}
-          >
-            <Sliders size={18} /> Preferences
-          </button>
-          <div className="pt-8 border-t border-border-neutral mt-8">
-            <button
-              onClick={() => setActiveSection("danger")}
-              className={`w-full flex items-center gap-3 px-6 py-4 rounded-2xl text-sm font-bold transition-all ${activeSection === "danger" ? "bg-red-600 text-white shadow-lg shadow-red-200" : "bg-red-50 text-red-600 hover:bg-red-100"}`}
-            >
-              <AlertTriangle size={18} /> Danger Zone
-            </button>
-          </div>
+
         </aside>
 
         {/* Main Content Area */}
@@ -594,13 +503,7 @@ const AdminSettings = ({ onError, onSuccess }) => {
                 </div>
                 <div className="flex justify-end pt-8">
                   <button
-                    onClick={() =>
-                      handleSaveSection(
-                        "booking",
-                        booking,
-                        "/api/settings/booking",
-                      )
-                    }
+                    onClick={handleUpdateBooking}
                     disabled={submitting}
                     className="px-10 py-4 bg-primary/10 text-primary border border-primary/20 rounded-2xl font-bold text-[10px] uppercase tracking-widest hover:bg-primary hover:text-white transition-all shadow-sm"
                   >
@@ -611,216 +514,7 @@ const AdminSettings = ({ onError, onSuccess }) => {
             </div>
           )}
 
-          {activeSection === "notifications" && (
-            <div className="p-10 animate-fade-in">
-              <h3 className="serif-heading text-2xl text-charcoal mb-8 border-b border-background-ivory pb-4">
-                Communication Vectors
-              </h3>
-              <div className="space-y-4">
-                {[
-                  {
-                    label: "System Email Relay",
-                    desc: "Centralized transactional communication dispatch.",
-                    key: "emailNotifications",
-                  },
-                  {
-                    label: "Booking Arrival Alarms",
-                    desc: "Real-time auditory/visual notifications for new requests.",
-                    key: "reservationAlert",
-                  },
-                  {
-                    label: "Sentiment Review Alerts",
-                    desc: "Notification when guest chronicles are published.",
-                    key: "reviewNotification",
-                  },
-                  {
-                    label: "Synchronized Daily Briefing",
-                    desc: "Comprehensive analytic summary delivered every dawn.",
-                    key: "dailyReportAlert",
-                  },
-                ].map((n, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center justify-between p-6 hover:bg-background-ivory/30 rounded-[2rem] transition-all border border-transparent hover:border-primary/5"
-                  >
-                    <div className="flex items-center gap-5">
-                      <div className="size-10 rounded-2xl bg-primary/5 flex items-center justify-center text-primary">
-                        {i === 0 && <Bell size={18} />}
-                        {i === 1 && <RotateCcw size={18} />}
-                        {i === 2 && <Store size={18} />}
-                        {i === 3 && <Sliders size={18} />}
-                      </div>
-                      <div>
-                        <p className="font-bold text-charcoal">{n.label}</p>
-                        <p className="text-[10px] text-soft-grey italic">
-                          {n.desc}
-                        </p>
-                      </div>
-                    </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input
-                        checked={notifications[n.key]}
-                        onChange={(e) =>
-                          setNotifications({
-                            ...notifications,
-                            [n.key]: e.target.checked,
-                          })
-                        }
-                        className="sr-only peer"
-                        type="checkbox"
-                      />
-                      <div className="w-12 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
-                    </label>
-                  </div>
-                ))}
-                <div className="flex justify-end pt-8">
-                  <button
-                    onClick={() =>
-                      handleSaveSection(
-                        "notifications",
-                        notifications,
-                        "/api/settings/notification",
-                      )
-                    }
-                    disabled={submitting}
-                    className="px-10 py-4 bg-charcoal text-white rounded-2xl font-bold text-[10px] uppercase tracking-widest hover:bg-black transition-all shadow-lg active:scale-95"
-                  >
-                    {submitting
-                      ? "Updating..."
-                      : "Save Communication Preferences"}
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
 
-          {activeSection === "system" && (
-            <div className="p-10 animate-fade-in">
-              <h3 className="serif-heading text-2xl text-charcoal mb-8 border-b border-background-ivory pb-4">
-                Global Preferences
-              </h3>
-              <div className="space-y-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-8 bg-background-ivory/30 rounded-3xl border border-primary/5">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black text-primary uppercase tracking-[0.2em] ml-1">
-                      Monetary Symbol (Currency)
-                    </label>
-                    <select
-                      className="w-full bg-white border border-primary/10 rounded-xl px-4 py-3 text-sm focus:border-primary outline-none transition-all font-bold"
-                      value={preferences.currency}
-                      onChange={(e) =>
-                        setPreferences({
-                          ...preferences,
-                          currency: e.target.value,
-                        })
-                      }
-                    >
-                      <option value="INR">INR (₹)</option>
-                      <option value="USD">USD ($)</option>
-                      <option value="EUR">EUR (€)</option>
-                    </select>
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black text-primary uppercase tracking-[0.2em] ml-1">
-                      Chronological Syntax (Time)
-                    </label>
-                    <select
-                      className="w-full bg-white border border-primary/10 rounded-xl px-4 py-3 text-sm focus:border-primary outline-none transition-all font-bold"
-                      value={preferences.timeFormat}
-                      onChange={(e) =>
-                        setPreferences({
-                          ...preferences,
-                          timeFormat: e.target.value,
-                        })
-                      }
-                    >
-                      <option>12-hour (1:00 PM)</option>
-                      <option>24-hour (13:00)</option>
-                    </select>
-                  </div>
-                </div>
-                <div className="flex justify-end pt-4">
-                  <button
-                    onClick={() =>
-                      handleSaveSection(
-                        "preferences",
-                        preferences,
-                        "/api/settings/preferences",
-                      )
-                    }
-                    disabled={submitting}
-                    className="px-12 py-4 bg-primary text-white rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-primary-hover shadow-lg shadow-primary/20 transition-all flex items-center gap-2 active:scale-95"
-                  >
-                    <Save size={16} /> Finalize Preferences
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeSection === "danger" && (
-            <div className="p-10 animate-fade-in bg-red-50/20">
-              <div className="flex items-center gap-3 text-red-600 mb-8 border-b border-red-100 pb-4">
-                <AlertTriangle size={32} />
-                <h3 className="serif-heading text-2xl">
-                  Irreversible Procedures
-                </h3>
-              </div>
-              <div className="space-y-6">
-                <div className="flex flex-col md:flex-row md:items-center justify-between p-6 bg-white rounded-3xl border-2 border-dashed border-red-100 gap-6">
-                  <div>
-                    <p className="font-bold text-charcoal">
-                      Systemic Factory Oscillation
-                    </p>
-                    <p className="text-[10px] text-soft-grey italic">
-                      Restore all configuration constants to initial factory
-                      origin.
-                    </p>
-                  </div>
-                  <button
-                    onClick={handleResetSystem}
-                    className="px-10 py-3 bg-white border-2 border-red-200 text-red-600 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-red-600 hover:text-white transition-all shadow-sm"
-                  >
-                    Reset Constants
-                  </button>
-                </div>
-                <div className="flex flex-col md:flex-row md:items-center justify-between p-6 bg-white rounded-3xl border-2 border-dashed border-red-100 gap-6">
-                  <div>
-                    <p className="font-bold text-charcoal">
-                      Chronological Data Erasure
-                    </p>
-                    <p className="text-[10px] text-soft-grey italic">
-                      Absolute purge of analytics, bookings, and customer
-                      narratives.
-                    </p>
-                  </div>
-                  <button
-                    onClick={handleDeleteAllData}
-                    className="px-10 py-3 bg-white border-2 border-red-200 text-red-600 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-red-600 hover:text-white transition-all shadow-sm"
-                  >
-                    Purge Archives
-                  </button>
-                </div>
-                <div className="flex flex-col md:flex-row md:items-center justify-between p-8 bg-red-600 rounded-3xl text-white gap-6 shadow-xl shadow-red-100">
-                  <div>
-                    <p className="font-bold text-xl uppercase tracking-widest">
-                      Global Session Termination
-                    </p>
-                    <p className="text-[10px] opacity-80 mt-1">
-                      Forcefully invalidate all cryptographic admin tokens in
-                      circulation.
-                    </p>
-                  </div>
-                  <button
-                    onClick={handleLogoutAll}
-                    className="px-10 py-4 bg-white text-red-600 rounded-2xl text-xs font-black uppercase tracking-[0.2em] hover:bg-red-50 transition-all active:scale-95 flex items-center gap-2"
-                  >
-                    <LogOut size={18} /> Expel All Users
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
         </main>
       </div>
 

@@ -383,9 +383,58 @@ const sendCancellationConfirmedEmail = async (data, type) => {
     });
 };
 
+/**
+ * Send notification to users waiting for a table
+ */
+const sendTableAvailableEmail = async (data) => {
+    const customerEmail = data.customerId?.email;
+    const customerName = data.customerId?.name || 'Valued Guest';
+
+    if (!customerEmail) return;
+
+    const dateStr = new Date(data.date).toDateString();
+    const tableNumber = data.tableId?.tableNumber || 'N/A';
+    const time = data.time;
+
+    const htmlTemplate = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 30px; border: 1px solid #efefef; color: #333;">
+        <h1 style="color: #2b2b2b; text-align: center; letter-spacing: 5px;">KUKI</h1>
+        <p style="text-align: center; font-size: 14px; color: #888; text-transform: uppercase;">Fine Dining Redefined</p>
+        
+        <div style="background: #c67c7c; padding: 15px; text-align: center; color: white; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; margin-top: 30px;">
+           Table Now Available! ✓
+        </div>
+
+        <p style="margin-top: 30px; font-size: 16px;">Dear <strong>${customerName}</strong>,</p>
+        <p style="font-size: 15px; line-height: 1.6;">Great news! The table you were waiting for has just become available.</p>
+        
+        <div style="background: #fdfaf7; padding: 25px; margin: 25px 0; border: 1px solid #e3dbd4;">
+            <p style="border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 15px; font-weight: bold; text-transform: uppercase; font-size: 12px; color: #c67c7c;">Table Details</p>
+            <p style="margin: 8px 0;"><strong>Table Number:</strong> ${tableNumber}</p>
+            <p style="margin: 8px 0;"><strong>Date:</strong> ${dateStr}</p>
+            <p style="margin: 8px 0;"><strong>Time:</strong> ${time}</p>
+        </div>
+
+        <p style="margin-top: 30px; font-size: 15px; text-align: center;">Visit our website and book it now before someone else takes it!</p>
+        <div style="text-align: center; margin-top: 20px;">
+            <a href="https://kuki-restaurant.com/booking" style="background-color: #c67c7c; color: white; padding: 12px 25px; text-decoration: none; font-weight: bold; border-radius: 5px; display: inline-block;">Book Now</a>
+        </div>
+        
+        <p style="font-size: 14px; color: #888; margin-top: 40px; border-top: 1px solid #eee; pt-20">KUKI Restaurant Team</p>
+    </div>
+    `;
+
+    return sendEmail({
+        email: customerEmail,
+        subject: `Table Now Available at KUKI`,
+        html: htmlTemplate
+    });
+};
+
 module.exports = sendEmail;
 module.exports.sendUserBookingEmail = sendUserBookingEmail;
 module.exports.sendAdminNotificationEmail = sendAdminNotificationEmail;
 module.exports.sendConfirmationWithIdEmail = sendConfirmationWithIdEmail;
 module.exports.sendOTPEmail = sendOTPEmail;
 module.exports.sendCancellationConfirmedEmail = sendCancellationConfirmedEmail;
+module.exports.sendTableAvailableEmail = sendTableAvailableEmail;

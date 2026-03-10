@@ -167,10 +167,14 @@ const Booking = () => {
     }
   };
 
+  const [notifyMe, setNotifyMe] = useState(false);
+  const [isBooked, setIsBooked] = useState(false);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setStatus('loading');
     setErrorMessage('');
+    setIsBooked(false);
 
     try {
       // 1. Create/Find Customer
@@ -190,17 +194,31 @@ const Booking = () => {
         tableId: formData.tableId,
         date: formData.date,
         time: formData.time,
-        guests: guestNumber
+        guests: guestNumber,
+        notifyMe: notifyMe
       });
 
       const booking = bookingRes.data;
+
+      if (booking.type === 'notification') {
+        setErrorMessage(`SUCCESS: ${booking.message}`);
+        setStatus('idle');
+        setNotifyMe(false);
+        setIsBooked(false);
+        return;
+      }
+
       // create fake reservation ID for display
       booking.reservationId = "KK-" + new Date().getFullYear() + "-" + Math.floor(1000 + Math.random() * 9000);
       setBookingResult(booking);
       setStatus('success');
     } catch (error) {
       setStatus('error');
-      setErrorMessage(error.response?.data?.message || 'Something went wrong. Please check if your database is running.');
+      const errorData = error.response?.data;
+      if (errorData?.isBooked) {
+          setIsBooked(true);
+      }
+      setErrorMessage(errorData?.message || 'Something went wrong. Please try again.');
     }
   };
 
@@ -394,9 +412,28 @@ const Booking = () => {
               </div>
 
               {errorMessage && (
-                <div className={`p-4 rounded-xl text-sm flex gap-3 items-center ${errorMessage.startsWith('SUCCESS') ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-red-50 text-red-600 border border-red-100'}`}>
-                  {errorMessage.startsWith('SUCCESS') ? <CheckCircle size={18} /> : <AlertCircle size={18} />}
-                  <span className="font-medium">{errorMessage}</span>
+                <div className={`p-4 rounded-xl text-sm flex flex-col gap-3 ${errorMessage.startsWith('SUCCESS') ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-red-50 text-red-600 border border-red-100'}`}>
+                  <div className="flex items-center gap-3">
+                    {errorMessage.startsWith('SUCCESS') ? <CheckCircle size={18} /> : <AlertCircle size={18} />}
+                    <span className="font-medium">{errorMessage}</span>
+                  </div>
+                  
+                  {isBooked && (
+                    <div className="mt-2 pl-7">
+                      <label className="flex items-center gap-3 cursor-pointer group">
+                        <div className="relative flex items-center">
+                          <input 
+                            type="checkbox" 
+                            className="peer appearance-none size-5 border-2 border-red-200 rounded-md checked:bg-red-500 checked:border-red-500 transition-all cursor-pointer"
+                            checked={notifyMe}
+                            onChange={(e) => setNotifyMe(e.target.checked)}
+                          />
+                          <CheckCircle size={14} className="absolute left-0.5 text-white opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none" />
+                        </div>
+                        <span className="text-xs font-bold uppercase tracking-widest text-red-700 group-hover:text-red-900 transition-colors">Notify me when this table becomes available</span>
+                      </label>
+                    </div>
+                  )}
                 </div>
               )}
 

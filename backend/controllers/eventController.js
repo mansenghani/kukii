@@ -57,11 +57,16 @@ exports.createEvent = async (req, res) => {
             return res.status(400).json({ message: 'Tables are already booked for this time. Please select another slot or date.' });
         }
 
-        // 4. Create pending event
+        // 4. Fetch booking settings for auto confirmation
+        const BookingSettings = require('../models/BookingSettings');
+        const settings = await BookingSettings.findOne();
+        const isAutoApprove = settings ? settings.autoConfirmation : false;
+
+        // 5. Create event with status based on auto approve
         const newEvent = new Event({
             name, phone, email, eventDate: targetDate, timeSlot, guests, specialRequest,
             uniqueBookingId: generateUniqueId(),
-            status: 'pending'
+            status: isAutoApprove ? 'approved' : 'pending'
         });
 
         await newEvent.save();

@@ -1,6 +1,6 @@
 const Booking = require('../models/Booking');
 const Event = require('../models/Event');
-const { sendOTPEmail, sendCancellationConfirmedEmail } = require('../utils/sendEmail');
+const { sendOTPEmail, sendCancellationConfirmedEmail, sendTableAvailableEmail } = require('../utils/sendEmail');
 const { generateOTP } = require('../utils/uniqueIdHelper');
 
 const maskEmail = (email) => {
@@ -105,6 +105,27 @@ exports.verifyAndCancel = async (req, res) => {
         booking.otp = undefined;
         booking.otpExpiry = undefined;
         await booking.save();
+
+        // 5. Notify users who opted in for notifications (Notify Me)
+        if (type === 'table') {
+            const waitingUsers = await Booking.find({
+                tableId: booking.tableId,
+                date: booking.date,
+                time: booking.time,
+                notifyMe: true
+            }).populate('customerId').populate('tableId');
+
+            for (const userBooking of waitingUsers) {
+                try {
+                    await sendTableAvailableEmail(userBooking);
+                    // Clear notifyMe after notification is sent
+                    userBooking.notifyMe = false;
+                    await userBooking.save();
+                } catch (emailErr) {
+                    console.error("Failed to send waitlist notification:", emailErr);
+                }
+            }
+        }
 
         await sendCancellationConfirmedEmail(booking, type);
 

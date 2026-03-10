@@ -23,6 +23,7 @@ const AdminDashboard = () => {
   const [email, setEmail] = useState('admin@luxedining.com');
   const [password, setPassword] = useState('');
   const [activeTab, setActiveTab] = useState(tab || 'overview');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Pagination & Filtering states
   const [page, setPage] = useState(1);
@@ -46,6 +47,7 @@ const AdminDashboard = () => {
 
   const handleTabChange = (newTab) => {
     navigate(`/admin/${newTab}`);
+    setSidebarOpen(false); // Close sidebar on mobile after selection
   };
 
   const [data, setData] = useState({
@@ -418,21 +420,22 @@ const AdminDashboard = () => {
               <div className="text-center py-20 text-soft-grey animate-pulse bg-white rounded-[2rem] border border-border-neutral">Synchronizing with server...</div>
             ) : (
               <>
-                <div className="bg-white rounded-t-[2rem] shadow-sm border border-border-neutral overflow-hidden">
-                  <table className="w-full text-left border-collapse">
-                    <thead className="bg-background-ivory/50 border-b border-border-neutral">
-                      <tr>
-                        <th className="p-5 text-[10px] uppercase tracking-widest text-soft-grey font-bold">
-                          {activeTab === 'menu' ? 'Item / Category' : activeTab === 'categories' ? 'Category Details' : 'Info'}
-                        </th>
-                        <th className="p-5 text-[10px] uppercase tracking-widest text-soft-grey font-bold">
-                          {activeTab === 'menu' ? 'Price' : activeTab === 'categories' ? 'Created' : 'Details'}
-                        </th>
-                        <th className="p-5 text-[10px] uppercase tracking-widest text-soft-grey font-bold">Status</th>
-                        <th className="p-5 text-[10px] uppercase tracking-widest text-soft-grey font-bold">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border-neutral">
+                <div className="bg-white rounded-[2rem] shadow-sm border border-border-neutral overflow-hidden flex flex-col">
+                  <div className="overflow-x-auto custom-scrollbar">
+                    <table className="w-full text-left border-collapse min-w-[700px] lg:min-w-0">
+                      <thead className="bg-background-ivory/50 border-b border-border-neutral">
+                        <tr>
+                          <th className="p-5 text-[10px] uppercase tracking-widest text-soft-grey font-bold">
+                            {activeTab === 'menu' ? 'Item / Category' : activeTab === 'categories' ? 'Category Details' : 'Info'}
+                          </th>
+                          <th className="p-5 text-[10px] uppercase tracking-widest text-soft-grey font-bold">
+                            {activeTab === 'menu' ? 'Price' : activeTab === 'categories' ? 'Created' : 'Details'}
+                          </th>
+                          <th className="p-5 text-[10px] uppercase tracking-widest text-soft-grey font-bold">Status</th>
+                          <th className="p-5 text-[10px] uppercase tracking-widest text-soft-grey font-bold">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border-neutral">
                       {data[activeTab]?.map((item) => (
                         <tr key={item._id} className="hover:bg-primary/5 transition-colors">
                           <td className="p-5 text-sm">
@@ -477,6 +480,7 @@ const AdminDashboard = () => {
                     </tbody>
                   </table>
                 </div>
+              </div>
 
                 {/* Pagination UI for Main Tabs */}
                 {['menu', 'tables', 'categories'].includes(activeTab) && (
@@ -497,11 +501,29 @@ const AdminDashboard = () => {
 
   return (
     <div className="flex flex-col h-screen bg-[#f4efec] text-[#2b2b2b]">
-      <AdminHeader activeTab={activeTab} />
-      <div className="flex flex-1 overflow-hidden">
-        <aside className="w-[260px] flex-shrink-0 flex flex-col border-r border-[#e3dbd4] bg-[#f4efec] py-6 px-5 overflow-hidden">
+      <AdminHeader activeTab={activeTab} onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
+      <div className="flex flex-1 overflow-hidden relative">
+        {/* Mobile Sidebar Overlay */}
+        {sidebarOpen && (
+          <div 
+            className="fixed inset-0 bg-charcoal/40 backdrop-blur-[2px] z-[55] lg:hidden"
+            onClick={() => setSidebarOpen(false)}
+          ></div>
+        )}
 
-          <nav className="flex flex-col gap-[2px]">
+        <aside className={`
+          fixed inset-y-0 left-0 z-[56] w-[260px] bg-[#f4efec] border-r border-[#e3dbd4] py-6 px-5 
+          transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0
+          ${sidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}
+        `}>
+          <div className="flex items-center justify-between mb-8 lg:hidden">
+            <h2 className="serif-heading text-xl text-charcoal">Menu</h2>
+            <button onClick={() => setSidebarOpen(false)} className="p-1 hover:bg-primary/5 rounded-lg">
+              <X size={20} />
+            </button>
+          </div>
+
+          <nav className="flex flex-col gap-[2px] overflow-y-auto h-full pb-10 custom-scrollbar">
             <h5 className="text-[10px] font-bold text-soft-grey uppercase tracking-[0.2em] mb-2 pl-4">Main</h5>
             <SidebarLink icon={<LayoutDashboard size={18} />} label="Overview" active={activeTab === 'overview'} onClick={() => handleTabChange('overview')} />
             <SidebarLink icon={<CalendarDays size={18} />} label="Events" active={activeTab === 'events'} onClick={() => handleTabChange('events')} />
@@ -516,19 +538,20 @@ const AdminDashboard = () => {
             <SidebarLink icon={<MessageSquare size={18} />} label="Feedback" active={activeTab === 'feedback'} onClick={() => handleTabChange('feedback')} />
             <SidebarLink icon={<BarChart size={18} />} label="Reports" active={activeTab === 'reports'} onClick={() => handleTabChange('reports')} />
             <SidebarLink icon={<Settings size={18} />} label="Settings" active={activeTab === 'settings'} onClick={() => handleTabChange('settings')} />
+            
+            <div className="mt-4 border-t border-primary/10 pt-4 mb-20 space-y-1">
+               <button onClick={handleLogout} className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-primary hover:bg-primary/5 transition-colors font-medium text-sm"><LogOut size={18} /> Logout</button>
+            </div>
           </nav>
-          <div className="mt-4 border-t border-primary/10 pt-4 mb-2">
-            <button onClick={handleLogout} className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-primary hover:bg-primary/5 transition-colors font-medium text-sm"><LogOut size={18} /> Logout</button>
-          </div>
         </aside>
 
-        <main className="flex-1 overflow-y-auto px-10 py-8 relative">
+        <main className="flex-1 overflow-y-auto px-4 md:px-10 py-6 md:py-8 relative">
           {/* Header for dynamic actions */}
           {!['events', 'featured', 'feedback', 'bookings'].includes(activeTab) && (
-            <div className="flex justify-between items-center mb-8">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
               <div>
-                <h1 className="serif-heading text-4xl text-charcoal capitalize">{activeTab}</h1>
-                <p className="text-soft-grey text-sm mt-1">Manage {activeTab} section of the restaurant.</p>
+                <h1 className="serif-heading text-3xl md:text-4xl text-charcoal capitalize">{activeTab}</h1>
+                <p className="text-soft-grey text-xs md:text-sm mt-1">Manage {activeTab} section of the restaurant.</p>
               </div>
 
               {/* Dynamic Right Side Header Elements */}

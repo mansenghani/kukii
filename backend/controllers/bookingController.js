@@ -6,7 +6,7 @@ const { generateUniqueId } = require('../utils/uniqueIdHelper');
 
 exports.createBooking = async (req, res) => {
   try {
-    const { customerId, tableId, date, time, guests } = req.body;
+    const { customerId, tableId, date, time, guests, notifyMe } = req.body;
 
     // Check if an approved event encompasses this date and time
     const bookingDate = new Date(date);
@@ -38,7 +38,28 @@ exports.createBooking = async (req, res) => {
     });
 
     if (existingBooking) {
-      return res.status(400).json({ message: 'Table already booked for selected date and time' });
+      if (notifyMe) {
+        // Save as a notification request
+        const waitingBooking = new Booking({
+          customerId,
+          tableId,
+          date: new Date(date),
+          time,
+          guests,
+          uniqueBookingId: generateUniqueId(),
+          status: 'rejected',
+          notifyMe: true
+        });
+        await waitingBooking.save();
+        return res.status(201).json({ 
+          message: 'Notification set! We will email you if this table becomes available.',
+          type: 'notification'
+        });
+      }
+      return res.status(400).json({ 
+        message: 'Table already booked for selected date and time',
+        isBooked: true 
+      });
     }
 
     // Fetch booking settings for auto confirmation

@@ -133,23 +133,23 @@ const AdminEvents = ({ onError, onSuccess }) => {
     return (
         <div className="animate-fade-in space-y-6">
             {/* Header for dynamic actions */}
-            <div className="flex justify-between items-center mb-8">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
                 <div>
-                    <h1 className="serif-heading text-4xl text-charcoal capitalize">Events</h1>
-                    <p className="text-soft-grey text-sm mt-1">Manage events section of the restaurant.</p>
+                    <h1 className="serif-heading text-3xl md:text-4xl text-charcoal capitalize">Events</h1>
+                    <p className="text-soft-grey text-xs md:text-sm mt-1">Manage events section of the restaurant.</p>
                 </div>
 
-                <div className="flex items-center gap-4">
+                <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
                     <button
                         onClick={() => setShowAddModal(true)}
-                        className="px-6 py-2.5 bg-primary text-white text-[10px] font-bold uppercase tracking-widest rounded-xl hover:bg-primary-hover transition-all flex items-center gap-2 shadow-sm"
+                        className="flex-1 sm:flex-none px-6 py-2.5 bg-primary text-white text-[10px] font-bold uppercase tracking-widest rounded-xl hover:bg-primary-hover transition-all flex items-center justify-center gap-2 shadow-sm"
                     >
                         + Add Event
                     </button>
-                    <div className="flex items-center gap-2 bg-white border border-primary/10 rounded-xl px-4 h-10 shadow-sm hover:border-primary/30 transition-all">
+                    <div className="flex-1 sm:flex-none flex items-center gap-2 bg-white border border-primary/10 rounded-xl px-4 h-10 shadow-sm hover:border-primary/30 transition-all">
                         <Filter size={14} className="text-soft-grey" />
                         <select
-                            className="bg-transparent bg-none border-none outline-none text-xs text-charcoal font-bold cursor-pointer appearance-none"
+                            className="bg-transparent bg-none border-none outline-none text-[10px] sm:text-xs text-charcoal font-bold cursor-pointer appearance-none w-full"
                             value={filterStatus}
                             onChange={(e) => { setFilterStatus(e.target.value); setPage(1); }}
                         >
@@ -163,9 +163,9 @@ const AdminEvents = ({ onError, onSuccess }) => {
             </div>
 
             {/* Table */}
-            <div className="bg-white rounded-2xl shadow-sm border border-primary/5 overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left">
+            <div className="bg-white rounded-2xl shadow-sm border border-primary/5 overflow-hidden flex flex-col">
+                <div className="overflow-x-auto custom-scrollbar">
+                    <table className="w-full text-left min-w-[800px] lg:min-w-0">
                         <thead className="bg-background-ivory/50 border-b border-border-neutral">
                             <tr>
                                 <th className="px-6 py-4 text-[10px] font-bold text-primary uppercase tracking-widest">Client Name</th>
@@ -230,6 +230,7 @@ const AdminEvents = ({ onError, onSuccess }) => {
                         </tbody>
                     </table>
                 </div>
+            </div>
 
                 {/* Pagination Controls */}
                 {!loading && events.length > 0 && (
@@ -241,20 +242,19 @@ const AdminEvents = ({ onError, onSuccess }) => {
                         onPageChange={(newPage) => setPage(newPage)}
                     />
                 )}
-            </div>
 
             {selectedEvent && (
-                <div className="fixed inset-0 bg-charcoal/60 backdrop-blur-sm flex justify-center items-center z-[2000] p-4 animate-fade-in">
-                    <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto custom-scrollbar relative border border-primary/10">
+                <div className="fixed inset-0 bg-charcoal/60 backdrop-blur-sm flex justify-center items-center z-[2000] p-4 animate-fade-in overflow-y-auto">
+                    <div className="bg-white rounded-[2rem] md:rounded-[2.5rem] shadow-2xl w-full max-w-2xl relative border border-primary/10 my-8">
                         {/* Header */}
-                        <div className="bg-background-ivory/50 px-10 py-8 border-b border-primary/10 flex justify-between items-start">
+                        <div className="bg-background-ivory/50 px-6 md:px-10 py-6 md:py-8 border-b border-primary/10 flex justify-between items-start">
                             <div className="pr-8">
-                                <h3 className="serif-heading text-3xl text-charcoal leading-tight mb-2">Event Details</h3>
-                                <div className="flex items-center gap-2">
+                                <h3 className="serif-heading text-2xl md:text-3xl text-charcoal leading-tight mb-2">Event Details</h3>
+                                <div className="flex flex-wrap items-center gap-2">
                                     <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${getStatusStyle(selectedEvent.status)}`}>
                                         {selectedEvent.status}
                                     </span>
-                                    <span className="text-xs text-soft-grey font-medium">Submitted on {new Date(selectedEvent.createdAt).toLocaleString()}</span>
+                                    <span className="text-[10px] text-soft-grey font-medium whitespace-nowrap">Submitted {new Date(selectedEvent.createdAt).toLocaleDateString()}</span>
                                 </div>
                             </div>
                             <button onClick={() => setSelectedEvent(null)} className="absolute top-6 right-6 size-10 rounded-full hover:bg-white shadow-sm flex items-center justify-center text-soft-grey hover:text-primary transition-all border border-border-neutral">
@@ -263,8 +263,8 @@ const AdminEvents = ({ onError, onSuccess }) => {
                         </div>
 
                         {/* Content */}
-                        <div className="px-10 py-8 space-y-8">
-                            <div className="grid grid-cols-2 gap-8">
+                        <div className="px-6 md:px-10 py-6 md:py-8 space-y-8">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-8">
                                 <div>
                                     <p className="text-[10px] font-bold text-primary uppercase tracking-widest mb-1">Client Name</p>
                                     <p className="font-bold text-charcoal">{selectedEvent.name}</p>
@@ -301,30 +301,32 @@ const AdminEvents = ({ onError, onSuccess }) => {
                                         <h4 className="serif-heading text-xl text-charcoal">Pre-Ordered Catering</h4>
                                     </div>
                                     <div className="bg-white border border-border-neutral rounded-xl overflow-hidden shadow-sm">
-                                        <table className="w-full text-left text-xs">
-                                            <thead className="bg-background-ivory/50 font-bold uppercase tracking-wider text-[9px] text-soft-grey">
-                                                <tr>
-                                                    <th className="px-4 py-3">Item Name</th>
-                                                    <th className="px-4 py-3 text-center">Qty</th>
-                                                    <th className="px-4 py-3 text-right">Total</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-border-neutral/30 font-medium">
-                                                {preOrder.items && preOrder.items.map((item, i) => (
-                                                    <tr key={i} className="text-charcoal">
-                                                        <td className="px-4 py-3">{item.name}</td>
-                                                        <td className="px-4 py-3 text-center">{item.quantity}</td>
-                                                        <td className="px-4 py-3 text-right">₹{item.total}</td>
+                                        <div className="overflow-x-auto">
+                                            <table className="w-full text-left text-xs min-w-[400px]">
+                                                <thead className="bg-background-ivory/50 font-bold uppercase tracking-wider text-[9px] text-soft-grey">
+                                                    <tr>
+                                                        <th className="px-4 py-3">Item Name</th>
+                                                        <th className="px-4 py-3 text-center">Qty</th>
+                                                        <th className="px-4 py-3 text-right">Total</th>
                                                     </tr>
-                                                ))}
-                                            </tbody>
-                                            <tfoot className="bg-background-ivory/20 font-bold border-t border-border-neutral">
-                                                <tr>
-                                                    <td colSpan="2" className="px-4 py-3 text-right text-[10px] uppercase text-soft-grey tracking-widest">Grand Total</td>
-                                                    <td className="px-4 py-3 text-right text-primary text-sm">₹{preOrder.grandTotal}</td>
-                                                </tr>
-                                            </tfoot>
-                                        </table>
+                                                </thead>
+                                                <tbody className="divide-y divide-border-neutral/30 font-medium">
+                                                    {preOrder.items && preOrder.items.map((item, i) => (
+                                                        <tr key={i} className="text-charcoal">
+                                                            <td className="px-4 py-3">{item.name}</td>
+                                                            <td className="px-4 py-3 text-center">{item.quantity}</td>
+                                                            <td className="px-4 py-3 text-right">₹{item.total}</td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                                <tfoot className="bg-background-ivory/20 font-bold border-t border-border-neutral">
+                                                    <tr>
+                                                        <td colSpan="2" className="px-4 py-3 text-right text-[10px] uppercase text-soft-grey tracking-widest">Grand Total</td>
+                                                        <td className="px-4 py-3 text-right text-primary text-sm">₹{preOrder.grandTotal}</td>
+                                                    </tr>
+                                                </tfoot>
+                                            </table>
+                                        </div>
                                     </div>
                                     <div className="flex items-center gap-2 bg-emerald-50 text-emerald-600 p-3 rounded-lg border border-emerald-100 text-[10px] font-bold uppercase tracking-widest">
                                         <CheckCircle2 size={14} /> Total including {preOrder.tax ? `₹${preOrder.tax} tax` : 'service charges'}
@@ -334,18 +336,18 @@ const AdminEvents = ({ onError, onSuccess }) => {
                         </div>
 
                         {/* Action Buttons */}
-                        <div className="px-10 py-6 bg-background-ivory/30 flex justify-end gap-3 border-t border-primary/10">
+                        <div className="px-6 md:px-10 py-6 bg-background-ivory/30 flex flex-col md:flex-row justify-end gap-3 border-t border-primary/10">
                             {selectedEvent.status === 'pending' && (
                                 <>
                                     <button
                                         onClick={() => handleStatusUpdate(selectedEvent._id, 'rejected')}
-                                        className="px-6 py-3 bg-white hover:bg-rose-50 border border-rose-100 text-rose-600 rounded-xl text-xs font-bold uppercase tracking-widest transition-all shadow-sm active:scale-95 flex items-center gap-2"
+                                        className="w-full md:w-auto px-6 py-3 bg-white hover:bg-rose-50 border border-rose-100 text-rose-600 rounded-xl text-xs font-bold uppercase tracking-widest transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2"
                                     >
                                         <XCircle size={16} /> Reject Event
                                     </button>
                                     <button
                                         onClick={() => handleStatusUpdate(selectedEvent._id, 'approved')}
-                                        className="px-6 py-3 bg-primary hover:bg-primary-hover text-white rounded-xl text-xs font-bold uppercase tracking-widest transition-all shadow-md shadow-primary/20 active:scale-95 flex items-center gap-2"
+                                        className="w-full md:w-auto px-6 py-3 bg-primary hover:bg-primary-hover text-white rounded-xl text-xs font-bold uppercase tracking-widest transition-all shadow-md shadow-primary/20 active:scale-95 flex items-center justify-center gap-2"
                                     >
                                         <CheckCircle2 size={16} /> Approve & Reserve Venue
                                     </button>
@@ -387,8 +389,8 @@ const AdminEvents = ({ onError, onSuccess }) => {
 
             {/* Add Event Modal */}
             {showAddModal && (
-                <div className="fixed inset-0 bg-charcoal/60 backdrop-blur-sm flex justify-center items-center z-[2000] p-4 animate-fade-in">
-                    <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-xl overflow-hidden relative border border-primary/10 p-10">
+                <div className="fixed inset-0 bg-charcoal/60 backdrop-blur-sm flex justify-center items-center z-[2000] p-4 animate-fade-in overflow-y-auto">
+                    <div className="bg-white rounded-[2rem] md:rounded-[2.5rem] shadow-2xl w-full max-w-xl relative border border-primary/10 p-6 md:p-10 my-8">
                         <button onClick={() => setShowAddModal(false)} className="absolute top-6 right-6 size-10 rounded-full hover:bg-background-ivory flex items-center justify-center text-soft-grey transition-all border border-border-neutral">
                             <XCircle size={20} />
                         </button>
@@ -396,7 +398,7 @@ const AdminEvents = ({ onError, onSuccess }) => {
                         <h3 className="serif-heading text-3xl text-charcoal mb-8">Manual Event Booking</h3>
 
                         <form onSubmit={handleAddEvent} className="space-y-6">
-                            <div className="grid grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
                                 <div className="space-y-1">
                                     <label className="text-[10px] font-bold text-primary uppercase tracking-widest ml-1">Client Name</label>
                                     <input type="text" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full h-12 bg-background-ivory/50 border border-primary/10 rounded-xl px-4 text-sm focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-soft-grey/40 font-medium" placeholder="Full name" />
@@ -405,7 +407,7 @@ const AdminEvents = ({ onError, onSuccess }) => {
                                     <label className="text-[10px] font-bold text-primary uppercase tracking-widest ml-1">Phone</label>
                                     <input type="text" required value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} className="w-full h-12 bg-background-ivory/50 border border-primary/10 rounded-xl px-4 text-sm focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-soft-grey/40 font-medium" placeholder="Phone number" />
                                 </div>
-                                <div className="col-span-2 space-y-1">
+                                <div className="sm:col-span-2 space-y-1">
                                     <label className="text-[10px] font-bold text-primary uppercase tracking-widest ml-1">Email</label>
                                     <input type="email" required value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="w-full h-12 bg-background-ivory/50 border border-primary/10 rounded-xl px-4 text-sm focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-soft-grey/40 font-medium" placeholder="customer@email.com" />
                                 </div>

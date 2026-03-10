@@ -47,6 +47,11 @@ exports.createPreOrder = async (req, res) => {
     const tax = subtotal * 0.05; // 5% tax
     const grandTotal = subtotal + tax;
 
+    // Check for auto approve setting
+    const BookingSettings = require('../models/BookingSettings');
+    const settings = await BookingSettings.findOne();
+    const isAutoApprove = settings ? settings.autoConfirmation : false;
+
     const preOrder = new PreOrder({
       bookingId,
       type,
@@ -55,7 +60,7 @@ exports.createPreOrder = async (req, res) => {
       subtotal,
       tax,
       grandTotal,
-      status: 'pending' // Default status is pending
+      status: isAutoApprove ? 'approved' : 'pending'
     });
 
     const savedPreOrder = await preOrder.save();

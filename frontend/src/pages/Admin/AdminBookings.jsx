@@ -107,23 +107,23 @@ const AdminBookings = ({ onError, onSuccess }) => {
 
     return (
         <div className="animate-fade-in space-y-6">
-            <div className="flex justify-between items-center mb-8">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
                 <div>
-                    <h1 className="serif-heading text-4xl text-charcoal capitalize">Table Bookings</h1>
-                    <p className="text-soft-grey text-sm mt-1">Manage restaurant reservations and cancellations.</p>
+                    <h1 className="serif-heading text-3xl md:text-4xl text-charcoal capitalize">Table Bookings</h1>
+                    <p className="text-soft-grey text-xs md:text-sm mt-1">Manage restaurant reservations and cancellations.</p>
                 </div>
 
-                <div className="flex items-center gap-4">
+                <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
                     <button
                         onClick={() => setIsAddModalOpen(true)}
-                        className="px-6 py-2.5 bg-primary text-white text-[10px] font-bold uppercase tracking-widest rounded-xl hover:bg-primary-hover transition-all flex items-center gap-2 shadow-sm"
+                        className="flex-1 sm:flex-none px-6 py-2.5 bg-primary text-white text-[10px] font-bold uppercase tracking-widest rounded-xl hover:bg-primary-hover transition-all flex items-center justify-center gap-2 shadow-sm"
                     >
                         <Plus size={16} /> Add Booking
                     </button>
-                    <div className="flex items-center gap-2 bg-white border border-primary/10 rounded-xl px-4 h-10 shadow-sm hover:border-primary/30 transition-all">
+                    <div className="flex-1 sm:flex-none flex items-center gap-2 bg-white border border-primary/10 rounded-xl px-4 h-10 shadow-sm hover:border-primary/30 transition-all">
                         <Filter size={14} className="text-soft-grey" />
                         <select
-                            className="bg-transparent bg-none border-none outline-none text-xs text-charcoal font-bold cursor-pointer appearance-none"
+                            className="bg-transparent bg-none border-none outline-none text-[10px] sm:text-xs text-charcoal font-bold cursor-pointer appearance-none w-full"
                             value={filterStatus}
                             onChange={(e) => { setFilterStatus(e.target.value); setPage(1); }}
                         >
@@ -137,18 +137,19 @@ const AdminBookings = ({ onError, onSuccess }) => {
                 </div>
             </div>
 
-            <div className="bg-white rounded-[2rem] shadow-sm border border-border-neutral overflow-hidden">
-                <table className="w-full text-left border-collapse">
-                    <thead className="bg-background-ivory/50 border-b border-border-neutral">
-                        <tr>
-                            <th className="p-5 text-[10px] uppercase tracking-widest text-soft-grey font-bold">Booking Details</th>
-                            <th className="p-5 text-[10px] uppercase tracking-widest text-soft-grey font-bold">Info</th>
-                            <th className="p-5 text-[10px] uppercase tracking-widest text-soft-grey font-bold">Details</th>
-                            <th className="p-5 text-[10px] uppercase tracking-widest text-soft-grey font-bold">Status</th>
-                            <th className="p-5 text-[10px] uppercase tracking-widest text-soft-grey font-bold">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border-neutral">
+            <div className="bg-white rounded-[2rem] shadow-sm border border-border-neutral overflow-hidden flex flex-col">
+                <div className="overflow-x-auto custom-scrollbar">
+                    <table className="w-full text-left border-collapse min-w-[800px] lg:min-w-0">
+                        <thead className="bg-background-ivory/50 border-b border-border-neutral">
+                            <tr>
+                                <th className="p-5 text-[10px] uppercase tracking-widest text-soft-grey font-bold">Booking Details</th>
+                                <th className="p-5 text-[10px] uppercase tracking-widest text-soft-grey font-bold">Time & Date</th>
+                                <th className="p-5 text-[10px] uppercase tracking-widest text-soft-grey font-bold">Customer</th>
+                                <th className="p-5 text-[10px] uppercase tracking-widest text-soft-grey font-bold">Status</th>
+                                <th className="p-5 text-[10px] uppercase tracking-widest text-soft-grey font-bold">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border-neutral">
                         {loading ? (
                             <tr><td colSpan="5" className="p-20 text-center text-soft-grey animate-pulse italic text-sm">Synchronizing with server...</td></tr>
                         ) : bookings.length === 0 ? (
@@ -200,6 +201,8 @@ const AdminBookings = ({ onError, onSuccess }) => {
                         )}
                     </tbody>
                 </table>
+              </div>
+            </div>
 
                 {!loading && bookings.length > 0 && (
                     <Pagination
@@ -210,12 +213,11 @@ const AdminBookings = ({ onError, onSuccess }) => {
                         onPageChange={(newPage) => setPage(newPage)}
                     />
                 )}
-            </div>
 
             {/* Add Booking Modal */}
             {isAddModalOpen && (
-                <div className="fixed inset-0 bg-charcoal/60 backdrop-blur-sm flex justify-center items-center z-[2000] p-4 animate-fade-in">
-                    <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-xl overflow-hidden relative border border-primary/10 p-10">
+                <div className="fixed inset-0 bg-charcoal/60 backdrop-blur-sm flex justify-center items-center z-[2000] p-4 animate-fade-in overflow-y-auto">
+                    <div className="bg-white rounded-[2rem] md:rounded-[2.5rem] shadow-2xl w-full max-w-xl relative border border-primary/10 p-6 md:p-10 my-8">
                         <button onClick={() => setIsAddModalOpen(false)} className="absolute top-6 right-6 size-10 rounded-full hover:bg-background-ivory flex items-center justify-center text-soft-grey transition-all border border-border-neutral">
                             <X size={20} />
                         </button>
@@ -223,7 +225,7 @@ const AdminBookings = ({ onError, onSuccess }) => {
                         <h3 className="serif-heading text-3xl text-charcoal mb-8">Manual Table Booking</h3>
 
                         <form onSubmit={handleAddBooking} className="space-y-6">
-                            <div className="grid grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
                                 <div className="space-y-1">
                                     <label className="text-[10px] font-bold text-primary uppercase tracking-widest ml-1">Customer Name</label>
                                     <input required type="text" value={addFormData.name} onChange={(e) => setAddFormData({ ...addFormData, name: e.target.value })} className="w-full h-12 bg-background-ivory/50 border border-primary/10 rounded-xl px-4 text-sm outline-none focus:ring-1 focus:ring-primary" placeholder="John Doe" />
@@ -232,7 +234,7 @@ const AdminBookings = ({ onError, onSuccess }) => {
                                     <label className="text-[10px] font-bold text-primary uppercase tracking-widest ml-1">Phone Number</label>
                                     <input required type="text" value={addFormData.phone} onChange={(e) => setAddFormData({ ...addFormData, phone: e.target.value })} className="w-full h-12 bg-background-ivory/50 border border-primary/10 rounded-xl px-4 text-sm outline-none focus:ring-1 focus:ring-primary" placeholder="+91..." />
                                 </div>
-                                <div className="col-span-2 space-y-1">
+                                <div className="sm:col-span-2 space-y-1">
                                     <label className="text-[10px] font-bold text-primary uppercase tracking-widest ml-1">Email Address</label>
                                     <input required type="email" value={addFormData.email} onChange={(e) => setAddFormData({ ...addFormData, email: e.target.value })} className="w-full h-12 bg-background-ivory/50 border border-primary/10 rounded-xl px-4 text-sm outline-none focus:ring-1 focus:ring-primary" placeholder="customer@example.com" />
                                 </div>
