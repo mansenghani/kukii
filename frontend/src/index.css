@@ -9,6 +9,18 @@
   --bg-beige: #F5F1E6;
   /* Beige */
   --text-dark: #1A120B;
+}
+
+html.dark {
+  --primary: #B76E79;
+  --primary-hover: #A05B66;
+  --bg-cream: #12100f;
+  --bg-beige: #191514;
+  --text-dark: #f0ece8;
+  --text-muted: #b7aba0;
+  --white: #1f1a18;
+  --accent: #0d0a09;
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   /* Dark Brown/Black */
   --text-muted: #6B5D4D;
   --white: #FFFFFF;
@@ -166,4 +178,648 @@ button {
 
 .custom-scrollbar::-webkit-scrollbar-corner {
   background: transparent;
+}
+
+/* Theme System */
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+html.dark body {
+  background-color: #12100f;
+  color: #ece8e4;
+}
+
+/* Force all main containers to dark background */
+html.dark main,
+html.dark section,
+html.dark article,
+html.dark div[class*="container"],
+html.dark div[class*="admin"],
+html.dark div[class*="panel"],
+html.dark div[class*="dashboard"],
+html.dark div[class*="nav"],
+html.dark div[class*="sidebar"] {
+  background-color: transparent !important;
+}
+
+/* Ensure admin wrappers are dark */
+html.dark [class*="admin"],
+html.dark [class*="dashboard"],
+html.dark [class*="panel"] {
+  color: #f0ece8 !important;
+}
+
+/* All text elements default to light color */
+html.dark p,
+html.dark span,
+html.dark div:not([class*="bg"]),
+html.dark li,
+html.dark td,
+html.dark th {
+  color: #f0ece8 !important;
+}
+
+/* Headings */
+html.dark h1,
+html.dark h2,
+html.dark h3,
+html.dark h4,
+html.dark h5,
+html.dark h6 {
+  color: #f0ece8 !important;
+}
+
+html.dark .bg-background-ivory {
+  background-color: #191514 !important;
+}
+
+html.dark .bg-background-ivory {
+  background-color: #191514 !important;
+}
+
+html.dark .bg-background-ivory\/30 {
+  background-color: rgba(25, 21, 20, 0.3) !important;
+}
+
+html.dark .bg-background-ivory\/40 {
+  background-color: rgba(25, 21, 20, 0.4) !important;
+}
+
+html.dark .bg-background-ivory\/50 {
+  background-color: rgba(25, 21, 20, 0.5) !important;
+}
+
+html.dark .bg-white {
+  background-color: #1f1a18 !important;
+}
+
+html.dark .bg-white\/30 {
+  background-color: rgba(31, 26, 24, 0.3) !important;
+}
+
+html.dark .bg-white\/50 {
+  background-color: rgba(31, 26, 24, 0.5) !important;
+}
+
+html.dark .text-charcoal {
+  color: #f0ece8 !important;
+}
+
+html.dark .text-soft-grey {
+  color: #b7aba0 !important;
+}
+
+html.dark .text-border-neutral {
+  color: rgba(240, 236, 232, 0.45) !important;
+}
+
+html.dark .border-border-neutral {
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+html.dark .border-border-neutral\/30 {
+  border-color: rgba(255, 255, 255, 0.09) !important;
+}
+
+html.dark .border-border-neutral\/40 {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+html.dark input,
+html.dark textarea,
+html.dark select {
+  color: #ece8e4;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #9f9387;
+}
+
+html.dark .bg-\[\#f4efec\] {
+  background-color: #1a1614 !important;
+}
+
+html.dark .bg-charcoal {
+  background-color: #191514 !important;
+  color: #f0ece8 !important;
+}
+
+html.dark .text-white {
+  color: #f0ece8 !important;
+}
+
+html.dark .text-white\/60 {
+  color: rgba(240, 236, 232, 0.6) !important;
+}
+
+html.dark .bg-background-ivory\/20 {
+  background-color: rgba(25, 21, 20, 0.2) !important;
+}
+
+html.dark .bg-background-ivory\/40 {
+  background-color: rgba(25, 21, 20, 0.4) !important;
+}
+
+html.dark .bg-background-ivory\/50 {
+  background-color: rgba(25, 21, 20, 0.5) !important;
+}
+
+html.dark .bg-background-ivory {
+  background-color: #191514 !important;
+}
+
+html.dark .bg-white\/30 {
+  background-color: rgba(31, 26, 24, 0.3) !important;
+}
+
+html.dark .bg-white\/50 {
+  background-color: rgba(31, 26, 24, 0.5) !important;
+}
+
+html.dark .bg-white\/60 {
+  background-color: rgba(31, 26, 24, 0.6) !important;
+}
+
+html.dark .bg-gradient-to-b {
+  background-image: none !important;
+}
+
+html.dark .bg-gradient-to-b.from-background-ivory\/20 {
+  background-color: rgba(25, 21, 20, 0.2) !important;
+}
+
+html.dark .bg-gradient-to-b.from-background-ivory\/40 {
+  background-color: rgba(25, 21, 20, 0.4) !important;
+}
+
+html.dark .bg-gradient-to-b.from-white\/60 {
+  background-color: rgba(31, 26, 24, 0.6) !important;
+}
+
+html.dark .bg-gradient-to-br {
+  background-image: none !important;
+}
+
+html.dark .bg-gradient-to-br.from-charcoal {
+  background-color: #191514 !important;
+  color: #f0ece8 !important;
+}
+
+html.dark .to-charcoal\/95 {
+  --tw-gradient-to: rgba(25, 21, 20, 0.95) !important;
+}
+
+html.dark .bg-gradient-to-br:has(.to-charcoal\/95) {
+  background: linear-gradient(to bottom right, #191514, rgba(25, 21, 20, 0.95)) !important;
+}
+
+/* CTA section dark mode - ensure it stays dark */
+html.dark .bg-gradient-to-br.from-charcoal.to-charcoal\/95 {
+  background: linear-gradient(to bottom right, #0d0a09, #191514) !important;
+}
+
+html.dark .text-white\/60 {
+  color: rgba(240, 236, 232, 0.6) !important;
+}
+
+html.dark .shadow-\[0_5px_15px_rgba\(183\,110\,121\,0\.4\)\]:hover {
+  box-shadow: 0 5px 15px rgba(183, 110, 121, 0.3) !important;
+}
+
+/* Dark mode - remove gradients and use solid dark backgrounds */
+html.dark section[class*="bg-gradient-to-br"] {
+  background-image: none !important;
+}
+
+html.dark section[class*="from-charcoal"] {
+  background-color: #0d0a09 !important;
+}
+
+/* Footer hover effects in dark mode */
+html.dark footer .hover\:bg-white:hover {
+  background-color: rgba(31, 26, 24, 0.8) !important;
+}
+
+html.dark footer .hover\:text-primary:hover {
+  color: #B76E79 !important;
+}
+
+html.dark footer .hover\:border-primary:hover {
+  border-color: #B76E79 !important;
+}
+
+html.dark .hover\:shadow-\[0_5px_15px_rgba\(183\,110\,121\,0\.4\)\]:hover {
+  box-shadow: 0 5px 15px rgba(183, 110, 121, 0.3) !important;
+}
+
+html.dark .focus\:shadow-\[0_0_10px_rgba\(183\,110\,121\,0\.15\)\]:focus {
+  box-shadow: 0 0 10px rgba(183, 110, 121, 0.2) !important;
+}
+
+html.dark footer input {
+  background-color: #1f1a18 !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #f0ece8 !important;
+}
+
+html.dark footer input:hover {
+  border-color: rgba(183, 110, 121, 0.4) !important;
+}
+
+html.dark footer input:focus {
+  border-color: #B76E79 !important;
+  box-shadow: 0 0 10px rgba(183, 110, 121, 0.2) !important;
+}
+
+html.dark footer input::placeholder {
+  color: #9f9387 !important;
+}
+
+html.dark footer .after\:bg-primary::after {
+  background-color: #B76E79 !important;
+}
+
+/* ===== ADMIN PANEL DARK MODE ===== */
+
+/* Root Dark Mode - Entire Page */
+html.dark {
+  background-color: #12100f !important;
+}
+
+html.dark * {
+  background-color: inherit;
+}
+
+/* Global page background + text */
+html.dark body,
+html.dark #root {
+  background-color: #12100f !important;
+  color: #f0ece8 !important;
+}
+
+/* Strip white backgrounds globally */
+html.dark [class*="bg-white"],
+html.dark [class*="bg-slate"],
+html.dark [class*="bg-gray"],
+html.dark [class*="bg-neutral"] {
+  background-color: #1f1a18 !important;
+}
+
+/* Override all light borders */
+html.dark [class*="border"],
+html.dark [class*="divide"] {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Form Elements */
+html.dark select,
+html.dark input[type="text"],
+html.dark input[type="email"],
+html.dark input[type="password"],
+html.dark input[type="number"],
+html.dark input[type="date"],
+html.dark input[type="time"],
+html.dark input[type="search"],
+html.dark textarea {
+  background-color: #1f1a18 !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #f0ece8 !important;
+}
+
+html.dark select:hover,
+html.dark input:hover,
+html.dark textarea:hover {
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+html.dark select:focus,
+html.dark input:focus,
+html.dark textarea:focus {
+  border-color: #B76E79 !important;
+  box-shadow: 0 0 8px rgba(183, 110, 121, 0.2) !important;
+  outline: none !important;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #9f9387 !important;
+}
+
+/* Tables */
+html.dark table {
+  background-color: transparent !important;
+}
+
+html.dark thead {
+  background-color: #0d0a09 !important;
+}
+
+html.dark thead th {
+  color: #b7aba0 !important;
+  border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+html.dark tbody tr {
+  border-bottom-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+html.dark tbody tr:hover {
+  background-color: rgba(31, 26, 24, 0.5) !important;
+}
+
+html.dark tbody td {
+  color: #f0ece8 !important;
+}
+
+/* Status Badges */
+html.dark .bg-blue-50 {
+  background-color: rgba(66, 133, 244, 0.15) !important;
+}
+
+html.dark .text-blue-600 {
+  color: #6ba3ff !important;
+}
+
+html.dark .border-blue-100 {
+  border-color: rgba(66, 133, 244, 0.3) !important;
+}
+
+html.dark .bg-green-50,
+html.dark .bg-emerald-50 {
+  background-color: rgba(52, 211, 153, 0.15) !important;
+}
+
+html.dark .text-green-600,
+html.dark .text-emerald-600 {
+  color: #34d399 !important;
+}
+
+html.dark .text-green-700,
+html.dark .text-emerald-700 {
+  color: #10b981 !important;
+}
+
+html.dark .border-green-100,
+html.dark .border-emerald-100 {
+  border-color: rgba(52, 211, 153, 0.3) !important;
+}
+
+html.dark .bg-red-50 {
+  background-color: rgba(239, 68, 68, 0.15) !important;
+}
+
+html.dark .text-red-600,
+html.dark .text-red-700 {
+  color: #f87171 !important;
+}
+
+html.dark .border-red-100 {
+  border-color: rgba(239, 68, 68, 0.3) !important;
+}
+
+html.dark .bg-yellow-50,
+html.dark .bg-amber-50 {
+  background-color: rgba(250, 204, 21, 0.15) !important;
+}
+
+html.dark .text-yellow-600,
+html.dark .text-amber-600 {
+  color: #fbbf24 !important;
+}
+
+html.dark .text-amber-700 {
+  color: #d97706 !important;
+}
+
+html.dark .border-yellow-100,
+html.dark .border-amber-100 {
+  border-color: rgba(250, 204, 21, 0.3) !important;
+}
+
+html.dark .bg-slate-50 {
+  background-color: rgba(31, 26, 24, 0.6) !important;
+}
+
+/* General colors */
+html.dark .text-gray-600,
+html.dark .text-gray-700,
+html.dark .text-slate-600 {
+  color: #b7aba0 !important;
+}
+
+html.dark .text-gray-500 {
+  color: #9f9387 !important;
+}
+
+html.dark .text-gray-400 {
+  color: #7f7361 !important;
+}
+
+html.dark .bg-gray-50,
+html.dark .bg-slate-50 {
+  background-color: rgba(31, 26, 24, 0.4) !important;
+}
+
+html.dark .bg-gray-100 {
+  background-color: rgba(31, 26, 24, 0.6) !important;
+}
+
+html.dark .bg-gray-200 {
+  background-color: rgba(31, 26, 24, 0.8) !important;
+}
+
+html.dark .bg-gray-800 {
+  background-color: #191514 !important;
+}
+
+html.dark .bg-gray-900 {
+  background-color: #0d0a09 !important;
+}
+
+/* Borders */
+html.dark .border-gray-100 {
+  border-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+html.dark .border-gray-200,
+html.dark .border-blue-200,
+html.dark .border-slate-200 {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+html.dark .divide-gray-200 > * + * {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+html.dark .border-\[1px\] {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Hover states */
+html.dark .hover\:bg-gray-50:hover {
+  background-color: rgba(31, 26, 24, 0.8) !important;
+}
+
+html.dark .hover\:bg-gray-100:hover {
+  background-color: rgba(31, 26, 24, 0.9) !important;
+}
+
+html.dark .hover\:bg-blue-50:hover {
+  background-color: rgba(66, 133, 244, 0.2) !important;
+}
+
+html.dark .hover\:bg-green-50:hover {
+  background-color: rgba(52, 211, 153, 0.2) !important;
+}
+
+html.dark .hover\:text-blue-600:hover {
+  color: #6ba3ff !important;
+}
+
+/* Shadows */
+html.dark .shadow-sm {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+}
+
+html.dark .shadow-md {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.4) !important;
+}
+
+html.dark .shadow-lg {
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.5) !important;
+}
+
+html.dark .shadow-xl {
+  box-shadow: 0 20px 25px rgba(0, 0, 0, 0.6) !important;
+}
+
+html.dark .shadow-inner {
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Disabled state */
+html.dark button[disabled],
+html.dark input[disabled],
+html.dark select[disabled],
+html.dark textarea[disabled] {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+}
+
+/* Specific admin components */
+html.dark .bg-white {
+  background-color: #1f1a18 !important;
+}
+
+html.dark .text-charcoal {
+  color: #f0ece8 !important;
+}
+
+html.dark .text-soft-grey {
+  color: #b7aba0 !important;
+}
+
+html.dark .border-primary\/10 {
+  border-color: rgba(183, 110, 121, 0.1) !important;
+}
+
+html.dark .hover\:border-primary:hover {
+  border-color: #B76E79 !important;
+}
+
+html.dark .hover\:text-primary:hover {
+  color: #B76E79 !important;
+}
+
+/* Modals and Overlays */
+html.dark [class*="modal"],
+html.dark [class*="dialog"],
+html.dark [class*="overlay"],
+html.dark [role="dialog"] {
+  background-color: #1f1a18 !important;
+  color: #f0ece8 !important;
+}
+
+html.dark [class*="backdrop"],
+html.dark [class*="fixed"] {
+  background-color: rgba(0, 0, 0, 0.7) !important;
+}
+
+/* Strong text color override for specific elements */
+html.dark [class*="admin"] h1,
+html.dark [class*="admin"] h2,
+html.dark [class*="admin"] h3,
+html.dark [class*="admin"] h4,
+html.dark [class*="admin"] h5,
+html.dark [class*="admin"] h6,
+html.dark [class*="admin"] p,
+html.dark [class*="admin"] span,
+html.dark [class*="admin"] div,
+html.dark [class*="admin"] td,
+html.dark [class*="admin"] th,
+html.dark [class*="admin"] li,
+html.dark [class*="admin"] label {
+  color: #f0ece8 !important;
+}
+
+/* Button states */
+html.dark button {
+  color: #f0ece8 !important;
+}
+
+html.dark button:not([class*="bg-"]) {
+  background-color: transparent !important;
+}
+
+html.dark .bg-primary {
+  background-color: #B76E79 !important;
+  color: #ffffff !important;
+}
+
+html.dark .bg-primary:hover {
+  background-color: #A05B66 !important;
+}
+
+html.dark .bg-primary-hover {
+  background-color: #A05B66 !important;
+}
+
+/* Specific light color overrides */
+html.dark [style*="color: #1A120B"],
+html.dark [style*="color:#1A120B"] {
+  color: #f0ece8 !important;
+}
+
+html.dark [style*="background-color: rgb(252, 245, 245)"],
+html.dark [style*="background-color:rgb(252, 245, 245)"] {
+  background-color: #191514 !important;
+}
+
+/* Ensure all admin table cells have proper contrast */
+html.dark table td,
+html.dark table th {
+  color: #f0ece8 !important;
+  background-color: transparent !important;
+}
+
+html.dark table thead tr {
+  background-color: #0d0a09 !important;
+}
+
+html.dark table tbody tr:hover {
+  background-color: rgba(31, 26, 24, 0.4) !important;
+}
+
+/* Icon colors */
+html.dark [class*="lucide"],
+html.dark svg {
+  color: inherit !important;
 }

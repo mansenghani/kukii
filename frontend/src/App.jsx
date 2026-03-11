@@ -1,5 +1,5 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import React, { useEffect, useMemo, useState } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import Home from './pages/Home';
@@ -17,13 +17,34 @@ import { CartProvider } from './context/CartContext';
 import PrivateRoute from './components/PrivateRoute';
 
 const AppContent = () => {
+  const initialTheme = useMemo(() => {
+    const stored = localStorage.getItem('kuki_theme');
+    if (stored === 'light' || stored === 'dark') {
+      return stored;
+    }
+    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }, []);
+
+  const [theme, setTheme] = useState(initialTheme);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    root.classList.remove('light', 'dark');
+    root.classList.add(theme);
+    localStorage.setItem('kuki_theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+  };
+
   return (
     <div className="app-container">
       <Routes>
         {/* Public Routes with Header/Footer */}
         <Route path="/*" element={
           <>
-            <Header>
+            <Header theme={theme} onToggleTheme={toggleTheme}>
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/menu" element={<Menu />} />

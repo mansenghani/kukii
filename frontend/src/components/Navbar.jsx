@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, Moon, Sun } from 'lucide-react';
 
-const Navbar = () => {
+const Navbar = ({ theme, onToggleTheme }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navLinks = [
@@ -42,6 +42,15 @@ const Navbar = () => {
 
         {/* Action Buttons */}
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            onClick={onToggleTheme}
+            className="size-10 rounded-full border border-border-neutral flex items-center justify-center text-charcoal hover:text-primary hover:border-primary/30 transition-colors"
+          >
+            {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+          </button>
+
           <Link to="/booking" className="hidden sm:inline-flex bg-primary text-white px-8 py-2.5 rounded-full font-medium text-sm hover:bg-primary-hover transition-colors shadow-sm whitespace-nowrap">
             Book a Table
           </Link>
