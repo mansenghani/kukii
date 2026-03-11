@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-import { Star, MessageSquareQuote, ChevronRight } from 'lucide-react';
+import { Star, MessageSquareQuote, ChevronRight, Quote, User, Mail } from 'lucide-react';
 
 const Feedback = () => {
     const [reviews, setReviews] = useState([]);
@@ -73,11 +73,13 @@ const Feedback = () => {
     const getPercentage = (stars) => {
         if (!reviews.length) return "0%";
         const count = reviews.filter(r => r.rating === stars).length;
-        return `${Math.round((count / reviews.length) * 100)}%`;
+        const maxCount = Math.max(...[5, 4, 3, 2, 1].map(s => reviews.filter(r => r.rating === s).length));
+        if (maxCount === 0) return "0%";
+        return `${Math.round((count / maxCount) * 100)}%`;
     };
 
     return (
-        <div className="fade-in bg-background-ivory/30">
+        <div className="fade-in bg-gradient-to-b from-background-ivory/20 via-white to-background-ivory/30">
             {/* Hero Section */}
             <header className="pt-24 pb-12 text-center w-full px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-20">
                 <span className="text-[10px] font-bold tracking-[0.4em] uppercase block mb-4 text-primary">Guest Testimonials</span>
@@ -100,20 +102,24 @@ const Feedback = () => {
                     <>
                         <div className="grid md:grid-cols-3 gap-8">
                             {reviews.slice(0, visibleCount).map((review) => (
-                                <div key={review._id} className="bg-white p-10 rounded-2xl border border-border-neutral flex flex-col hover:border-primary/20 transition-all hover:shadow-xl hover:-translate-y-1">
-                                    <div className="flex gap-1 mb-6">
-                                        {[...Array(5)].map((_, i) => (
-                                            <Star key={i} size={14} className={i < review.rating ? 'fill-primary text-primary' : 'text-border-neutral'} />
-                                        ))}
-                                    </div>
-                                    <p className="text-charcoal italic mb-8 leading-relaxed font-serif text-lg">"{review.message}"</p>
-                                    <div className="mt-auto flex items-center gap-4">
-                                        <div className="size-10 bg-background-ivory rounded-full flex items-center justify-center font-bold text-xs text-primary border border-primary/10">
-                                            {review.name.charAt(0).toUpperCase()}
+                                <div key={review._id} className="bg-white p-10 rounded-3xl border border-border-neutral/60 flex flex-col hover:border-primary/30 transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 relative overflow-hidden group">
+                                    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                    <Quote size={32} className="absolute top-6 right-6 text-primary/10 -rotate-12" strokeWidth={1} />
+                                    <div className="relative z-10">
+                                        <div className="flex gap-1 mb-6">
+                                            {[...Array(5)].map((_, i) => (
+                                                <Star key={i} size={14} className={i < review.rating ? 'fill-primary text-primary' : 'text-border-neutral'} />
+                                            ))}
                                         </div>
-                                        <div>
-                                            <h4 className="font-bold text-[10px] uppercase tracking-widest text-charcoal">{review.name}</h4>
-                                            <p className="text-[10px] text-soft-grey tracking-wider">{new Date(review.createdAt).toLocaleDateString()}</p>
+                                        <p className="text-charcoal italic mb-8 leading-relaxed font-serif text-base">"{review.message}"</p>
+                                        <div className="mt-auto flex items-center gap-4 pt-6 border-t border-border-neutral/30">
+                                            <div className="size-12 bg-gradient-to-br from-primary/20 to-primary/5 rounded-full flex items-center justify-center font-bold text-sm text-primary border border-primary/20 shadow-sm">
+                                                {review.name.charAt(0).toUpperCase()}
+                                            </div>
+                                            <div>
+                                                <h4 className="font-bold text-[10px] uppercase tracking-widest text-charcoal">{review.name}</h4>
+                                                <p className="text-[9px] text-soft-grey tracking-wider">Verified Guest • {new Date(review.createdAt).toLocaleDateString()}</p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -131,25 +137,48 @@ const Feedback = () => {
             </section>
 
             {/* Rating Summary Section */}
-            <section className="py-20 bg-white/50 border-y border-border-neutral">
-                <div className="w-full px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-20 grid md:grid-cols-2 gap-16 items-center">
-                    <div className="text-center md:text-left">
-                        <div className="text-7xl serif-heading text-charcoal mb-2">{avgRating}</div>
-                        <div className="flex justify-center md:justify-start gap-1 mb-4">
-                            {[...Array(5)].map((_, i) => (
-                                <Star key={i} size={20} className={i < Math.floor(avgRating) ? 'fill-primary text-primary' : 'text-border-neutral'} />
-                            ))}
+            <section className="py-24 bg-gradient-to-b from-white/60 to-background-ivory/40 border-y border-border-neutral">
+                <div className="w-full px-4 sm:px-8 lg:px-12 xl:px-16 2xl:px-20 grid md:grid-cols-2 gap-20 items-center">
+                    <div className="text-center md:text-left space-y-6">
+                        <div className="inline-block md:block">
+                            <div className="text-8xl serif-heading text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/70 mb-3">{avgRating}</div>
+                            <div className="flex justify-center md:justify-start gap-1.5 mb-6">
+                                {[...Array(5)].map((_, i) => {
+                                    const fullStars = Math.floor(avgRating);
+                                    const decimalPart = avgRating - fullStars;
+                                    
+                                    if (i < fullStars) {
+                                        return <Star key={i} size={24} className="fill-primary text-primary" />;
+                                    } else if (i === fullStars && decimalPart > 0) {
+                                        return (
+                                            <div key={i} className="relative">
+                                                <Star size={24} className="text-border-neutral" />
+                                                <div className="absolute inset-0 overflow-hidden" style={{ width: `${decimalPart * 100}%` }}>
+                                                    <Star size={24} className="fill-primary text-primary" />
+                                                </div>
+                                            </div>
+                                        );
+                                    } else {
+                                        return <Star key={i} size={24} className="text-border-neutral" />;
+                                    }
+                                })}
+                            </div>
                         </div>
-                        <p className="text-[10px] uppercase tracking-widest font-bold text-charcoal">Aggregated Guest Satisfaction</p>
+                        <p className="text-[11px] uppercase tracking-widest font-bold text-charcoal">Average Guest Satisfaction</p>
+                        <p className="text-sm text-soft-grey italic">Based on {reviews.length} authentic experiences</p>
                     </div>
-                    <div className="space-y-4">
+                    <div className="space-y-5">
                         {[5, 4, 3, 2, 1].map(stars => (
-                            <div key={stars} className="flex items-center gap-4">
-                                <span className="text-[10px] font-bold w-12 text-right uppercase tracking-widest text-charcoal">{stars} Stars</span>
-                                <div className="flex-1 bg-border-neutral h-1 rounded-full overflow-hidden">
-                                    <div className="h-full bg-primary/60 transition-all duration-700" style={{ width: getPercentage(stars) }}></div>
+                            <div key={stars} className="flex items-center gap-3.5 group">
+                                <div className="flex gap-0.5 justify-end w-[84px] shrink-0">
+                                    {[...Array(stars)].map((_, i) => (
+                                        <Star key={i} size={13} className="fill-primary text-primary" />
+                                    ))}
                                 </div>
-                                <span className="text-[10px] text-soft-grey w-8 text-right font-medium italic">{getPercentage(stars)}</span>
+                                <div className="flex-1 bg-border-neutral/30 h-2 rounded-full overflow-hidden">
+                                    <div className="h-full bg-gradient-to-r from-primary to-primary/70 transition-all duration-700 group-hover:shadow-lg group-hover:shadow-primary/30" style={{ width: getPercentage(stars) }}></div>
+                                </div>
+                                <span className="text-[10px] text-soft-grey w-10 text-right font-medium">{getPercentage(stars)}</span>
                             </div>
                         ))}
                     </div>
@@ -157,41 +186,59 @@ const Feedback = () => {
             </section>
 
             {/* Submission Form Section */}
-            <section id="leave-review" className="py-24 bg-white/30">
+            <section id="leave-review" className="py-24 bg-gradient-to-b from-background-ivory/40 to-white/50">
                 <div className="max-w-2xl mx-auto px-4">
-                    <div className="bg-white p-12 rounded-3xl shadow-xl border border-border-neutral">
-                        <div className="text-center mb-12">
-                            <span className="material-symbols-outlined text-primary text-4xl mb-4">rate_review</span>
-                            <h2 className="text-4xl serif-heading mb-2 text-charcoal">Leave a Review</h2>
-                            <p className="text-[10px] text-soft-grey uppercase tracking-widest font-bold">Your feedback shapes our legacy</p>
+                    <div className="bg-white p-12 rounded-4xl shadow-2xl border border-border-neutral/40 backdrop-blur-sm">
+                        <div className="text-center mb-12 space-y-4">
+                            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20">
+                                <Quote size={32} className="text-primary" strokeWidth={1.5} />
+                            </div>
+                            <h2 className="text-4xl serif-heading text-charcoal">Share Your Experience</h2>
+                            <p className="text-[11px] text-soft-grey uppercase tracking-widest font-bold">Help us refine excellence through your voice</p>
                         </div>
                         <form onSubmit={handleSubmit} className="space-y-8">
-                            <div className="grid md:grid-cols-2 gap-8">
-                                <div>
-                                    <label className="block text-[10px] font-bold uppercase tracking-widest mb-3 text-charcoal">Your Name</label>
-                                    <input type="text" name="name" value={formData.name} onChange={handleInputChange} className="w-full border-b border-border-neutral p-3 text-sm focus:border-primary transition-all bg-transparent outline-none" placeholder="e.g. John Doe" required />
+                            <div className="grid md:grid-cols-2 gap-6">
+                                <div className="group">
+                                    <label className="block text-[10px] font-bold uppercase tracking-widest mb-3 text-charcoal flex items-center gap-2">
+                                        <User size={14} className="text-primary" />
+                                        Your Name
+                                    </label>
+                                    <div className="relative">
+                                        <input type="text" name="name" value={formData.name} onChange={handleInputChange} className="w-full border-b-2 border-border-neutral p-3 text-sm focus:border-primary transition-all bg-transparent outline-none focus:bg-background-ivory/20 rounded-t" placeholder="e.g. John Doe" required />
+                                    </div>
                                 </div>
-                                <div>
-                                    <label className="block text-[10px] font-bold uppercase tracking-widest mb-3 text-charcoal">Email Address</label>
-                                    <input type="email" name="email" value={formData.email} onChange={handleInputChange} className="w-full border-b border-border-neutral p-3 text-sm focus:border-primary transition-all bg-transparent outline-none" placeholder="john@example.com" required />
+                                <div className="group">
+                                    <label className="block text-[10px] font-bold uppercase tracking-widest mb-3 text-charcoal flex items-center gap-2">
+                                        <Mail size={14} className="text-primary" />
+                                        Email Address
+                                    </label>
+                                    <div className="relative">
+                                        <input type="email" name="email" value={formData.email} onChange={handleInputChange} className="w-full border-b-2 border-border-neutral p-3 text-sm focus:border-primary transition-all bg-transparent outline-none focus:bg-background-ivory/20 rounded-t" placeholder="john@example.com" required />
+                                    </div>
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-[10px] font-bold uppercase tracking-widest mb-3 text-charcoal">Rating Score</label>
-                                <div className="flex gap-2">
+                                <label className="block text-[10px] font-bold uppercase tracking-widest mb-4 text-charcoal flex items-center gap-2">
+                                    <Star size={14} className="text-primary" />
+                                    Your Rating
+                                </label>
+                                <div className="flex gap-3 p-4 bg-background-ivory/40 rounded-2xl w-fit">
                                     {[1, 2, 3, 4, 5].map((star) => (
-                                        <button key={star} type="button" onMouseEnter={() => setHoverRating(star)} onMouseLeave={() => setHoverRating(0)} onClick={() => setRating(star)} className="focus:outline-none transition-transform active:scale-95">
-                                            <Star size={24} className={(hoverRating || rating) >= star ? 'fill-primary text-primary' : 'text-border-neutral'} />
+                                        <button key={star} type="button" onMouseEnter={() => setHoverRating(star)} onMouseLeave={() => setHoverRating(0)} onClick={() => setRating(star)} className="focus:outline-none transition-all active:scale-95 hover:scale-110">
+                                            <Star size={28} className={(hoverRating || rating) >= star ? 'fill-primary text-primary' : 'text-border-neutral'} />
                                         </button>
                                     ))}
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-[10px] font-bold uppercase tracking-widest mb-3 text-charcoal">Experience Message</label>
-                                <textarea name="message" value={formData.message} onChange={handleInputChange} className="w-full border border-border-neutral rounded-xl p-4 text-sm focus:border-primary transition-all bg-background-ivory h-40 resize-none outline-none block" placeholder="Share the highlights of your dining experience..." required></textarea>
+                                <label className="block text-[10px] font-bold uppercase tracking-widest mb-3 text-charcoal flex items-center gap-2">
+                                    <MessageSquareQuote size={14} className="text-primary" />
+                                    Your Message
+                                </label>
+                                <textarea name="message" value={formData.message} onChange={handleInputChange} className="w-full border-2 border-border-neutral/30 rounded-2xl p-4 text-sm focus:border-primary focus:bg-background-ivory/50 transition-all bg-background-ivory h-40 resize-none outline-none block" placeholder="Share the highlights of your dining experience..." required></textarea>
                             </div>
-                            <button type="submit" disabled={isSubmitting} className="w-full bg-primary text-white py-5 rounded-xl font-bold uppercase tracking-[0.3em] text-[10px] hover:bg-primary-hover shadow-lg transition-all active:scale-[0.98] disabled:opacity-50">
-                                {isSubmitting ? 'Submitting Review...' : 'Submit Post'}
+                            <button type="submit" disabled={isSubmitting} className="w-full bg-gradient-to-r from-primary to-primary/80 text-white py-4 rounded-2xl font-bold uppercase tracking-[0.3em] text-[11px] hover:shadow-xl transition-all active:scale-[0.98] disabled:opacity-50 hover:from-primary-hover hover:to-primary/70 shadow-lg">
+                                {isSubmitting ? 'Submitting Review...' : '✓ Submit Your Review'}
                             </button>
                         </form>
                     </div>
@@ -199,11 +246,18 @@ const Feedback = () => {
             </section>
 
             {/* CTA Section */}
-            <section className="py-24 text-center border-t border-border-neutral bg-[#f4efec]">
-                <h2 className="text-5xl serif-heading mb-10 text-charcoal">Witness the Excellence</h2>
-                <Link to="/booking" className="inline-flex items-center gap-4 bg-charcoal text-white px-12 py-5 rounded-full font-bold uppercase tracking-[0.2em] text-[10px] hover:bg-black transition-all hover:gap-6 shadow-2xl">
-                    Reserve Now <ChevronRight size={14} />
-                </Link>
+            <section className="py-28 text-center border-t border-border-neutral bg-gradient-to-br from-charcoal to-charcoal/95 relative overflow-hidden">
+                <div className="absolute inset-0 opacity-10">
+                    <div className="absolute top-10 left-10 w-40 h-40 bg-primary rounded-full blur-3xl"></div>
+                    <div className="absolute bottom-10 right-10 w-40 h-40 bg-primary rounded-full blur-3xl"></div>
+                </div>
+                <div className="relative z-10">
+                    <h2 className="text-5xl serif-heading mb-6 text-white">Ready to Experience KUKI?</h2>
+                    <p className="text-white/60 text-sm mb-10 max-w-2xl mx-auto">Reserve your table today and become part of our story</p>
+                    <Link to="/booking" className="inline-flex items-center gap-3 bg-primary hover:bg-primary-hover text-white px-14 py-5 rounded-2xl font-bold uppercase tracking-[0.2em] text-[11px] transition-all hover:gap-5 shadow-2xl hover:shadow-primary/40 active:scale-95">
+                        Book Your Table <ChevronRight size={16} />
+                    </Link>
+                </div>
             </section>
         </div>
     );

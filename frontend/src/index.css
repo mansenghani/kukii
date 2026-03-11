@@ -130,21 +130,40 @@ button {
 }
 
 /* Custom Scrollbar */
+.custom-scrollbar {
+  /* Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(183, 110, 121, 0.45) transparent;
+  /* Keep layout stable when the scrollbar appears */
+  scrollbar-gutter: stable;
+}
+
 .custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
   background: transparent;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(183, 110, 121, 0.3);
-  /* Primary color with transparency */
   border-radius: 10px;
 }
 
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(183, 110, 121, 0.38);
+  border: 1.5px solid transparent;
+  background-clip: padding-box;
+  border-radius: 10px;
+  min-height: 36px;
+}
+
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(183, 110, 121, 0.6);
+  background: rgba(183, 110, 121, 0.58);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:active {
+  background: rgba(183, 110, 121, 0.72);
+}
+
+.custom-scrollbar::-webkit-scrollbar-corner {
+  background: transparent;
 }
