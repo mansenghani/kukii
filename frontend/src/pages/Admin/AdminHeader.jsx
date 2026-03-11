@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, LogOut, Bell, User, Check, X, Clock, User2, MapPin, Calendar, Info, Menu as MenuIcon } from 'lucide-react';
+import { LayoutDashboard, LogOut, Bell, User, Check, X, Clock, User2, MapPin, Calendar, Info, Menu as MenuIcon, Moon, Sun } from 'lucide-react';
 import axios from 'axios';
 
-const AdminHeader = ({ activeTab, onToggleSidebar }) => {
+const AdminHeader = ({ activeTab, onToggleSidebar, adminTheme, onToggleAdminTheme }) => {
     const navigate = useNavigate();
     const [showNotifications, setShowNotifications] = useState(false);
     const [notifications, setNotifications] = useState([]);
@@ -92,6 +92,15 @@ const AdminHeader = ({ activeTab, onToggleSidebar }) => {
             </div>
 
             <div className="flex items-center gap-4">
+                <button
+                    onClick={onToggleAdminTheme}
+                    className="size-10 rounded-xl bg-background-ivory/50 border border-primary/5 text-soft-grey hover:text-primary hover:bg-white hover:shadow-sm transition-all"
+                    aria-label={`Switch to ${adminTheme === 'dark' ? 'light' : 'dark'} mode`}
+                    title={`Switch to ${adminTheme === 'dark' ? 'light' : 'dark'} mode`}
+                >
+                    {adminTheme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+                </button>
+
                 <div className="relative" ref={notificationRef}>
                     <button 
                         onClick={() => setShowNotifications(!showNotifications)}

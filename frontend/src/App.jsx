@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import Home from './pages/Home';
@@ -17,6 +17,9 @@ import { CartProvider } from './context/CartContext';
 import PrivateRoute from './components/PrivateRoute';
 
 const AppContent = () => {
+  const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith('/admin');
+
   const initialTheme = useMemo(() => {
     const stored = localStorage.getItem('kuki_theme');
     if (stored === 'light' || stored === 'dark') {
@@ -25,17 +28,37 @@ const AppContent = () => {
     return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   }, []);
 
+  const initialAdminTheme = useMemo(() => {
+    const stored = localStorage.getItem('kuki_admin_theme');
+    if (stored === 'light' || stored === 'dark') {
+      return stored;
+    }
+    return 'dark';
+  }, []);
+
   const [theme, setTheme] = useState(initialTheme);
+  const [adminTheme, setAdminTheme] = useState(initialAdminTheme);
+
+  useEffect(() => {
+    localStorage.setItem('kuki_theme', theme);
+  }, [theme]);
+
+  useEffect(() => {
+    localStorage.setItem('kuki_admin_theme', adminTheme);
+  }, [adminTheme]);
 
   useEffect(() => {
     const root = document.documentElement;
     root.classList.remove('light', 'dark');
-    root.classList.add(theme);
-    localStorage.setItem('kuki_theme', theme);
-  }, [theme]);
+    root.classList.add(isAdminRoute ? adminTheme : theme);
+  }, [theme, adminTheme, isAdminRoute]);
 
   const toggleTheme = () => {
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+  };
+
+  const toggleAdminTheme = () => {
+    setAdminTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
   };
 
   return (
@@ -65,9 +88,15 @@ const AppContent = () => {
         } />
 
         {/* Admin Routes - Protected */}
-        <Route path="/admin" element={<AdminDashboard />} /> {/* Login/Dashboard Entry */}
+        <Route
+          path="/admin"
+          element={<AdminDashboard adminTheme={adminTheme} onToggleAdminTheme={toggleAdminTheme} />}
+        />
         <Route element={<PrivateRoute />}>
-          <Route path="/admin/:tab" element={<AdminDashboard />} />
+          <Route
+            path="/admin/:tab"
+            element={<AdminDashboard adminTheme={adminTheme} onToggleAdminTheme={toggleAdminTheme} />}
+          />
         </Route>
       </Routes>
     </div>

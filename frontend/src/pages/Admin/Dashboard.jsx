@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { LayoutDashboard, Utensils, Table as TableIcon, CalendarDays, ShoppingBag, Plus, Trash2, CheckCircle2, XCircle, X, Lock, Settings, LogOut, MessageSquare, BarChart, Layers, Tag, Pencil, AlertCircle, Clock, Eye, Star, Filter } from 'lucide-react';
+import { LayoutDashboard, Utensils, Table as TableIcon, CalendarDays, ShoppingBag, Plus, Trash2, CheckCircle2, XCircle, X, Lock, Settings, LogOut, MessageSquare, BarChart, Layers, Tag, Pencil, AlertCircle, Clock, Eye, Star, Filter, Moon, Sun } from 'lucide-react';
 import AdminFeedback from './AdminFeedback';
 import ReportsPage from './ReportsPage';
 import FooterSettingsCard from './FooterSettingsCard';
@@ -16,7 +16,7 @@ import AdminBookings from './AdminBookings';
 import Overview from './Overview';
 import Pagination from '../../components/Pagination';
 
-const AdminDashboard = () => {
+const AdminDashboard = ({ adminTheme, onToggleAdminTheme }) => {
   const { tab } = useParams();
   const navigate = useNavigate();
   const [isAuthorized, setIsAuthorized] = useState(localStorage.getItem('kuki_admin_auth') === 'true');
@@ -373,6 +373,15 @@ const AdminDashboard = () => {
   if (!isAuthorized) {
     return (
       <div className="min-h-[calc(100vh-80px)] flex justify-center items-center bg-background-ivory">
+        <button
+          onClick={onToggleAdminTheme}
+          className="fixed top-5 right-5 size-10 rounded-xl bg-white border border-primary/10 text-soft-grey hover:text-primary hover:border-primary/30 transition-all shadow-sm z-20"
+          aria-label={`Switch to ${adminTheme === 'dark' ? 'light' : 'dark'} mode`}
+          title={`Switch to ${adminTheme === 'dark' ? 'light' : 'dark'} mode`}
+        >
+          {adminTheme === 'dark' ? <Sun size={18} className="mx-auto" /> : <Moon size={18} className="mx-auto" />}
+        </button>
+
         <div className="bg-white shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-border-neutral rounded-[2rem] p-12 text-center w-[450px]">
           <div className="flex justify-center mb-6"><div className="size-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary"><Lock size={32} /></div></div>
           <h2 className="serif-heading text-4xl mb-2 text-charcoal italic lowercase">Admin Access</h2>
@@ -501,7 +510,12 @@ const AdminDashboard = () => {
 
   return (
     <div className="flex flex-col h-screen bg-[#f4efec] text-[#2b2b2b]">
-      <AdminHeader activeTab={activeTab} onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
+      <AdminHeader
+        activeTab={activeTab}
+        onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+        adminTheme={adminTheme}
+        onToggleAdminTheme={onToggleAdminTheme}
+      />
       <div className="flex flex-1 overflow-hidden relative">
         {/* Mobile Sidebar Overlay */}
         {sidebarOpen && (
