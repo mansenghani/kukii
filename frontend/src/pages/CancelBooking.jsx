@@ -87,8 +87,8 @@ const CancelBooking = () => {
             {toast.visible && (
                 <div className="fixed top-24 right-4 z-[70]">
                     <div className={`flex items-center gap-3 px-4 py-3 rounded-sm border shadow-lg text-[10px] font-bold uppercase tracking-widest ${toast.type === 'error'
-                            ? 'bg-rose-50 text-rose-500 border-rose-100'
-                            : 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                        ? 'bg-rose-50 text-rose-500 border-rose-100'
+                        : 'bg-emerald-50 text-emerald-600 border-emerald-100'
                         }`}>
                         {toast.type === 'error' ? <AlertCircle size={14} /> : <CheckCircle size={14} />}
                         <span>{toast.text}</span>
@@ -142,7 +142,7 @@ const CancelBooking = () => {
                                                     type="text"
                                                     value={uniqueId}
                                                     onChange={(e) => setUniqueId(e.target.value.toUpperCase())}
-                                                    placeholder="RMS-2025-XXXXXX"
+                                                    placeholder="KUKI-XXXXXX"
                                                     className="w-full h-14 bg-white rounded-sm border border-border-neutral px-6 text-sm focus:border-primary outline-none transition-all placeholder:opacity-30 tracking-widest"
                                                 />
                                                 <Search className="absolute right-6 top-1/2 -translate-y-1/2 text-primary opacity-20" size={18} />
