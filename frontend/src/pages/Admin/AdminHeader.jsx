@@ -94,7 +94,7 @@ const AdminHeader = ({ activeTab, onToggleSidebar, adminTheme, onToggleAdminThem
             <div className="flex items-center gap-4">
                 <button
                     onClick={onToggleAdminTheme}
-                    className="size-10 rounded-xl bg-background-ivory/50 border border-primary/5 text-soft-grey hover:text-primary hover:bg-white hover:shadow-sm transition-all"
+                    className="size-10 rounded-xl flex items-center justify-center bg-background-ivory/50 border border-primary/5 text-soft-grey hover:text-primary hover:bg-white hover:shadow-sm transition-all"
                     aria-label={`Switch to ${adminTheme === 'dark' ? 'light' : 'dark'} mode`}
                     title={`Switch to ${adminTheme === 'dark' ? 'light' : 'dark'} mode`}
                 >
