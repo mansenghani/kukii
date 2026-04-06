@@ -163,9 +163,9 @@ const AdminEvents = ({ onError, onSuccess }) => {
             </div>
 
             {/* Table */}
-            <div className="bg-white rounded-2xl shadow-sm border border-primary/5 overflow-hidden flex flex-col">
-                <div className="overflow-x-auto custom-scrollbar">
-                    <table className="w-full text-left min-w-[800px] lg:min-w-0">
+            <div className="bg-white rounded-[2rem] shadow-sm border border-border-neutral overflow-hidden flex flex-col">
+                <div className="overflow-x-auto custom-scrollbar rounded-[2rem]">
+                    <table className="w-full text-left border-collapse min-w-[800px] lg:min-w-0">
                         <thead className="bg-background-ivory/50 border-b border-border-neutral">
                             <tr>
                                 <th className="px-6 py-4 text-[10px] font-bold text-primary uppercase tracking-widest">Client Name</th>
@@ -245,7 +245,7 @@ const AdminEvents = ({ onError, onSuccess }) => {
 
             {selectedEvent && (
                 <div className="fixed inset-0 bg-charcoal/60 backdrop-blur-sm flex justify-center items-center z-[2000] p-4 animate-fade-in overflow-y-auto">
-                    <div className="bg-white rounded-[2rem] md:rounded-[2.5rem] shadow-2xl w-full max-w-2xl relative border border-primary/10 my-8">
+                    <div className="bg-white rounded-[2rem] md:rounded-[2.5rem] shadow-2xl w-full max-w-2xl overflow-hidden relative border border-primary/10 my-8">
                         {/* Header */}
                         <div className="bg-background-ivory/50 px-6 md:px-10 py-6 md:py-8 border-b border-primary/10 flex justify-between items-start">
                             <div className="pr-8">

@@ -8,7 +8,7 @@ const Pagination = ({ currentPage, totalPages, totalRecords, onPageChange, limit
     const endRecord = Math.min(currentPage * limit, totalRecords);
 
     return (
-        <div className="flex items-center justify-between px-6 py-4 bg-white border-t border-border-neutral rounded-b-[2rem]">
+        <div className="flex items-center justify-between px-6 py-4 bg-white border border-border-neutral rounded-[2rem] mt-4 shadow-sm">
             {/* Left side: Showing X to Y of Z entries */}
             <div className="text-[10px] font-bold text-soft-grey uppercase tracking-widest">
                 Showing <span className="text-charcoal">{startRecord}</span> to <span className="text-charcoal">{endRecord}</span> of <span className="text-charcoal">{totalRecords}</span> entries

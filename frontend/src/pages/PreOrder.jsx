@@ -303,7 +303,7 @@ const PreOrder = () => {
                         <button
                             disabled={submitting || Object.keys(selectedItems).length === 0}
                             onClick={handleSubmit}
-                            className={`w-full h-15 mt-10 bg-primary hover:bg-primary-hover text-white rounded-sm text-[11px] font-black uppercase tracking-[0.2em] transition-all shadow-xl shadow-primary/10 disabled:opacity-40 disabled:grayscale disabled:cursor-not-allowed`}
+                            className={`w-full py-3 mt-10 bg-primary hover:bg-primary-hover text-white rounded-sm text-sm font-black uppercase tracking-[0.2em] transition-all shadow-xl shadow-primary/10 disabled:opacity-40 disabled:grayscale disabled:cursor-not-allowed`}
                         >
                             {submitting ? "SENDING REQUEST..." : "SUBMIT PRE-ORDER"}
                         </button>

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { LayoutDashboard, Utensils, Table as TableIcon, CalendarDays, ShoppingBag, Plus, Trash2, CheckCircle2, XCircle, X, Lock, Settings, LogOut, MessageSquare, BarChart, Layers, Tag, Pencil, AlertCircle, Clock, Eye, Star, Filter, Moon, Sun } from 'lucide-react';
+import { LayoutDashboard, Utensils, Table as TableIcon, CalendarDays, ShoppingBag, Plus, Trash2, CheckCircle2, XCircle, X, Lock, Settings, LogOut, MessageSquare, BarChart, Layers, Tag, Pencil, AlertCircle, Clock, Eye, Star, Filter, Moon, Sun, Users } from 'lucide-react';
 import AdminFeedback from './AdminFeedback';
+import AdminStaff from './AdminStaff';
 import ReportsPage from './ReportsPage';
 import FooterSettingsCard from './FooterSettingsCard';
 import FooterSettingsModal from './FooterSettingsModal';
@@ -27,7 +28,7 @@ const AdminDashboard = ({ adminTheme, onToggleAdminTheme }) => {
 
   // Pagination & Filtering states
   const [page, setPage] = useState(1);
-  const [limit] = useState(10);
+  const [limit] = useState(6);
   const [paginationData, setPaginationData] = useState({ totalPages: 1, totalRecords: 0, currentPage: 1 });
   const [categoryFilter, setCategoryFilter] = useState('All');
 
@@ -412,6 +413,7 @@ const AdminDashboard = ({ adminTheme, onToggleAdminTheme }) => {
     switch (activeTab) {
       case 'overview':
         return <Overview onTabChange={handleTabChange} onFooterClick={() => setShowFooterModal(true)} />;
+      case 'staff': return <AdminStaff />;
       case 'feedback': return <AdminFeedback />;
       case 'reports': return <ReportsPage onError={(msg) => setMessage({ text: msg, type: 'error' })} onSuccess={(msg) => setMessage({ text: msg, type: 'success' })} />;
       case 'events': return <AdminEvents onError={(msg) => setMessage({ text: msg, type: 'error' })} onSuccess={(msg) => setMessage({ text: msg, type: 'success' })} />;
@@ -423,14 +425,14 @@ const AdminDashboard = ({ adminTheme, onToggleAdminTheme }) => {
 
       default:
         return (
-          <div className="animate-fade-in flex flex-col h-full">
+          <div className="animate-fade-in flex flex-col">
 
             {loading ? (
               <div className="text-center py-20 text-soft-grey animate-pulse bg-white rounded-[2rem] border border-border-neutral">Synchronizing with server...</div>
             ) : (
               <>
                 <div className="bg-white rounded-[2rem] shadow-sm border border-border-neutral overflow-hidden flex flex-col">
-                  <div className="overflow-x-auto custom-scrollbar">
+                  <div className="overflow-x-auto custom-scrollbar rounded-[2rem]">
                     <table className="w-full text-left border-collapse min-w-[700px] lg:min-w-0">
                       <thead className="bg-background-ivory/50 border-b border-border-neutral">
                         <tr>
@@ -492,7 +494,7 @@ const AdminDashboard = ({ adminTheme, onToggleAdminTheme }) => {
               </div>
 
                 {/* Pagination UI for Main Tabs */}
-                {['menu', 'tables', 'categories'].includes(activeTab) && (
+                {['menu', 'tables'].includes(activeTab) && (
                   <Pagination
                     currentPage={page}
                     totalPages={paginationData.totalPages}
@@ -542,6 +544,7 @@ const AdminDashboard = ({ adminTheme, onToggleAdminTheme }) => {
             <SidebarLink icon={<LayoutDashboard size={18} />} label="Overview" active={activeTab === 'overview'} onClick={() => handleTabChange('overview')} />
             <SidebarLink icon={<CalendarDays size={18} />} label="Events" active={activeTab === 'events'} onClick={() => handleTabChange('events')} />
             <SidebarLink icon={<CalendarDays size={18} />} label="Bookings" active={activeTab === 'bookings'} onClick={() => handleTabChange('bookings')} />
+            <SidebarLink icon={<Users size={18} />} label="Staff Management" active={activeTab === 'staff'} onClick={() => handleTabChange('staff')} />
             <SidebarLink icon={<ShoppingBag size={18} />} label="Pre-Orders" active={activeTab === 'preorders'} onClick={() => handleTabChange('preorders')} />
             <SidebarLink icon={<Utensils size={18} />} label="Menu" active={activeTab === 'menu'} onClick={() => handleTabChange('menu')} />
             <SidebarLink icon={<Star size={18} />} label="Showcase" active={activeTab === 'featured'} onClick={() => handleTabChange('featured')} />
@@ -561,7 +564,7 @@ const AdminDashboard = ({ adminTheme, onToggleAdminTheme }) => {
 
         <main className="flex-1 overflow-y-auto px-4 md:px-10 py-6 md:py-8 relative">
           {/* Header for dynamic actions */}
-          {!['events', 'featured', 'feedback', 'bookings'].includes(activeTab) && (
+          {!['events', 'featured', 'feedback', 'bookings', 'staff'].includes(activeTab) && (
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
               <div>
                 <h1 className="serif-heading text-3xl md:text-4xl text-charcoal capitalize">{activeTab}</h1>

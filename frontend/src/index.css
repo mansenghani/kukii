@@ -146,8 +146,6 @@ button {
   /* Firefox */
   scrollbar-width: thin;
   scrollbar-color: rgba(183, 110, 121, 0.45) transparent;
-  /* Keep layout stable when the scrollbar appears */
-  scrollbar-gutter: stable;
 }
 
 .custom-scrollbar::-webkit-scrollbar {
