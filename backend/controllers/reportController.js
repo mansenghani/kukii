@@ -3,6 +3,8 @@ const Order = require('../models/Order');
 const MenuItem = require('../models/MenuItem');
 const PDFDocument = require('pdfkit');
 const ExcelJS = require('exceljs');
+const { generateInvoicePDF } = require('../utils/pdfGenerator');
+const { sendInvoiceEmail } = require('../utils/sendEmail');
 
 // @desc    Get daily booking report
 // @route   GET /api/admin/reports/daily
@@ -254,5 +256,34 @@ exports.exportExcel = async (req, res) => {
         res.end();
     } catch (error) {
         res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Send digital invoice to customer and admin
+// @route   POST /api/admin/reports/send-invoice/:id
+exports.sendInvoice = async (req, res) => {
+    try {
+        const booking = await Booking.findById(req.params.id)
+            .populate('customerId')
+            .populate('tableId')
+            .populate('preOrderId');
+
+        if (!booking) {
+            return res.status(404).json({ message: 'Booking not found' });
+        }
+
+        // 1. Generate PDF
+        const pdfBuffer = await generateInvoicePDF(booking);
+
+        // 2. Send Emails
+        await sendInvoiceEmail(booking, pdfBuffer);
+
+        res.status(200).json({ 
+            message: 'Invoice generated and sent successfully to both customer and administrator.' 
+        });
+
+    } catch (error) {
+        console.error('Invoice sending error:', error);
+        res.status(500).json({ message: 'Failed to send invoice: ' + error.message });
     }
 };

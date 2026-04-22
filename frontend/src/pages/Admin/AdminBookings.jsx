@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { CalendarDays, Filter, Eye, Trash2, Pencil, CheckCircle2, AlertCircle, Search, Plus, X, Loader2, User } from 'lucide-react';
+import { CalendarDays, Filter, Eye, Trash2, Pencil, CheckCircle2, AlertCircle, Search, Plus, X, Loader2, User, ShoppingBag } from 'lucide-react';
 import Pagination from '../../components/Pagination';
 import AdminCancelModal from '../../components/AdminCancelModal';
 
@@ -14,6 +14,7 @@ const AdminBookings = ({ onError, onSuccess }) => {
 
     const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
     const [bookingToCancel, setBookingToCancel] = useState(null);
+    const [selectedBooking, setSelectedBooking] = useState(null);
 
     // Manual Add States
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -146,14 +147,15 @@ const AdminBookings = ({ onError, onSuccess }) => {
                                 <th className="p-5 text-[10px] uppercase tracking-widest text-soft-grey font-bold">Time & Date</th>
                                 <th className="p-5 text-[10px] uppercase tracking-widest text-soft-grey font-bold">Customer</th>
                                 <th className="p-5 text-[10px] uppercase tracking-widest text-soft-grey font-bold">Status</th>
-                                <th className="p-5 text-[10px] uppercase tracking-widest text-soft-grey font-bold">Actions</th>
+                                <th className="p-5 text-right text-[10px] uppercase tracking-widest text-soft-grey font-bold pr-10">View</th>
+                                <th className="p-5 text-right text-[10px] uppercase tracking-widest text-soft-grey font-bold pr-16">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border-neutral">
                         {loading ? (
-                            <tr><td colSpan="5" className="p-20 text-center text-soft-grey animate-pulse italic text-sm">Synchronizing with server...</td></tr>
+                            <tr><td colSpan="6" className="p-20 text-center text-soft-grey animate-pulse italic text-sm">Synchronizing with server...</td></tr>
                         ) : bookings.length === 0 ? (
-                            <tr><td colSpan="5" className="p-20 text-center text-soft-grey italic text-sm">No reservations found.</td></tr>
+                            <tr><td colSpan="6" className="p-20 text-center text-soft-grey italic text-sm">No reservations found.</td></tr>
                         ) : (
                             bookings.map((item) => (
                                 <tr key={item._id} className="hover:bg-primary/5 transition-colors">
@@ -179,19 +181,33 @@ const AdminBookings = ({ onError, onSuccess }) => {
                                             {item.status}
                                         </span>
                                     </td>
-                                    <td className="p-5">
-                                        <div className="flex gap-2">
+                                    <td className="p-5 pr-10 text-right">
+                                        <button
+                                            onClick={() => setSelectedBooking(item)}
+                                            className="p-2 bg-background-ivory text-primary rounded-lg hover:bg-primary/10 transition-all shadow-sm border border-primary/5 inline-flex items-center justify-center"
+                                            title="View Details"
+                                        >
+                                            <Eye size={16} />
+                                        </button>
+                                    </td>
+                                    <td className="p-5 pr-16 text-right">
+                                        <div className="flex justify-end">
                                             {(item.status === 'confirmed' || item.status === 'pending' || item.status === 'approved') && (
                                                 <button
                                                     onClick={() => openCancelModal(item)}
-                                                    className="px-3 py-1.5 bg-rose-50 text-rose-600 rounded-lg hover:bg-rose-100 transition-all text-[10px] font-black uppercase tracking-widest"
+                                                    className="px-3 py-1.5 bg-rose-50 text-rose-600 rounded-lg hover:bg-rose-100 transition-all text-[10px] font-black uppercase tracking-widest min-w-[80px]"
                                                 >
                                                     Cancel
                                                 </button>
                                             )}
                                             {item.status === 'cancelled' && (
-                                                <span className="px-3 py-1.5 bg-neutral-100 text-neutral-400 rounded-lg text-[10px] font-black uppercase tracking-widest">
+                                                <span className="px-3 py-1.5 bg-neutral-100 text-neutral-400 rounded-lg text-[10px] font-black uppercase tracking-widest min-w-[80px] text-center">
                                                     Locked
+                                                </span>
+                                            )}
+                                            {item.status === 'rejected' && (
+                                                <span className="px-3 py-1.5 bg-neutral-100 text-neutral-400 rounded-lg text-[10px] font-black uppercase tracking-widest min-w-[80px] text-center opacity-0">
+                                                    -
                                                 </span>
                                             )}
                                         </div>
@@ -214,10 +230,15 @@ const AdminBookings = ({ onError, onSuccess }) => {
                     />
                 )}
 
-            {/* Add Booking Modal */}
             {isAddModalOpen && (
-                <div className="fixed inset-0 bg-charcoal/60 backdrop-blur-sm flex justify-center items-center z-[2000] p-4 animate-fade-in overflow-y-auto">
-                    <div className="bg-white rounded-[2rem] md:rounded-[2.5rem] shadow-2xl w-full max-w-xl relative border border-primary/10 p-6 md:p-10 my-8">
+                <div 
+                    className="fixed inset-0 bg-transparent z-[9999] p-4 animate-fade-in overflow-y-auto flex justify-center items-center"
+                    onClick={() => setIsAddModalOpen(false)}
+                >
+                    <div 
+                        className="bg-white rounded-[2rem] md:rounded-[2.5rem] shadow-2xl w-full max-w-xl relative border border-primary/10 p-6 md:p-10 my-8"
+                        onClick={(e) => e.stopPropagation()}
+                    >
                         <button onClick={() => setIsAddModalOpen(false)} className="absolute top-6 right-6 size-10 rounded-full hover:bg-background-ivory flex items-center justify-center text-soft-grey transition-all border border-border-neutral">
                             <X size={20} />
                         </button>
@@ -278,6 +299,78 @@ const AdminBookings = ({ onError, onSuccess }) => {
                     fetchBookings();
                 }}
             />
+
+            {/* View Detail Modal */}
+            {selectedBooking && (
+                <div 
+                    className="fixed inset-0 bg-transparent z-[9999] p-4 pt-12 md:pt-24 pb-12 animate-fade-in overflow-y-auto cursor-pointer"
+                    onClick={() => setSelectedBooking(null)}
+                >
+                    <div 
+                        className="bg-white rounded-[2rem] shadow-[0_0_50px_rgba(0,0,0,0.1)] w-full max-w-lg relative border border-primary/10 mx-auto flex flex-col max-h-[90vh] overflow-hidden cursor-default"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {/* Modal Header - Fixed/Sticky */}
+                        <div className="bg-background-ivory/80 backdrop-blur-md px-8 py-6 border-b border-primary/10 flex justify-between items-center sticky top-0 z-10 rounded-t-[2rem]">
+                            <div>
+                                <h3 className="serif-heading text-2xl text-charcoal">Reservation Details</h3>
+                                <p className="text-[10px] font-bold text-primary uppercase tracking-[0.2em] mt-1">ID: {selectedBooking.uniqueBookingId}</p>
+                            </div>
+                            <button onClick={() => setSelectedBooking(null)} className="size-10 rounded-full hover:bg-white flex items-center justify-center text-soft-grey hover:text-primary transition-all bg-white/50 border border-border-neutral">
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        {/* Modal Content - Scrollable */}
+                        <div className="p-8 space-y-6 overflow-y-auto custom-scrollbar flex-1">
+                            <div className="grid grid-cols-2 gap-8">
+                                <div>
+                                    <p className="text-[10px] font-bold text-soft-grey uppercase tracking-widest mb-2 font-black">Customer</p>
+                                    <p className="text-sm font-black text-charcoal">{selectedBooking.customerId?.name || 'N/A'}</p>
+                                    <p className="text-[11px] text-soft-grey mt-1">{selectedBooking.customerId?.email}</p>
+                                    <p className="text-[11px] text-soft-grey">{selectedBooking.customerId?.phone}</p>
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-bold text-soft-grey uppercase tracking-widest mb-2 font-black">Booking Info</p>
+                                    <p className="text-sm font-black text-charcoal">Table {selectedBooking.tableId?.tableNumber || 'N/A'}</p>
+                                    <p className="text-[11px] text-soft-grey mt-1">Guests: {selectedBooking.guests} Persons</p>
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-bold text-soft-grey uppercase tracking-widest mb-2 font-black">Date & Time</p>
+                                    <p className="text-sm font-medium text-charcoal">{new Date(selectedBooking.date).toLocaleDateString()}</p>
+                                    <p className="text-xs text-soft-grey italic">Arrival: {selectedBooking.time}</p>
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-bold text-soft-grey uppercase tracking-widest mb-2 font-black">Status</p>
+                                    <span className={`inline-block px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${getStatusColorClass(selectedBooking.status)}`}>
+                                        {selectedBooking.status}
+                                    </span>
+                                </div>
+                            </div>
+
+                            {selectedBooking.preOrderId && (
+                                <div className="pt-6 border-t border-primary/5">
+                                    <div className="flex items-center gap-2 mb-4">
+                                        <ShoppingBag size={14} className="text-primary" />
+                                        <p className="text-[10px] font-black text-charcoal uppercase tracking-widest">Pre-Order Included</p>
+                                    </div>
+                                    <div className="p-4 bg-background-ivory/30 rounded-2xl border border-primary/5 flex justify-between items-center">
+                                        <p className="text-xs font-medium text-soft-grey">Pre-Order ID: {selectedBooking.preOrderId?.toString().slice(-8)}</p>
+                                        <p className="font-black text-primary">₹{selectedBooking.totalAmount || 0}</p>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Modal Footer */}
+                        <div className="px-8 py-6 bg-background-ivory/20 flex gap-4">
+                            <button onClick={() => setSelectedBooking(null)} className="flex-1 bg-primary text-white py-3 rounded-xl text-xs font-bold hover:bg-primary-hover transition-all shadow-md">
+                                Close Details
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

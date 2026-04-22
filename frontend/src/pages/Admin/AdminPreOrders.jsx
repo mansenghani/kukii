@@ -106,8 +106,14 @@ const AdminPreOrders = ({ onError, onSuccess }) => {
             )}
 
             {selectedOrder && (
-                <div className="fixed inset-0 bg-charcoal/60 backdrop-blur-sm flex justify-center items-center z-[2000] p-4 animate-fade-in overflow-y-auto">
-                    <div className="bg-white rounded-[2rem] md:rounded-[2.5rem] shadow-2xl w-full max-w-xl p-6 md:p-10 relative border border-primary/10 my-8">
+                <div 
+                    className="fixed inset-0 bg-transparent z-[9999] p-4 pt-12 md:pt-24 pb-12 animate-fade-in overflow-y-auto flex justify-center items-start"
+                    onClick={() => setSelectedOrder(null)}
+                >
+                    <div 
+                        className="bg-white rounded-[2rem] md:rounded-[2.5rem] shadow-[0_0_50px_rgba(0,0,0,0.1)] w-full max-w-xl p-6 md:p-10 relative border border-primary/10 my-auto overflow-hidden"
+                        onClick={(e) => e.stopPropagation()}
+                    >
                         <button onClick={() => setSelectedOrder(null)} className="absolute top-6 right-6 text-soft-grey hover:text-primary"><XCircle size={24} /></button>
                         <h3 className="serif-heading text-2xl md:text-3xl mb-8 flex items-center gap-3">
                             <ShoppingBag className="text-primary" /> Pre-Order Details

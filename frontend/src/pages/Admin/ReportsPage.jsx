@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const ReportsPage = () => {
+const ReportsPage = (props) => {
     const [loading, setLoading] = useState(true);
     const [dailyStats, setDailyStats] = useState({ totalBookings: 0, totalRevenue: 0 });
     const [peakHour, setPeakHour] = useState({ _id: 'N/A', count: 0 });
@@ -15,6 +15,7 @@ const ReportsPage = () => {
         type: 'All Transactions',
         search: ''
     });
+    const [sendingInvoice, setSendingInvoice] = useState(false);
 
     const API_BASE_URL = '/api/admin/reports';
 
@@ -59,6 +60,19 @@ const ReportsPage = () => {
         window.open(url, '_blank');
     };
 
+    const handleSendInvoice = async (booking) => {
+        try {
+            setSendingInvoice(true);
+            const res = await axios.post(`${API_BASE_URL}/send-invoice/${booking._id}`);
+            if (props.onSuccess) props.onSuccess(res.data.message);
+        } catch (err) {
+            console.error("Invoice Error:", err);
+            if (props.onError) props.onError(err.response?.data?.message || "Failed to send invoice");
+        } finally {
+            setSendingInvoice(false);
+        }
+    };
+
     // Material Icons helper if using span class as per user HTML
     const Icon = ({ name, className = "" }) => (
         <span className={`material-symbols-outlined ${className}`}>{name}</span>
@@ -70,7 +84,7 @@ const ReportsPage = () => {
         <div className="animate-fade-in space-y-12">
 
             {/* Preview Summary Row */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8 no-print">
                 <div className="bg-white p-6 rounded-2xl border border-primary/5 shadow-sm hover:translate-y-[-4px] transition-transform">
                     <p className="text-[10px] font-bold text-soft-grey uppercase mb-1 tracking-widest">Total Revenue</p>
                     <p className="text-2xl font-bold text-charcoal">₹{dailyStats.totalRevenue?.toLocaleString()}</p>
@@ -90,7 +104,7 @@ const ReportsPage = () => {
             </div>
 
             {/* Detailed Transactions Table */}
-            <section className="bg-white rounded-3xl shadow-sm border border-primary/5 overflow-hidden">
+            <section className="bg-white rounded-3xl shadow-sm border border-primary/5 overflow-hidden no-print">
                 {/* Toolbar */}
                 <div className="px-8 py-6 border-b border-primary/10 flex flex-col md:flex-row justify-between items-center gap-4 bg-background-ivory/20">
                     <div className="relative w-full md:w-96 group">
@@ -226,7 +240,7 @@ const ReportsPage = () => {
 
             {/* Transaction Detail Modal */}
             {selectedDetail && (
-                <div className="fixed inset-0 bg-charcoal/60 backdrop-blur-sm flex justify-center items-center z-[1000] p-4 animate-fade-in">
+                <div className="fixed inset-0 bg-charcoal/60 backdrop-blur-sm flex justify-center items-center z-[9999] p-4 animate-fade-in">
                     <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-lg relative overflow-hidden border border-primary/10">
                         {/* Modal Header */}
                         <div className="bg-background-ivory/50 px-8 py-6 border-b border-primary/10 flex justify-between items-center">
@@ -275,11 +289,20 @@ const ReportsPage = () => {
                         </div>
 
                         {/* Modal Footer */}
-                        <div className="px-8 py-6 bg-background-ivory/20 flex gap-4">
-                            <button onClick={() => window.print()} className="flex-1 bg-white border border-primary/20 text-charcoal py-3 rounded-xl text-xs font-bold hover:bg-background-ivory transition-all flex items-center justify-center gap-2">
-                                <Icon name="print" className="text-sm" /> Print Invoice
-                            </button>
-                            <button onClick={() => setSelectedDetail(null)} className="flex-1 bg-primary text-white py-3 rounded-xl text-xs font-bold hover:bg-primary-hover transition-all shadow-md">
+                        <div className="px-8 py-6 bg-background-ivory/20 flex flex-col gap-3">
+                            <div className="flex gap-4">
+                                <button onClick={() => window.print()} className="flex-1 bg-white border border-primary/20 text-charcoal py-3 rounded-xl text-xs font-bold hover:bg-background-ivory transition-all flex items-center justify-center gap-2">
+                                    <Icon name="print" className="text-sm" /> Print Local
+                                </button>
+                                <button 
+                                    onClick={() => handleSendInvoice(selectedDetail)} 
+                                    disabled={sendingInvoice}
+                                    className="flex-1 bg-charcoal text-white py-3 rounded-xl text-xs font-bold hover:bg-black transition-all flex items-center justify-center gap-2 shadow-lg disabled:opacity-50"
+                                >
+                                    <Icon name="mail" className="text-sm" /> {sendingInvoice ? 'Sending...' : 'Send to Email'}
+                                </button>
+                            </div>
+                            <button onClick={() => setSelectedDetail(null)} className="w-full bg-primary text-white py-3 rounded-xl text-xs font-bold hover:bg-primary-hover transition-all shadow-md">
                                 Close Details
                             </button>
                         </div>

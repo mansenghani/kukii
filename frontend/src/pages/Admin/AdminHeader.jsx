@@ -67,7 +67,7 @@ const AdminHeader = ({ activeTab, onToggleSidebar, adminTheme, onToggleAdminThem
             <div className="flex items-center gap-4 md:gap-8">
                 <button 
                   onClick={onToggleSidebar}
-                  className="lg:hidden p-2 rounded-xl bg-background-ivory/50 border border-primary/5 text-soft-grey hover:text-primary transition-all"
+                  className="lg:hidden p-2 rounded-xl bg-background-ivory/50 border border-primary/5 text-soft-grey hover:text-primary transition-all no-print"
                 >
                     <MenuIcon size={22} />
                 </button>
@@ -94,14 +94,14 @@ const AdminHeader = ({ activeTab, onToggleSidebar, adminTheme, onToggleAdminThem
             <div className="flex items-center gap-4">
                 <button
                     onClick={onToggleAdminTheme}
-                    className="size-10 rounded-xl flex items-center justify-center bg-background-ivory/50 border border-primary/5 text-soft-grey hover:text-primary hover:bg-white hover:shadow-sm transition-all"
+                    className="size-10 rounded-xl flex items-center justify-center bg-background-ivory/50 border border-primary/5 text-soft-grey hover:text-primary hover:bg-white hover:shadow-sm transition-all no-print"
                     aria-label={`Switch to ${adminTheme === 'dark' ? 'light' : 'dark'} mode`}
                     title={`Switch to ${adminTheme === 'dark' ? 'light' : 'dark'} mode`}
                 >
                     {adminTheme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
                 </button>
 
-                <div className="relative" ref={notificationRef}>
+                <div className="relative no-print" ref={notificationRef}>
                     <button 
                         onClick={() => setShowNotifications(!showNotifications)}
                         className={`size-10 rounded-xl flex items-center justify-center transition-all relative ${showNotifications ? 'bg-primary text-white shadow-lg' : 'bg-background-ivory/50 border border-primary/5 text-soft-grey hover:text-primary hover:bg-white hover:shadow-sm'}`}
@@ -202,12 +202,12 @@ const AdminHeader = ({ activeTab, onToggleSidebar, adminTheme, onToggleAdminThem
                     )}
                 </div>
 
-                <div className="h-10 w-[1px] bg-primary/10 mx-1"></div>
+                <div className="h-10 w-[1px] bg-primary/10 mx-1 no-print"></div>
 
                 <div className="flex items-center gap-3 pl-2">
-                    <div className="text-right hidden sm:block">
-                        <p className="text-[10px] font-black text-charcoal uppercase tracking-widest">Administrator</p>
-                        <button onClick={handleLogout} className="text-[9px] font-bold text-primary uppercase tracking-widest hover:underline">Sign Out</button>
+                    <div className="text-right hidden sm:flex flex-col justify-center">
+                        <p className="text-[10px] font-black text-charcoal uppercase tracking-widest leading-tight">Administrator</p>
+                        <button onClick={handleLogout} className="text-[9px] font-bold text-primary uppercase tracking-widest hover:underline text-right no-print">Sign Out</button>
                     </div>
                     <div className="size-10 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-inner">
                         <User size={20} />

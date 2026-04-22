@@ -128,17 +128,14 @@ button {
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(20px);
   }
-
   to {
     opacity: 1;
-    transform: translateY(0);
   }
 }
 
-.fade-in {
-  animation: fadeIn 0.8s ease forwards;
+.fade-in, .animate-fade-in {
+  animation: fadeIn 0.4s ease forwards;
 }
 
 /* Custom Scrollbar */
@@ -821,3 +818,143 @@ html.dark [class*="lucide"],
 html.dark svg {
   color: inherit !important;
 }
+
+/* ===== PRINT STYLES ===== */
+@media print {
+  /* Hide non-printing elements */
+  nav, 
+  aside,
+  footer,
+  button,
+  .no-print,
+  .lg\:hidden,
+  .xl\:flex,
+  [aria-label*="mode"],
+  [title*="mode"],
+  .material-symbols-outlined:not(.print-icon),
+  .lucide:not(.print-icon),
+  .size-10.rounded-full.bg-primary\/10 { /* Hide user avatar circle if needed, but let's keep it if they want branding */
+    display: none !important;
+  }
+
+  /* Reset body for print - FORCE LIGHT MODE */
+  body, html, #root {
+    background: white !important;
+    color: black !important;
+    width: 100% !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  /* Override dark mode for print */
+  html.dark body, 
+  html.dark #root,
+  html.dark main,
+  html.dark div,
+  html.dark section,
+  html.dark table,
+  html.dark tr,
+  html.dark td,
+  html.dark th,
+  html.dark p,
+  html.dark span,
+  html.dark .bg-white,
+  html.dark .bg-background-ivory {
+    background-color: white !important;
+    color: black !important;
+    border-color: #eee !important;
+  }
+
+  /* Fix Header for Print */
+  header {
+    position: relative !important;
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    height: auto !important;
+    min-height: 60px !important;
+    padding: 15px 20px !important;
+    margin: 0 !important;
+    border-bottom: 2px solid #B76E79 !important;
+    box-shadow: none !important;
+    background: white !important;
+    top: 0 !important;
+    width: 100% !important;
+  }
+
+  header * {
+    background-color: transparent !important;
+    color: black !important;
+  }
+
+  /* Ensure text is aligned in header */
+  header > div {
+    display: flex !important;
+    align-items: center !important;
+    gap: 15px !important;
+  }
+
+  /* Fix the gaps in modal printing */
+  .fixed.inset-0 {
+    position: relative !important;
+    display: block !important;
+    background: white !important;
+    backdrop-filter: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+    z-index: auto !important;
+    min-height: auto !important;
+  }
+
+  /* Invoice box centering and width */
+  .max-w-lg {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: white !important;
+    overflow: visible !important;
+  }
+
+  /* Modal content area */
+  .p-8, .p-4, .px-8, .py-6 {
+    padding: 12px 0 !important;
+  }
+  
+  .space-y-6 > * + * {
+    margin-top: 10px !important;
+  }
+
+  /* Typography for print */
+  .serif-heading {
+    color: black !important;
+    font-size: 24pt !important;
+  }
+
+  .text-primary {
+    color: #B76E79 !important;
+  }
+
+  .text-soft-grey, .text-charcoal {
+    color: black !important;
+  }
+
+  /* Amount box */
+  .bg-background-ivory\/30 {
+    background: #fdfdfd !important;
+    border: 1px solid #eee !important;
+    padding: 10px !important;
+  }
+
+  /* Remove all animations */
+  * {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+}

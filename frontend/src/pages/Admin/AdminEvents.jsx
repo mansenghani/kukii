@@ -168,21 +168,22 @@ const AdminEvents = ({ onError, onSuccess }) => {
                     <table className="w-full text-left border-collapse min-w-[800px] lg:min-w-0">
                         <thead className="bg-background-ivory/50 border-b border-border-neutral">
                             <tr>
-                                <th className="px-6 py-4 text-[10px] font-bold text-primary uppercase tracking-widest">Client Name</th>
-                                <th className="px-6 py-4 text-[10px] font-bold text-primary uppercase tracking-widest">Date & Slot</th>
-                                <th className="px-6 py-4 text-[10px] font-bold text-primary uppercase tracking-widest">Guests</th>
-                                <th className="px-6 py-4 text-[10px] font-bold text-primary uppercase tracking-widest">Status</th>
-                                <th className="px-6 py-4 text-[10px] font-bold text-primary uppercase tracking-widest text-right">Actions</th>
+                                <th className="px-6 py-4 text-[10px] font-bold text-primary uppercase tracking-widest w-[22%]">Client Name</th>
+                                <th className="px-6 py-4 text-[10px] font-bold text-primary uppercase tracking-widest w-[22%]">Date & Slot</th>
+                                <th className="px-6 py-4 text-[10px] font-bold text-primary uppercase tracking-widest w-[12%]">Guests</th>
+                                <th className="px-6 py-4 text-[10px] font-bold text-primary uppercase tracking-widest w-[14%] text-center">Status</th>
+                                <th className="px-6 py-4 text-[10px] font-bold text-primary uppercase tracking-widest w-[10%] text-right">View</th>
+                                <th className="px-6 py-4 text-[10px] font-bold text-primary uppercase tracking-widest w-[20%] text-right pr-10">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border-neutral/30">
                             {loading ? (
                                 <tr>
-                                    <td colSpan="5" className="px-6 py-12 text-center text-soft-grey">Loading events...</td>
+                                    <td colSpan="6" className="px-6 py-12 text-center text-soft-grey">Loading events...</td>
                                 </tr>
                             ) : events.length === 0 ? (
                                 <tr>
-                                    <td colSpan="5" className="px-6 py-12 text-center text-soft-grey">No events found matching your criteria.</td>
+                                    <td colSpan="6" className="px-6 py-12 text-center text-soft-grey">No events found matching your criteria.</td>
                                 </tr>
                             ) : (
                                 events.map(event => (
@@ -201,26 +202,39 @@ const AdminEvents = ({ onError, onSuccess }) => {
                                         <td className="px-6 py-4 text-sm font-medium text-charcoal">
                                             {event.guests} pax
                                         </td>
-                                        <td className="px-6 py-4">
-                                            <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${getStatusStyle(event.status)}`}>
+                                        <td className="px-6 py-4 text-center">
+                                            <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest inline-block ${getStatusStyle(event.status)}`}>
                                                 {event.status}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 text-right">
-                                            <div className="flex justify-end gap-2">
-                                                <button
-                                                    onClick={() => setSelectedEvent(event)}
-                                                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-primary/5 text-primary rounded-lg hover:bg-primary/10 transition-colors text-xs font-bold uppercase tracking-wider"
-                                                >
-                                                    <Eye size={14} /> View
-                                                </button>
+                                            <button
+                                                onClick={() => setSelectedEvent(event)}
+                                                className="p-2 bg-background-ivory text-primary rounded-lg hover:bg-primary/10 transition-all shadow-sm border border-primary/5 inline-flex items-center justify-center"
+                                                title="View Details"
+                                            >
+                                                <Eye size={16} />
+                                            </button>
+                                        </td>
+                                        <td className="px-6 py-4 text-right pr-10">
+                                            <div className="flex justify-end">
                                                 {(event.status === 'confirmed' || event.status === 'pending' || event.status === 'approved') && (
                                                     <button
                                                         onClick={() => { setEventToCancel(event); setIsCancelModalOpen(true); }}
-                                                        className="px-3 py-1.5 bg-rose-50 text-rose-500 rounded-lg hover:bg-rose-100 transition-colors text-[10px] font-bold uppercase tracking-widest"
+                                                        className="px-3 py-2 bg-rose-50 text-rose-500 rounded-lg hover:bg-rose-100 transition-colors text-[10px] font-bold uppercase tracking-widest min-w-[80px]"
                                                     >
                                                         Cancel
                                                     </button>
+                                                )}
+                                                {event.status === 'rejected' && (
+                                                    <span className="px-3 py-2 bg-neutral-100 text-neutral-400 rounded-lg text-[10px] font-bold uppercase tracking-widest min-w-[80px] text-center">
+                                                        Locked
+                                                    </span>
+                                                )}
+                                                {event.status === 'cancelled' && (
+                                                    <span className="px-3 py-2 bg-neutral-100 text-neutral-400 rounded-lg text-[10px] font-bold uppercase tracking-widest min-w-[80px] text-center">
+                                                        Locked
+                                                    </span>
                                                 )}
                                             </div>
                                         </td>
@@ -244,10 +258,16 @@ const AdminEvents = ({ onError, onSuccess }) => {
                 )}
 
             {selectedEvent && (
-                <div className="fixed inset-0 bg-charcoal/60 backdrop-blur-sm flex justify-center items-center z-[2000] p-4 animate-fade-in overflow-y-auto">
-                    <div className="bg-white rounded-[2rem] md:rounded-[2.5rem] shadow-2xl w-full max-w-2xl overflow-hidden relative border border-primary/10 my-8">
-                        {/* Header */}
-                        <div className="bg-background-ivory/50 px-6 md:px-10 py-6 md:py-8 border-b border-primary/10 flex justify-between items-start">
+                <div 
+                    className="fixed inset-0 bg-transparent z-[9999] p-4 pt-12 md:pt-24 pb-12 animate-fade-in overflow-y-auto"
+                    onClick={() => setSelectedEvent(null)}
+                >
+                    <div 
+                        className="bg-white rounded-[2rem] md:rounded-[2.5rem] shadow-[0_0_50px_rgba(0,0,0,0.1)] w-full max-w-2xl relative border border-primary/10 mx-auto flex flex-col max-h-[90vh] overflow-hidden"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {/* Header - Fixed/Sticky */}
+                        <div className="bg-background-ivory/80 backdrop-blur-md px-6 md:px-10 py-6 md:py-8 border-b border-primary/10 flex justify-between items-start sticky top-0 z-10 rounded-t-[2rem] md:rounded-t-[2.5rem]">
                             <div className="pr-8">
                                 <h3 className="serif-heading text-2xl md:text-3xl text-charcoal leading-tight mb-2">Event Details</h3>
                                 <div className="flex flex-wrap items-center gap-2">
@@ -257,13 +277,13 @@ const AdminEvents = ({ onError, onSuccess }) => {
                                     <span className="text-[10px] text-soft-grey font-medium whitespace-nowrap">Submitted {new Date(selectedEvent.createdAt).toLocaleDateString()}</span>
                                 </div>
                             </div>
-                            <button onClick={() => setSelectedEvent(null)} className="absolute top-6 right-6 size-10 rounded-full hover:bg-white shadow-sm flex items-center justify-center text-soft-grey hover:text-primary transition-all border border-border-neutral">
+                            <button onClick={() => setSelectedEvent(null)} className="flex-shrink-0 size-10 rounded-full hover:bg-white shadow-sm flex items-center justify-center text-soft-grey hover:text-primary transition-all border border-border-neutral bg-white/50">
                                 <XCircle size={20} />
                             </button>
                         </div>
 
-                        {/* Content */}
-                        <div className="px-6 md:px-10 py-6 md:py-8 space-y-8">
+                        {/* Content - Scrollable */}
+                        <div className="px-6 md:px-10 py-6 md:py-8 space-y-8 overflow-y-auto custom-scrollbar flex-1">
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-8">
                                 <div>
                                     <p className="text-[10px] font-bold text-primary uppercase tracking-widest mb-1">Client Name</p>
@@ -360,8 +380,14 @@ const AdminEvents = ({ onError, onSuccess }) => {
 
             {/* Confirmation Modal */}
             {confirmModal.isOpen && (
-                <div className="fixed inset-0 bg-charcoal/60 backdrop-blur-sm flex justify-center items-center z-[3000] p-4 animate-fade-in">
-                    <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-sm p-8 text-center border border-primary/10">
+                <div 
+                    className="fixed inset-0 bg-transparent z-[9999] p-4 animate-fade-in flex justify-center items-center"
+                    onClick={() => setConfirmModal({ isOpen: false, id: null, status: null })}
+                >
+                    <div 
+                        className="bg-white rounded-[2rem] shadow-2xl w-full max-w-sm p-8 text-center border border-primary/10"
+                        onClick={(e) => e.stopPropagation()}
+                    >
                         <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 ${confirmModal.status === 'approved' ? 'bg-emerald-50 text-emerald-500 border border-emerald-100' : 'bg-rose-50 text-rose-500 border border-rose-100'}`}>
                             {confirmModal.status === 'approved' ? <CheckCircle2 size={32} /> : <XCircle size={32} />}
                         </div>
@@ -389,8 +415,14 @@ const AdminEvents = ({ onError, onSuccess }) => {
 
             {/* Add Event Modal */}
             {showAddModal && (
-                <div className="fixed inset-0 bg-charcoal/60 backdrop-blur-sm flex justify-center items-center z-[2000] p-4 animate-fade-in overflow-y-auto">
-                    <div className="bg-white rounded-[2rem] md:rounded-[2.5rem] shadow-2xl w-full max-w-xl relative border border-primary/10 p-6 md:p-10 my-8">
+                <div 
+                    className="fixed inset-0 bg-transparent z-[9999] p-4 animate-fade-in overflow-y-auto flex justify-center items-center"
+                    onClick={() => setShowAddModal(false)}
+                >
+                    <div 
+                        className="bg-white rounded-[2rem] md:rounded-[2.5rem] shadow-2xl w-full max-w-xl relative border border-primary/10 p-6 md:p-10 my-8"
+                        onClick={(e) => e.stopPropagation()}
+                    >
                         <button onClick={() => setShowAddModal(false)} className="absolute top-6 right-6 size-10 rounded-full hover:bg-background-ivory flex items-center justify-center text-soft-grey transition-all border border-border-neutral">
                             <XCircle size={20} />
                         </button>

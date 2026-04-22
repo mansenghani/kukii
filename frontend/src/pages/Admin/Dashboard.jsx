@@ -518,7 +518,7 @@ const AdminDashboard = ({ adminTheme, onToggleAdminTheme }) => {
         adminTheme={adminTheme}
         onToggleAdminTheme={onToggleAdminTheme}
       />
-      <div className="flex flex-1 overflow-hidden relative">
+      <div className="flex flex-1 overflow-hidden">
         {/* Mobile Sidebar Overlay */}
         {sidebarOpen && (
           <div 
@@ -562,7 +562,7 @@ const AdminDashboard = ({ adminTheme, onToggleAdminTheme }) => {
           </nav>
         </aside>
 
-        <main className="flex-1 overflow-y-auto px-4 md:px-10 py-6 md:py-8 relative">
+        <main className="flex-1 overflow-y-auto px-4 md:px-10 py-6 md:py-8">
           {/* Header for dynamic actions */}
           {!['events', 'featured', 'feedback', 'bookings', 'staff'].includes(activeTab) && (
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
@@ -614,10 +614,15 @@ const AdminDashboard = ({ adminTheme, onToggleAdminTheme }) => {
         </main>
       </div>
 
-      {/* Modals */}
       {showModal && (
-        <div className="fixed inset-0 bg-charcoal/60 backdrop-blur-sm flex justify-center items-center z-[1000] p-4">
-          <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-md relative p-8 border border-primary/10">
+        <div 
+            className="fixed inset-0 bg-transparent z-[9999] p-4 flex justify-center items-center"
+            onClick={() => { setShowModal(false); setFormData({}); setIsEditing(false); setImageFile(null); setImagePreview(null); }}
+        >
+          <div 
+            className="bg-white rounded-[2rem] shadow-[0_0_50px_rgba(0,0,0,0.1)] w-full max-w-md relative p-8 border border-primary/10"
+            onClick={(e) => e.stopPropagation()}
+          >
             <button onClick={() => { setShowModal(false); setFormData({}); setIsEditing(false); setImageFile(null); setImagePreview(null); }} className="absolute top-6 right-6 text-soft-grey hover:text-primary transition-colors"><X size={24} /></button>
             <h3 className="serif-heading text-2xl mb-6 text-charcoal">{isEditing ? 'Edit' : 'Add New'} {activeTab === 'categories' ? 'Category' : (activeTab === 'menu' ? 'Menu' : activeTab.slice(0, -1))}</h3>
             <form onSubmit={handleSubmit} className="flex flex-col gap-5">
@@ -727,10 +732,15 @@ const AdminDashboard = ({ adminTheme, onToggleAdminTheme }) => {
 
       <FooterSettingsModal isOpen={showFooterModal} onClose={() => setShowFooterModal(false)} onSave={() => setMessage({ text: 'Footer updated!', type: 'success' })} />
 
-      {/* Booking Detail Modal */}
       {selectedBooking && (
-        <div className="fixed inset-0 bg-charcoal/60 backdrop-blur-sm flex justify-center items-center z-[2000] p-4 animate-fade-in">
-          <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-2xl overflow-hidden relative border border-primary/10">
+        <div 
+            className="fixed inset-0 bg-transparent z-[9999] p-4 flex justify-center items-center"
+            onClick={() => setSelectedBooking(null)}
+        >
+          <div 
+            className="bg-white rounded-[2.5rem] shadow-[0_0_50px_rgba(0,0,0,0.1)] w-full max-w-2xl overflow-hidden relative border border-primary/10"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="bg-background-ivory/50 px-10 py-8 border-b border-primary/10 flex justify-between items-start">
               <div className="pr-8">
                 <h3 className="serif-heading text-3xl text-charcoal leading-tight mb-2">Reservation Info</h3>

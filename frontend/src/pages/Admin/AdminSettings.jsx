@@ -518,9 +518,8 @@ const AdminSettings = ({ onError, onSuccess }) => {
         </main>
       </div>
 
-      {/* Password Modal */}
       {showPasswordModal && (
-        <div className="fixed inset-0 bg-charcoal/60 backdrop-blur-md flex items-center justify-center z-[1000] p-6 animate-fade-in">
+        <div className="fixed inset-0 bg-charcoal/60 backdrop-blur-md flex items-center justify-center z-[9999] p-6 animate-fade-in">
           <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden relative border border-white/10 p-10">
             <header className="mb-8">
               <h3 className="serif-heading text-3xl text-charcoal lowercase italic">

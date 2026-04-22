@@ -431,6 +431,83 @@ const sendTableAvailableEmail = async (data) => {
     });
 };
 
+/**
+ * Send Invoice Email with PDF Attachment
+ */
+const sendInvoiceEmail = async (data, pdfBuffer) => {
+    const customerEmail = data.customerId?.email;
+    const adminEmail = process.env.EMAIL_USER; // Store site admin email
+    
+    if (!customerEmail) return;
+
+    const invoiceNo = `INV-${data._id.toString().slice(-6).toUpperCase()}`;
+
+    const mailOptions = {
+        email: customerEmail,
+        subject: `Your Invoice - KUKI Restaurant (${invoiceNo})`,
+        message: `Dear ${data.customerId?.name},\n\nPlease find attached your invoice for your reservation at KUKI Restaurant.`,
+        html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 30px; border: 1px solid #efefef;">
+                <h1 style="text-align: center; color: #2b2b2b;">KUKI</h1>
+                <p style="text-align: center; color: #c67c7c; text-transform: uppercase; font-size: 12px; letter-spacing: 2px;">Fine Dining Redefined</p>
+                <div style="margin: 40px 0; padding: 20px; background-color: #fcfbf9; border: 1px solid #e3dbd4;">
+                    <p>Dear <strong>${data.customerId?.name}</strong>,</p>
+                    <p>Thank you for dining with us. Attached is your digital invoice for reservation <strong>#${data.uniqueBookingId}</strong>.</p>
+                    <p style="margin-top: 20px; font-weight: bold; color: #c67c7c;">Total Amount Paid: ₹${data.totalAmount}</p>
+                </div>
+                <p style="font-size: 12px; color: #888; text-align: center;">KUKI Restaurant - Signature Experience</p>
+            </div>
+        `,
+        attachments: [
+            {
+                filename: `Invoice_${invoiceNo}.pdf`,
+                content: pdfBuffer,
+                contentType: 'application/pdf'
+            }
+        ]
+    };
+
+    // 1. Send to Customer
+    await sendEmailWithAttachments(mailOptions);
+
+    // 2. Send to Admin
+    await sendEmailWithAttachments({
+        ...mailOptions,
+        email: adminEmail,
+        subject: `New Invoice Issued: ${invoiceNo} (${data.customerId?.name})`,
+        message: `New invoice issued for ${data.customerId?.name}. Copy attached.`
+    });
+};
+
+/**
+ * Enhanced sendEmail with attachments support
+ */
+const sendEmailWithAttachments = async (options) => {
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS
+        }
+    });
+
+    const mailOptions = {
+        from: `"KUKI Restaurant" <${process.env.EMAIL_USER}>`,
+        to: options.email,
+        subject: options.subject,
+        text: options.message,
+        html: options.html,
+        attachments: options.attachments || []
+    };
+
+    try {
+        return await transporter.sendMail(mailOptions);
+    } catch (error) {
+        console.error('Nodemailer Error:', error);
+        throw error;
+    }
+};
+
 module.exports = sendEmail;
 module.exports.sendUserBookingEmail = sendUserBookingEmail;
 module.exports.sendAdminNotificationEmail = sendAdminNotificationEmail;
@@ -438,3 +515,4 @@ module.exports.sendConfirmationWithIdEmail = sendConfirmationWithIdEmail;
 module.exports.sendOTPEmail = sendOTPEmail;
 module.exports.sendCancellationConfirmedEmail = sendCancellationConfirmedEmail;
 module.exports.sendTableAvailableEmail = sendTableAvailableEmail;
+module.exports.sendInvoiceEmail = sendInvoiceEmail;

@@ -337,8 +337,14 @@ const AdminTimeSlots = ({ onError, onSuccess }) => {
 
             {/* Disable Notice Modal */}
             {showDisableModal && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-charcoal/60 backdrop-blur-sm animate-fade-in">
-                    <div className="bg-white w-full max-w-md rounded-3xl auto shadow-2xl p-8 border border-primary/10 relative">
+                <div 
+                    className="fixed inset-0 z-[100] p-4 bg-transparent animate-fade-in flex items-center justify-center cursor-pointer"
+                    onClick={() => setShowDisableModal(false)}
+                >
+                    <div 
+                        className="bg-white w-full max-w-md rounded-3xl auto shadow-[0_0_50px_rgba(0,0,0,0.1)] p-8 border border-primary/10 relative cursor-default"
+                        onClick={(e) => e.stopPropagation()}
+                    >
                         <div className="w-14 h-14 rounded-full bg-red-50 text-red-600 flex items-center justify-center mb-6 mx-auto">
                             <AlertTriangle size={32} />
                         </div>
@@ -354,8 +360,14 @@ const AdminTimeSlots = ({ onError, onSuccess }) => {
 
             {/* New Slot Modal */}
             {showNewSlotModal && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-charcoal/60 backdrop-blur-sm animate-fade-in">
-                    <div className="bg-white w-full max-w-md rounded-3xl auto shadow-2xl p-8 border border-primary/10 relative">
+                <div 
+                    className="fixed inset-0 z-[100] p-4 bg-transparent animate-fade-in flex items-center justify-center cursor-pointer"
+                    onClick={() => setShowNewSlotModal(false)}
+                >
+                    <div 
+                        className="bg-white w-full max-w-md rounded-3xl auto shadow-[0_0_50px_rgba(0,0,0,0.1)] p-8 border border-primary/10 relative cursor-default"
+                        onClick={(e) => e.stopPropagation()}
+                    >
                         <button onClick={() => setShowNewSlotModal(false)} className="absolute top-6 right-6 text-soft-grey hover:text-primary"><X size={24} /></button>
                         <h3 className="serif-heading text-2xl text-charcoal text-center mb-6">Create New Time Slot</h3>
                         <div className="space-y-4 mb-8">
@@ -375,8 +387,14 @@ const AdminTimeSlots = ({ onError, onSuccess }) => {
 
             {/* Edit Slot Modal */}
             {showEditSlotModal && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-charcoal/60 backdrop-blur-sm animate-fade-in">
-                    <div className="bg-white w-full max-w-md rounded-3xl auto shadow-2xl p-8 border border-primary/10 relative">
+                <div 
+                    className="fixed inset-0 z-[100] p-4 bg-transparent animate-fade-in flex items-center justify-center cursor-pointer"
+                    onClick={() => setShowEditSlotModal(false)}
+                >
+                    <div 
+                        className="bg-white w-full max-w-md rounded-3xl auto shadow-[0_0_50px_rgba(0,0,0,0.1)] p-8 border border-primary/10 relative cursor-default"
+                        onClick={(e) => e.stopPropagation()}
+                    >
                         <button onClick={() => setShowEditSlotModal(false)} className="absolute top-6 right-6 text-soft-grey hover:text-primary"><X size={24} /></button>
                         <h3 className="serif-heading text-2xl text-charcoal text-center mb-6">Edit Time Slot</h3>
                         <div className="space-y-4 mb-8">
@@ -396,8 +414,14 @@ const AdminTimeSlots = ({ onError, onSuccess }) => {
 
             {/* Delete Notice Modal */}
             {showDeleteModal && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-charcoal/60 backdrop-blur-sm animate-fade-in">
-                    <div className="bg-white w-full max-w-md rounded-3xl auto shadow-2xl p-8 border border-primary/10 relative">
+                <div 
+                    className="fixed inset-0 z-[100] p-4 bg-transparent animate-fade-in flex items-center justify-center cursor-pointer"
+                    onClick={() => setShowDeleteModal(false)}
+                >
+                    <div 
+                        className="bg-white w-full max-w-md rounded-3xl auto shadow-[0_0_50px_rgba(0,0,0,0.1)] p-8 border border-primary/10 relative cursor-default"
+                        onClick={(e) => e.stopPropagation()}
+                    >
                         <div className="w-14 h-14 rounded-full bg-red-50 text-red-600 flex items-center justify-center mb-6 mx-auto">
                             <Trash2 size={32} />
                         </div>

@@ -68,8 +68,14 @@ const FooterSettingsModal = ({ isOpen, onClose, onSave }) => {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-charcoal/60 backdrop-blur-sm flex justify-center items-center z-[2000] p-4 animate-fade-in overflow-y-auto">
-            <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-3xl relative overflow-hidden border border-primary/10 my-8">
+        <div 
+            className="fixed inset-0 bg-transparent flex justify-center items-center z-[2000] p-4 animate-fade-in overflow-y-auto cursor-pointer"
+            onClick={onClose}
+        >
+            <div 
+                className="bg-white rounded-[2.5rem] shadow-[0_0_50px_rgba(0,0,0,0.1)] w-full max-w-3xl relative overflow-hidden border border-primary/10 my-8 cursor-default"
+                onClick={(e) => e.stopPropagation()}
+            >
                 {/* Header */}
                 <div className="bg-background-ivory/50 px-10 py-8 border-b border-primary/10 flex justify-between items-center">
                     <div>

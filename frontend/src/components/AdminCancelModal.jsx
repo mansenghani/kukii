@@ -130,8 +130,14 @@ const AdminCancelModal = ({ isOpen, onClose, booking, type, onSuccess }) => {
     const seconds = (otpTimer % 60).toString().padStart(2, "0");
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-300 border border-neutral-100">
+        <div 
+            className="fixed inset-0 z-[9999] p-4 bg-transparent animate-in fade-in duration-300 flex justify-center items-center"
+            onClick={onClose}
+        >
+            <div 
+                className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-300 border border-neutral-100"
+                onClick={(e) => e.stopPropagation()}
+            >
 
                 {/* Header */}
                 <div className="flex items-center justify-between p-6 border-b border-neutral-100 bg-neutral-50/50">

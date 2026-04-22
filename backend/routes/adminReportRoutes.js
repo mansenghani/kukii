@@ -12,5 +12,6 @@ router.get('/transactions', reportController.getTransactions);
 // Export routes
 router.get('/export/pdf', reportController.exportPDF);
 router.get('/export/excel', reportController.exportExcel);
+router.post('/send-invoice/:id', reportController.sendInvoice);
 
 module.exports = router;

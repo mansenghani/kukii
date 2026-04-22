@@ -92,9 +92,8 @@ const EventBooking = () => {
     if (status === 'success') {
         return (
             <div className="fade-in bg-background-ivory min-h-screen relative">
-                {/* Success Redirect Modal */}
                 {showSuccessModal && (
-                    <div className="fixed inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm z-[5000] animate-fade-in p-4">
+                    <div className="fixed inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm z-[9999] animate-fade-in p-4">
                         <div className="bg-white rounded-[2rem] p-10 text-center shadow-2xl max-w-sm w-full border border-primary/10">
                             <div className="w-20 h-20 bg-green-50 text-green-500 rounded-full flex items-center justify-center text-5xl mb-6 mx-auto border border-green-100 shadow-inner">✓</div>
                             <h2 className="serif-heading text-3xl text-charcoal mb-3">Booking Confirmed!</h2>
