@@ -1,12 +1,18 @@
 const Booking = require('../models/Booking');
 const Event = require('../models/Event');
 const BookingSettings = require('../models/BookingSettings');
-const { sendUserBookingEmail, sendAdminNotificationEmail, sendConfirmationWithIdEmail } = require('../utils/sendEmail');
+const { 
+  sendUserBookingEmail, 
+  sendAdminNotificationEmail, 
+  sendConfirmationWithIdEmail,
+  sendEnhancedBookingConfirmation,
+  sendPreOrderInvoiceEmail
+} = require('../utils/sendEmail');
 const { generateUniqueId } = require('../utils/uniqueIdHelper');
 
 exports.createBooking = async (req, res) => {
   try {
-    const { customerId, tableId, date, time, guests, notifyMe } = req.body;
+    const { customerId, name, phone, tableId, date, time, guests, notifyMe, specialRequest } = req.body;
 
     // Check if an approved event encompasses this date and time
     const bookingDate = new Date(date);
@@ -68,12 +74,14 @@ exports.createBooking = async (req, res) => {
 
     const booking = new Booking({
       customerId,
+      name,
+      phone,
       tableId,
       date: new Date(date),
       time,
       guests,
-      uniqueBookingId: generateUniqueId(),
-      status: isAutoApprove ? 'approved' : 'pending'
+      specialRequest,
+      status: 'Reserved'
     });
 
     await booking.save();
@@ -81,14 +89,17 @@ exports.createBooking = async (req, res) => {
     // Population for email details
     const populatedBooking = await Booking.findById(booking._id)
       .populate('customerId')
-      .populate('tableId');
+      .populate('tableId')
+      .populate('preOrderId');
 
-    // Send confirmation email with Unique ID to USER + Notify ADMIN
+    // Send confirmation email
     (async () => {
       try {
-        await sendConfirmationWithIdEmail(populatedBooking, 'table');
-        if (isAutoApprove) {
-          await sendAdminNotificationEmail(populatedBooking);
+        await sendEnhancedBookingConfirmation(populatedBooking, 'table');
+        
+        // If booking includes pre-order, auto-generate invoice (note) and send email
+        if (populatedBooking.preOrderId) {
+            await sendPreOrderInvoiceEmail(populatedBooking, 'table');
         }
       } catch (err) {
         console.error("Booking Confirmation Email Error:", err);
@@ -241,5 +252,89 @@ exports.createAdminBooking = async (req, res) => {
     res.status(201).json(booking);
   } catch (error) {
     res.status(400).json({ message: error.message });
+  }
+};
+exports.checkInBooking = async (req, res) => {
+  try {
+    const { bookingId } = req.body;
+    const bid = bookingId.toUpperCase();
+    
+    // 1. Try finding in Table Bookings
+    let booking = await Booking.findOne({ uniqueBookingId: bid }).populate('customerId').populate('tableId');
+    let isEvent = false;
+
+    // 2. If not found, try finding in Events
+    if (!booking) {
+      const Event = require('../models/Event');
+      booking = await Event.findOne({ uniqueBookingId: bid });
+      isEvent = true;
+    }
+
+    if (!booking) {
+      return res.status(404).json({ message: 'Booking or Event ID not found' });
+    }
+
+    if (booking.status === 'Cancelled') {
+      return res.status(400).json({ message: 'This reservation has been cancelled.' });
+    }
+
+    // Time Slot Validation
+    const now = new Date();
+    const slotDate = new Date(isEvent ? booking.eventDate : booking.date);
+    const timeStr = (isEvent ? booking.timeSlot.split(' - ')[0] : booking.time).toLowerCase();
+    
+    let hours = 0;
+    let minutes = 0;
+    if (timeStr.includes('am') || timeStr.includes('pm')) {
+        const match = timeStr.match(/(\d+):(\d+)\s*(am|pm)/);
+        if (match) {
+            hours = parseInt(match[1]);
+            minutes = parseInt(match[2]);
+            if (match[3] === 'pm' && hours < 12) hours += 12;
+            if (match[3] === 'am' && hours === 12) hours = 0;
+        }
+    } else {
+        const [h, m] = timeStr.split(':');
+        hours = parseInt(h);
+        minutes = parseInt(m);
+    }
+    
+    slotDate.setHours(hours, minutes, 0, 0);
+    const earlyLimit = new Date(slotDate.getTime() - 10 * 60000); 
+    
+    if (now < earlyLimit) {
+      return res.status(400).json({ 
+        message: `Arrival too early. Scheduled time is ${isEvent ? booking.timeSlot : booking.time}.` 
+      });
+    }
+
+    booking.status = 'Checked-in';
+    await booking.save();
+
+    res.status(200).json({ message: 'Checked-in successfully', type: isEvent ? 'Event' : 'Booking', booking });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.seatBooking = async (req, res) => {
+  try {
+    // Try Booking first
+    let booking = await Booking.findById(req.params.id);
+    
+    // If not found, try Event
+    if (!booking) {
+      const Event = require('../models/Event');
+      booking = await Event.findById(req.params.id);
+    }
+
+    if (!booking) return res.status(404).json({ message: 'Reservation not found' });
+
+    booking.status = 'Seated';
+    await booking.save();
+
+    res.status(200).json({ message: 'Reservation seated', booking });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };

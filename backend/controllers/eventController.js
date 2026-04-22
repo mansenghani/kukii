@@ -1,7 +1,13 @@
 const Event = require('../models/Event');
 const Booking = require('../models/Booking');
 const Table = require('../models/Table');
-const { sendUserBookingEmail, sendAdminNotificationEmail, sendConfirmationWithIdEmail } = require('../utils/sendEmail');
+const { 
+    sendUserBookingEmail, 
+    sendAdminNotificationEmail, 
+    sendConfirmationWithIdEmail,
+    sendEnhancedBookingConfirmation,
+    sendPreOrderInvoiceEmail
+} = require('../utils/sendEmail');
 const { generateUniqueId } = require('../utils/uniqueIdHelper');
 
 // Helper to check if a booking time "HH:mm" falls into a named time slot
@@ -19,6 +25,11 @@ const fallsInSlot = (timeStr, timeSlot) => {
 exports.createEvent = async (req, res) => {
     try {
         const { name, phone, email, eventDate, timeSlot, guests, specialRequest } = req.body;
+        
+        if (guests > 150) {
+            return res.status(400).json({ message: 'Maximum 150 persons allowed' });
+        }
+
         const targetDate = new Date(eventDate);
         targetDate.setHours(0, 0, 0, 0);
 
@@ -57,25 +68,23 @@ exports.createEvent = async (req, res) => {
             return res.status(400).json({ message: 'Tables are already booked for this time. Please select another slot or date.' });
         }
 
-        // 4. Fetch booking settings for auto confirmation
-        const BookingSettings = require('../models/BookingSettings');
-        const settings = await BookingSettings.findOne();
-        const isAutoApprove = settings ? settings.autoConfirmation : false;
-
-        // 5. Create event with status based on auto approve
+        // 5. Create event with status Reserved
         const newEvent = new Event({
             name, phone, email, eventDate: targetDate, timeSlot, guests, specialRequest,
-            uniqueBookingId: generateUniqueId(),
-            status: isAutoApprove ? 'approved' : 'pending'
+            status: 'Reserved'
         });
 
         await newEvent.save();
 
+        const populatedEvent = await Event.findById(newEvent._id).populate('preOrderId');
+
         // Notify USER and ADMIN
         (async () => {
             try {
-                await sendConfirmationWithIdEmail(newEvent, 'event');
-                await sendAdminNotificationEmail(newEvent);
+                await sendEnhancedBookingConfirmation(populatedEvent, 'event');
+                if (populatedEvent.preOrderId) {
+                    await sendPreOrderInvoiceEmail(populatedEvent, 'event');
+                }
             } catch (err) {
                 console.error("Event Confirmation Email Error:", err);
             }
@@ -241,6 +250,41 @@ exports.createAdminEvent = async (req, res) => {
         })();
 
         res.status(201).json(newEvent);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+exports.checkInEvent = async (req, res) => {
+    try {
+        const { bookingId } = req.body;
+        const event = await Event.findOne({ uniqueBookingId: bookingId.toUpperCase() });
+
+        if (!event) {
+            return res.status(404).json({ message: 'Event not found' });
+        }
+
+        if (event.status === 'Cancelled') {
+            return res.status(400).json({ message: 'This event has been cancelled.' });
+        }
+
+        event.status = 'Checked-in';
+        await event.save();
+
+        res.status(200).json({ message: 'Checked-in successfully', event });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+exports.seatEvent = async (req, res) => {
+    try {
+        const event = await Event.findById(req.params.id);
+        if (!event) return res.status(404).json({ message: 'Event not found' });
+
+        event.status = 'Seated';
+        await event.save();
+
+        res.status(200).json({ message: 'Event seated', event });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

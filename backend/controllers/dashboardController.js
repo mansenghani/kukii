@@ -131,3 +131,69 @@ exports.getPeakSlots = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+// GET /api/dashboard/live-ops
+exports.getLiveOperations = async (req, res) => {
+    try {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+
+        const activeBookings = await Booking.find({
+            date: { $gte: today, $lt: tomorrow },
+            status: { $in: ['Reserved', 'approved', 'confirmed'] }
+        }).populate('tableId').lean();
+
+        const activeEvents = await Event.find({
+            eventDate: { $gte: today, $lt: tomorrow },
+            status: { $in: ['Reserved', 'approved', 'confirmed'] }
+        }).lean();
+
+        // Standardize event data for uniform display on dashboard
+        const standardizedEvents = activeEvents.map(e => ({
+            ...e,
+            isEvent: true,
+            date: e.eventDate,
+            time: e.timeSlot.split(' - ')[0] // Show start time
+        }));
+
+        const combinedActive = [...activeBookings, ...standardizedEvents].sort((a, b) => {
+            return a.time.localeCompare(b.time);
+        });
+
+        const checkedInCount = await Booking.countDocuments({
+            date: { $gte: today, $lt: tomorrow },
+            status: 'Checked-in'
+        }) + await Event.countDocuments({
+            eventDate: { $gte: today, $lt: tomorrow },
+            status: 'Checked-in'
+        });
+
+        const cancelledCount = await Booking.countDocuments({
+            date: { $gte: today, $lt: tomorrow },
+            status: 'Cancelled'
+        }) + await Event.countDocuments({
+            eventDate: { $gte: today, $lt: tomorrow },
+            status: 'Cancelled'
+        });
+
+        const Table = require('../models/Table');
+        const totalTables = await Table.countDocuments();
+        const occupiedTableIds = await Booking.distinct('tableId', {
+            date: { $gte: today, $lt: tomorrow },
+            status: { $in: ['Seated', 'Checked-in'] }
+        });
+        const availableTables = totalTables - occupiedTableIds.length;
+
+        res.status(200).json({
+            activeBookings: combinedActive,
+            checkedInCount,
+            cancelledCount,
+            availableTables,
+            totalTables
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};

@@ -10,5 +10,7 @@ router.post('/', eventController.createEvent);
 
 // GET /api/events/availability
 router.get('/availability', eventController.checkAvailability);
+router.post('/check-in', eventController.checkInEvent);
+router.put('/:id/seat', eventController.seatEvent);
 
 module.exports = router;

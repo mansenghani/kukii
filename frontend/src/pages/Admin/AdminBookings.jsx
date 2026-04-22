@@ -20,13 +20,14 @@ const AdminBookings = ({ onError, onSuccess }) => {
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [tables, setTables] = useState([]);
+    const [slots, setSlots] = useState([]);
     const [addFormData, setAddFormData] = useState({
         name: '',
         email: '',
         phone: '',
         tableId: '',
         date: '',
-        time: '12:00',
+        time: '',
         guests: 2
     });
 
@@ -61,6 +62,19 @@ const AdminBookings = ({ onError, onSuccess }) => {
         }
     };
 
+    const fetchSlots = async () => {
+        try {
+            const res = await axios.get(`${API_BASE_URL}/slots`);
+            const activeSlots = res.data.filter(s => s.isActive);
+            setSlots(activeSlots);
+            if (activeSlots.length > 0 && !addFormData.time) {
+                setAddFormData(prev => ({ ...prev, time: activeSlots[0].time }));
+            }
+        } catch (error) {
+            console.error("Failed to fetch slots", error);
+        }
+    };
+
     useEffect(() => {
         fetchBookings();
     }, [filterStatus, page]);
@@ -68,6 +82,7 @@ const AdminBookings = ({ onError, onSuccess }) => {
     useEffect(() => {
         if (isAddModalOpen) {
             fetchTables();
+            fetchSlots();
         }
     }, [isAddModalOpen]);
 
@@ -97,12 +112,30 @@ const AdminBookings = ({ onError, onSuccess }) => {
 
     const getStatusColorClass = (status) => {
         switch (status) {
+            case 'Reserved': return 'text-amber-600 border-amber-200 bg-amber-50';
+            case 'Checked-in': return 'text-blue-600 border-blue-200 bg-blue-50';
+            case 'Seated': return 'text-emerald-600 border-emerald-200 bg-emerald-50';
+            case 'Completed': return 'text-neutral-600 border-neutral-200 bg-neutral-50';
             case 'approved': return 'text-emerald-600 border-emerald-200 bg-emerald-50';
             case 'confirmed': return 'text-blue-600 border-blue-200 bg-blue-50';
             case 'pending': return 'text-amber-600 border-amber-200 bg-amber-50';
-            case 'cancelled': return 'text-red-600 border-red-200 bg-red-50';
+            case 'cancelled': 
+            case 'Cancelled': return 'text-red-600 border-red-200 bg-red-50';
             case 'rejected': return 'text-neutral-500 border-neutral-200 bg-neutral-50';
             default: return 'text-soft-grey border-border-neutral bg-background-ivory';
+        }
+    };
+
+    const handleSeat = async (id) => {
+        try {
+            const token = localStorage.getItem('kuki_admin_token');
+            await axios.put(`${API_BASE_URL}/bookings/${id}/seat`, {}, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            onSuccess('Customer seated!');
+            fetchBookings();
+        } catch (error) {
+            onError('Seating failed');
         }
     };
 
@@ -192,7 +225,15 @@ const AdminBookings = ({ onError, onSuccess }) => {
                                     </td>
                                     <td className="p-5 pr-16 text-right">
                                         <div className="flex justify-end">
-                                            {(item.status === 'confirmed' || item.status === 'pending' || item.status === 'approved') && (
+                                            {(item.status === 'Checked-in') && (
+                                                <button
+                                                    onClick={() => handleSeat(item._id)}
+                                                    className="px-3 py-1.5 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100 transition-all text-[10px] font-black uppercase tracking-widest min-w-[80px]"
+                                                >
+                                                    Seat
+                                                </button>
+                                            )}
+                                            {(item.status === 'Reserved' || item.status === 'confirmed' || item.status === 'pending' || item.status === 'approved') && (
                                                 <button
                                                     onClick={() => openCancelModal(item)}
                                                     className="px-3 py-1.5 bg-rose-50 text-rose-600 rounded-lg hover:bg-rose-100 transition-all text-[10px] font-black uppercase tracking-widest min-w-[80px]"
@@ -264,8 +305,14 @@ const AdminBookings = ({ onError, onSuccess }) => {
                                     <input required type="date" value={addFormData.date} onChange={(e) => setAddFormData({ ...addFormData, date: e.target.value })} className="w-full h-12 bg-background-ivory/50 border border-primary/10 rounded-xl px-4 text-sm outline-none focus:ring-1 focus:ring-primary" />
                                 </div>
                                 <div className="space-y-1">
-                                    <label className="text-[10px] font-bold text-primary uppercase tracking-widest ml-1">Time</label>
-                                    <input required type="time" value={addFormData.time} onChange={(e) => setAddFormData({ ...addFormData, time: e.target.value })} className="w-full h-12 bg-background-ivory/50 border border-primary/10 rounded-xl px-4 text-sm outline-none focus:ring-1 focus:ring-primary" />
+                                    <label className="text-[10px] font-bold text-primary uppercase tracking-widest ml-1">Time Slot</label>
+                                    <select required value={addFormData.time} onChange={(e) => setAddFormData({ ...addFormData, time: e.target.value })} className="w-full h-12 bg-background-ivory/50 border border-primary/10 rounded-xl px-4 text-sm outline-none focus:ring-1 focus:ring-primary">
+                                        {slots.length === 0 ? (
+                                            <option value="">No slots configured</option>
+                                        ) : (
+                                            slots.map(s => <option key={s._id} value={s.time}>{s.time}</option>)
+                                        )}
+                                    </select>
                                 </div>
                                 <div className="space-y-1">
                                     <label className="text-[10px] font-bold text-primary uppercase tracking-widest ml-1">Select Table</label>

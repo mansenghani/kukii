@@ -11,6 +11,12 @@ const bookingSchema = new mongoose.Schema({
     ref: 'Table',
     required: true,
   },
+  name: {
+    type: String,
+  },
+  phone: {
+    type: String,
+  },
   date: {
     type: Date,
     required: true,
@@ -23,10 +29,14 @@ const bookingSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+  specialRequest: {
+    type: String,
+    default: '',
+  },
   uniqueBookingId: {
     type: String,
     unique: true,
-    default: () => `KUKI-${Math.floor(100000 + Math.random() * 900000)}`
+    default: () => `KUKI${Math.floor(10000 + Math.random() * 90000)}`
   },
   otp: {
     type: String,
@@ -38,8 +48,8 @@ const bookingSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'approved', 'rejected', 'cancelled'],
-    default: 'pending',
+    enum: ['Reserved', 'Checked-in', 'Seated', 'Completed', 'Cancelled', 'pending', 'approved', 'rejected'],
+    default: 'Reserved',
   },
   totalAmount: {
     type: Number,

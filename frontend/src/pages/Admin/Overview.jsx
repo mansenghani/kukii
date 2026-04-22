@@ -11,7 +11,9 @@ import {
 } from 'lucide-react';
 import FooterSettingsCard from './FooterSettingsCard';
 
-const Overview = ({ onTabChange, onFooterClick }) => {
+import LiveOps from './LiveOps';
+
+const Overview = ({ onTabChange, onFooterClick, onSuccess, onError }) => {
     const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState({
         summary: {},
@@ -74,6 +76,15 @@ const Overview = ({ onTabChange, onFooterClick }) => {
 
     return (
         <div className="space-y-12 pb-16 animate-fade-in">
+            
+            {/* LIVE OPERATIONS SECTION */}
+            <section>
+                <div className="flex items-center gap-3 mb-6">
+                    <div className="size-3 bg-rose-500 rounded-full animate-pulse"></div>
+                    <h4 className="serif-heading font-bold text-charcoal text-2xl px-2">Live Operations</h4>
+                </div>
+                <LiveOps onSuccess={onSuccess} onError={onError} />
+            </section>
 
             {/* 1. TOP SUMMARY CARDS */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

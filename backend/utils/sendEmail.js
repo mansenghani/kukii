@@ -454,6 +454,7 @@ const sendInvoiceEmail = async (data, pdfBuffer) => {
                     <p>Dear <strong>${data.customerId?.name}</strong>,</p>
                     <p>Thank you for dining with us. Attached is your digital invoice for reservation <strong>#${data.uniqueBookingId}</strong>.</p>
                     <p style="margin-top: 20px; font-weight: bold; color: #c67c7c;">Total Amount Paid: ₹${data.totalAmount}</p>
+                    <p style="margin-top: 20px; color: #666; font-size: 13px;">Note: If you do not arrive within your selected time slot, your table will be automatically cancelled after 30 minutes.</p>
                 </div>
                 <p style="font-size: 12px; color: #888; text-align: center;">KUKI Restaurant - Signature Experience</p>
             </div>
@@ -508,11 +509,144 @@ const sendEmailWithAttachments = async (options) => {
     }
 };
 
+/**
+ * Send Enhanced Booking Confirmation
+ */
+const sendEnhancedBookingConfirmation = async (data, type) => {
+    const isEvent = type === 'event';
+    const customerName = isEvent ? data.name : (data.name || data.customerId?.name || 'Valued Guest');
+    const customerEmail = isEvent ? data.email : (data.email || data.customerId?.email);
+
+    if (!customerEmail) return;
+
+    const bookingId = data.uniqueBookingId;
+    const dateStr = new Date(isEvent ? data.eventDate : data.date).toDateString();
+    const timeStr = isEvent ? data.timeSlot : data.time;
+    const guests = data.guests;
+    const preorderItems = data.preOrderId?.items || [];
+    const totalAmount = data.preOrderId?.grandTotal || 0;
+
+    let preOrderHtml = '';
+    if (preorderItems.length > 0) {
+        preOrderHtml = `
+            <div style="margin-top: 20px; padding: 15px; background: #f9f9f9; border: 1px solid #ddd;">
+                <h4 style="margin: 0 0 10px; color: #c67c7c;">Pre-ordered Items:</h4>
+                <ul style="padding-left: 20px; margin: 0;">
+                    ${preorderItems.map(item => `<li>${item.name} x ${item.quantity} - ₹${item.total}</li>`).join('')}
+                </ul>
+                <p style="margin-top: 10px; font-weight: bold;">Total Amount: ₹${totalAmount}</p>
+            </div>
+        `;
+    }
+
+    const htmlTemplate = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 30px; border: 1px solid #efefef; color: #333;">
+        <h1 style="color: #2b2b2b; text-align: center;">KUKI</h1>
+        <div style="background: #c67c7c; padding: 10px; text-align: center; color: white; font-weight: bold;">BOOKING RESERVED</div>
+        <p>Dear <strong>${customerName}</strong>,</p>
+        <p>Your booking has been received and is now <strong>Reserved</strong>.</p>
+        <div style="background: #fdfaf7; padding: 20px; margin: 20px 0; border: 1px solid #e3dbd4;">
+            <p><strong>Booking ID:</strong> ${bookingId}</p>
+            <p><strong>Date:</strong> ${dateStr}</p>
+            <p><strong>Time Slot:</strong> ${timeStr}</p>
+            <p><strong>Guests:</strong> ${guests}</p>
+        </div>
+        ${preOrderHtml}
+        <p style="color: #d32f2f; font-weight: bold; margin-top: 20px;">
+            Note: If you do not arrive within your selected time slot, your table will be automatically cancelled after 30 minutes.
+        </p>
+        <p>Thank you for choosing KUKI!</p>
+    </div>
+    `;
+
+    return sendEmail({
+        email: customerEmail,
+        subject: `Booking Confirmation - ${bookingId}`,
+        html: htmlTemplate
+    });
+};
+
+/**
+ * Send Auto-Cancel Notification
+ */
+const sendAutoCancelEmail = async (data, type) => {
+    const isEvent = type === 'event';
+    const customerName = isEvent ? data.name : (data.name || data.customerId?.name || 'Valued Guest');
+    const customerEmail = isEvent ? data.email : (data.email || data.customerId?.email);
+
+    if (!customerEmail) return;
+
+    const htmlTemplate = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 30px; border: 1px solid #efefef; color: #333;">
+        <h1 style="color: #2b2b2b; text-align: center;">KUKI</h1>
+        <div style="background: #2b2b2b; padding: 10px; text-align: center; color: white; font-weight: bold;">BOOKING CANCELLED</div>
+        <p>Dear <strong>${customerName}</strong>,</p>
+        <p>Your table booking (ID: ${data.uniqueBookingId}) has been cancelled because you did not arrive within your selected time slot.</p>
+        <p>Please book again if needed.</p>
+        <p>KUKI Restaurant Team</p>
+    </div>
+    `;
+
+    return sendEmail({
+        email: customerEmail,
+        subject: `Table Booking Cancelled - ${data.uniqueBookingId}`,
+        html: htmlTemplate
+    });
+};
+
+/**
+ * Send Pre-Order Invoice Email
+ */
+const sendPreOrderInvoiceEmail = async (data, type) => {
+    const isEvent = type === 'event';
+    const customerName = isEvent ? data.name : (data.name || data.customerId?.name || 'Valued Guest');
+    const customerEmail = isEvent ? data.email : (data.email || data.customerId?.email);
+
+    if (!customerEmail) return;
+
+    const preorder = data.preOrderId;
+    if (!preorder) return;
+
+    const htmlTemplate = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 30px; border: 1px solid #efefef; color: #333;">
+        <h1 style="color: #2b2b2b; text-align: center;">KUKI</h1>
+        <div style="background: #4caf50; padding: 10px; text-align: center; color: white; font-weight: bold;">PRE-ORDER INVOICE</div>
+        <p>Dear <strong>${customerName}</strong>,</p>
+        <p>Thank you for your pre-order. Here are the details of your invoice:</p>
+        <div style="background: #f9f9f9; padding: 15px; border: 1px solid #ddd; margin: 20px 0;">
+            <table width="100%">
+                ${preorder.items.map(item => `
+                    <tr>
+                        <td>${item.name} x ${item.quantity}</td>
+                        <td align="right">₹${item.total}</td>
+                    </tr>
+                `).join('')}
+                <tr style="border-top: 1px solid #ccc; font-weight: bold;">
+                    <td>Grand Total</td>
+                    <td align="right">₹${preorder.grandTotal}</td>
+                </tr>
+            </table>
+        </div>
+        <p>Note: If you do not arrive within your selected time slot, your table will be automatically cancelled after 30 minutes.</p>
+        <p>KUKI Restaurant Team</p>
+    </div>
+    `;
+
+    return sendEmail({
+        email: customerEmail,
+        subject: `Pre-Order Invoice - ${data.uniqueBookingId}`,
+        html: htmlTemplate
+    });
+};
+
 module.exports = sendEmail;
-module.exports.sendUserBookingEmail = sendUserBookingEmail;
-module.exports.sendAdminNotificationEmail = sendAdminNotificationEmail;
 module.exports.sendConfirmationWithIdEmail = sendConfirmationWithIdEmail;
 module.exports.sendOTPEmail = sendOTPEmail;
 module.exports.sendCancellationConfirmedEmail = sendCancellationConfirmedEmail;
 module.exports.sendTableAvailableEmail = sendTableAvailableEmail;
 module.exports.sendInvoiceEmail = sendInvoiceEmail;
+module.exports.sendEnhancedBookingConfirmation = sendEnhancedBookingConfirmation;
+module.exports.sendAutoCancelEmail = sendAutoCancelEmail;
+module.exports.sendPreOrderInvoiceEmail = sendPreOrderInvoiceEmail;
+module.exports.sendUserBookingEmail = sendUserBookingEmail;
+module.exports.sendAdminNotificationEmail = sendAdminNotificationEmail;

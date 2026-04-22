@@ -109,11 +109,15 @@ const PORT = process.env.PORT || 5050;
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/kuki';
 
 const { seedSidebarItems } = require('./controllers/sidebarController');
+const { startScheduler } = require('./utils/scheduler');
 
 console.log('Connecting to MongoDB...');
 mongoose.connect(MONGODB_URI)
   .then(async () => {
     console.log('✅ MongoDB connected successfully');
+
+    // Start Auto-Cancel Scheduler
+    startScheduler();
 
     // Auto-Seed Admin Sidebar 
     await seedSidebarItems();

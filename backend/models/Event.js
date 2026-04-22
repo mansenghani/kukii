@@ -26,6 +26,7 @@ const eventSchema = new mongoose.Schema({
         type: Number,
         required: true,
         min: 1,
+        max: 150,
     },
     specialRequest: {
         type: String,
@@ -34,7 +35,7 @@ const eventSchema = new mongoose.Schema({
     uniqueBookingId: {
         type: String,
         unique: true,
-        default: () => `KUKI-${Math.floor(100000 + Math.random() * 900000)}`
+        default: () => `KUKI${Math.floor(10000 + Math.random() * 90000)}`
     },
     otp: {
         type: String,
@@ -46,8 +47,8 @@ const eventSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['pending', 'approved', 'rejected', 'cancelled'],
-        default: 'pending',
+        enum: ['Reserved', 'Checked-in', 'Seated', 'Completed', 'Cancelled', 'pending', 'approved', 'rejected'],
+        default: 'Reserved',
     },
     preOrderId: {
         type: mongoose.Schema.Types.ObjectId,

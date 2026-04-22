@@ -177,24 +177,18 @@ const Booking = () => {
     setIsBooked(false);
 
     try {
-      // 1. Create/Find Customer
-      const customerRes = await axios.post('/api/customers', {
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone
-      });
-
-      const customerId = customerRes.data._id;
-
       let guestNumber = parseInt(formData.guests.replace(/\D/g, '')) || 2;
 
-      // 2. Create Booking
+      // Create Booking
       const bookingRes = await axios.post('/api/bookings', {
-        customerId,
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
         tableId: formData.tableId,
         date: formData.date,
         time: formData.time,
         guests: guestNumber,
+        specialRequest: formData.requests,
         notifyMe: notifyMe
       });
 
@@ -208,8 +202,6 @@ const Booking = () => {
         return;
       }
 
-      // create fake reservation ID for display
-      booking.reservationId = "KK-" + new Date().getFullYear() + "-" + Math.floor(1000 + Math.random() * 9000);
       setBookingResult(booking);
       setStatus('success');
     } catch (error) {
@@ -259,8 +251,8 @@ const Booking = () => {
                   </div>
                   <div className="bg-background-ivory/50 p-6 rounded-sm border border-border-neutral space-y-4">
                     <div className="flex justify-between items-center text-sm border-b border-border-neutral/30 pb-3">
-                      <span className="text-soft-grey uppercase tracking-wider text-[10px]">Reservation ID</span>
-                      <span className="font-bold text-charcoal">{bookingResult.reservationId}</span>
+                      <span className="text-soft-grey uppercase tracking-wider text-[10px]">Booking ID</span>
+                      <span className="font-bold text-charcoal">{bookingResult.uniqueBookingId}</span>
                     </div>
                     <div className="flex justify-between items-center text-sm border-b border-border-neutral/30 pb-3">
                       <span className="text-soft-grey uppercase tracking-wider text-[10px]">Full Name</span>

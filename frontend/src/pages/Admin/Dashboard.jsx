@@ -412,7 +412,7 @@ const AdminDashboard = ({ adminTheme, onToggleAdminTheme }) => {
   const renderContent = () => {
     switch (activeTab) {
       case 'overview':
-        return <Overview onTabChange={handleTabChange} onFooterClick={() => setShowFooterModal(true)} />;
+        return <Overview onTabChange={handleTabChange} onFooterClick={() => setShowFooterModal(true)} onSuccess={(msg) => setMessage({ text: msg, type: 'success' })} onError={(msg) => setMessage({ text: msg, type: 'error' })} />;
       case 'staff': return <AdminStaff />;
       case 'feedback': return <AdminFeedback />;
       case 'reports': return <ReportsPage onError={(msg) => setMessage({ text: msg, type: 'error' })} onSuccess={(msg) => setMessage({ text: msg, type: 'success' })} />;

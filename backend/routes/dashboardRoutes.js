@@ -8,5 +8,6 @@ router.get('/monthly-revenue', dash.getMonthlyRevenue);
 router.get('/booking-status', dash.getBookingStatus);
 router.get('/top-items', dash.getTopItems);
 router.get('/peak-slots', dash.getPeakSlots);
+router.get('/live-ops', dash.getLiveOperations);
 
 module.exports = router;

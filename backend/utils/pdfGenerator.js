@@ -79,6 +79,9 @@ const generateInvoicePDF = (data) => {
             doc.fillColor(secondaryTextColor)
                .fontSize(8)
                .text('Thank you for choosing KUKI. We hope to see you again soon.', 50, footerTop + 20, { align: 'center' })
+               .fillColor('#c67c7c')
+               .text('Note: If you do not arrive within your selected time slot, your table will be automatically cancelled after 30 minutes.', { align: 'center', bold: true })
+               .fillColor(secondaryTextColor)
                .text('© 2026 KUKI Restaurant. All Rights Reserved.', { align: 'center' });
 
             doc.end();
