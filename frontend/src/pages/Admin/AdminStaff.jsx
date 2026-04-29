@@ -259,11 +259,11 @@ const AdminStaff = () => {
                   )}
                 </td>
                 <td className="py-4 px-6 text-right">
-                  <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => handleEdit(staff)} className="p-2 text-gray-400 hover:text-[#7B3F3F] hover:bg-red-50 rounded-lg transition-colors border border-gray-100">
+                  <div className="flex justify-end gap-2">
+                    <button onClick={() => handleEdit(staff)} className="p-2 text-gray-600 hover:text-[#7B3F3F] hover:bg-[#7B3F3F]/5 rounded-lg transition-colors border border-gray-100">
                       <Edit2 className="w-4 h-4" />
                     </button>
-                    <button onClick={() => handleDelete(staff._id)} className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors border border-gray-100">
+                    <button onClick={() => handleDelete(staff._id)} className="p-2 text-gray-600 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors border border-gray-100">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>

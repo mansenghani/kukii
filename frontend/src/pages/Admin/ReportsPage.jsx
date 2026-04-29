@@ -185,7 +185,8 @@ const ReportsPage = (props) => {
                                             {tr.status}
                                         </span>
                                     </td>
-                                    <td className="px-8 py-4 text-sm font-black text-primary">₹{tr.totalAmount?.toLocaleString()}</td>
+                                    <td className="px-8 py-4 text-sm font-black text-primary">₹{(tr.totalAmount || tr.preOrderId?.grandTotal || 0).toLocaleString()}</td>
+
                                     <td className="px-8 py-4">
                                         <button
                                             onClick={() => setSelectedDetail(tr)}
@@ -240,7 +241,7 @@ const ReportsPage = (props) => {
 
             {/* Transaction Detail Modal */}
             {selectedDetail && (
-                <div className="fixed inset-0 bg-charcoal/60 backdrop-blur-sm flex justify-center items-center z-[9999] p-4 animate-fade-in">
+                <div className="fixed inset-0 bg-charcoal/60 backdrop-blur-sm flex justify-center items-start z-[9999] p-4 pt-20 animate-fade-in overflow-y-auto">
                     <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-lg relative overflow-hidden border border-primary/10">
                         {/* Modal Header */}
                         <div className="bg-background-ivory/50 px-8 py-6 border-b border-primary/10 flex justify-between items-center">

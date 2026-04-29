@@ -38,6 +38,35 @@ const AdminEvents = ({ onError, onSuccess }) => {
         specialRequest: ''
     });
 
+    useEffect(() => {
+        if (formData.eventDate && formData.timeSlot) {
+            const now = new Date();
+            const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+            
+            if (formData.eventDate === today) {
+                const checkSlotPast = (slotValue) => {
+                    const startTimeStr = slotValue.split(' - ')[0];
+                    const [time, modifier] = startTimeStr.match(/(\d+:\d+)\s*(AM|PM|am|pm)/).slice(1);
+                    let [hours, minutes] = time.split(':');
+                    if (modifier.toUpperCase() === 'PM' && hours !== '12') hours = parseInt(hours) + 12;
+                    if (modifier.toUpperCase() === 'AM' && hours === '12') hours = 0;
+                    
+                    const slotDate = new Date();
+                    slotDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+                    return slotDate < new Date();
+                };
+
+                if (checkSlotPast(formData.timeSlot)) {
+                    const eventSlots = ['10:00 AM - 02:00 PM', '06:00 PM - 10:00 PM'];
+                    const futureSlot = eventSlots.find(s => !checkSlotPast(s));
+                    if (futureSlot) {
+                        setFormData(prev => ({ ...prev, timeSlot: futureSlot }));
+                    }
+                }
+            }
+        }
+    }, [formData.eventDate, formData.timeSlot]);
+
     const API_URL = '/api/admin/events';
 
     const fetchEvents = async () => {
@@ -416,7 +445,7 @@ const AdminEvents = ({ onError, onSuccess }) => {
             {/* Add Event Modal */}
             {showAddModal && (
                 <div 
-                    className="fixed inset-0 bg-transparent z-[9999] p-4 animate-fade-in overflow-y-auto flex justify-center items-center"
+                    className="fixed inset-0 bg-transparent z-[9999] p-4 pt-20 animate-fade-in overflow-y-auto flex justify-center items-start"
                     onClick={() => setShowAddModal(false)}
                 >
                     <div 
@@ -450,8 +479,29 @@ const AdminEvents = ({ onError, onSuccess }) => {
                                 <div className="space-y-1">
                                     <label className="text-[10px] font-bold text-primary uppercase tracking-widest ml-1">Slot</label>
                                     <select value={formData.timeSlot} onChange={(e) => setFormData({ ...formData, timeSlot: e.target.value })} className="w-full h-12 bg-background-ivory/50 border border-primary/10 rounded-xl px-4 text-sm focus:ring-1 focus:ring-primary outline-none transition-all">
-                                        <option value="10:00 AM - 02:00 PM">Morning (10-2)</option>
-                                        <option value="06:00 PM - 10:00 PM">Evening (6-10)</option>
+                                        {[
+                                            { val: "10:00 AM - 02:00 PM", label: "Morning (10-2)" },
+                                            { val: "06:00 PM - 10:00 PM", label: "Evening (6-10)" }
+                                        ].filter(s => {
+                                            const now = new Date();
+                                            const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+                                            if (formData.eventDate !== today) return true;
+
+                                            const startTimeStr = s.val.split(' - ')[0];
+                                            const match = startTimeStr.match(/(\d+:\d+)\s*(AM|PM|am|pm)/);
+                                            if (!match) return true;
+                                            
+                                            const [_, time, modifier] = match;
+                                            let [hours, minutes] = time.split(':');
+                                            if (modifier.toUpperCase() === 'PM' && hours !== '12') hours = parseInt(hours) + 12;
+                                            if (modifier.toUpperCase() === 'AM' && hours === '12') hours = 0;
+                                            
+                                            const slotDate = new Date();
+                                            slotDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+                                            return slotDate > new Date();
+                                        }).map(s => (
+                                            <option key={s.val} value={s.val}>{s.label}</option>
+                                        ))}
                                     </select>
                                 </div>
                                 <div className="space-y-1">

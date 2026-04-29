@@ -208,7 +208,7 @@ const AdminFeedback = () => {
                                             </span>
                                         </td>
                                         <td className="px-6 py-6 text-right">
-                                            <div className="flex items-center justify-end gap-3 opacity-60 group-hover:opacity-100 transition-opacity">
+                                            <div className="flex items-center justify-end gap-3">
                                                 {item.status === 'pending' && (
                                                     <div className="flex gap-1">
                                                         <button onClick={() => handleApprove(item._id)} className="p-2.5 bg-green-50 text-green-600 rounded-xl hover:bg-green-600 hover:text-white transition-all shadow-sm" title="Approve">

@@ -65,12 +65,16 @@ exports.createPreOrder = async (req, res) => {
 
     const savedPreOrder = await preOrder.save();
 
-    // Attach to booking
+    // Attach to booking and update totalAmount
     booking.preOrderId = savedPreOrder._id;
     booking.preorderStatus = 'completed';
+    if (type === 'table') {
+      booking.totalAmount = grandTotal;
+    }
     await booking.save();
 
     res.status(201).json(savedPreOrder);
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

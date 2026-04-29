@@ -1,6 +1,7 @@
 const Booking = require('../models/Booking');
 const Event = require('../models/Event');
-const { sendAutoCancelEmail } = require('./sendEmail');
+const { sendAutoCancelEmail, sendInvoiceEmail, sendAutoInvoiceEmail } = require('./sendEmail');
+const { generateInvoicePDF } = require('./pdfGenerator');
 
 const autoCancelNoShows = async () => {
     const graceTimeMinutes = 30;
@@ -76,10 +77,51 @@ const autoCancelNoShows = async () => {
     }
 };
 
+const autoSendInvoices = async () => {
+    const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000);
+    
+    try {
+        const eligibleBookings = await Booking.find({
+            status: { $in: ['Checked-in', 'Seated'] },
+            checkInTime: { $lte: twoHoursAgo },
+            invoiceSent: { $ne: true },
+            preOrderId: { $exists: true, $ne: null }
+        }).populate('customerId').populate('tableId').populate('preOrderId');
+
+        for (const booking of eligibleBookings) {
+            // Verify pre-order items exist and are not empty
+            if (booking.preOrderId && booking.preOrderId.items && booking.preOrderId.items.length > 0) {
+                try {
+                    // Generate PDF
+                    const pdfBuffer = await generateInvoicePDF(booking);
+                    
+                    // Send Email
+                    await sendAutoInvoiceEmail(booking, pdfBuffer);
+                    
+                    // Update Booking
+                    booking.invoiceSent = true;
+                    booking.invoiceSentAt = new Date();
+                    await booking.save();
+                    
+                    console.log(`Auto-invoice sent for booking ${booking.uniqueBookingId}`);
+                } catch (err) {
+                    console.error(`Failed to auto-send invoice for ${booking._id}:`, err);
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Error in auto-invoice scheduler:', error);
+    }
+};
+
 const startScheduler = () => {
-    // Run every minute
+    // Run auto-cancel every minute
     setInterval(autoCancelNoShows, 60000);
-    console.log('Auto-cancel scheduler started (1 minute interval)');
+    
+    // Run auto-invoice every 5 minutes
+    setInterval(autoSendInvoices, 300000);
+    
+    console.log('Schedulers started: Auto-cancel (1m), Auto-invoice (5m)');
 };
 
 module.exports = { startScheduler };

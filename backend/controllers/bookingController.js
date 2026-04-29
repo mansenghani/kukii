@@ -12,7 +12,16 @@ const { generateUniqueId } = require('../utils/uniqueIdHelper');
 
 exports.createBooking = async (req, res) => {
   try {
-    const { customerId, name, phone, tableId, date, time, guests, notifyMe, specialRequest } = req.body;
+    const { name, email, phone, tableId, date, time, guests, notifyMe, specialRequest } = req.body;
+    const Customer = require('../models/Customer');
+
+    // Find or Create Customer
+    let customer = await Customer.findOne({ $or: [{ email: email.toLowerCase() }, { phone }] });
+    if (!customer) {
+      customer = new Customer({ name, email: email.toLowerCase(), phone });
+      await customer.save();
+    }
+    const customerId = customer._id;
 
     // Check if an approved event encompasses this date and time
     const bookingDate = new Date(date);
@@ -81,7 +90,7 @@ exports.createBooking = async (req, res) => {
       time,
       guests,
       specialRequest,
-      status: 'Reserved'
+      status: isAutoApprove ? 'approved' : 'pending'
     });
 
     await booking.save();
@@ -257,21 +266,51 @@ exports.createAdminBooking = async (req, res) => {
 exports.checkInBooking = async (req, res) => {
   try {
     const { bookingId } = req.body;
-    const bid = bookingId.toUpperCase();
+    if (!bookingId) return res.status(400).json({ message: 'Booking ID is required' });
+    
+    let bid = bookingId.trim().toUpperCase();
     
     // 1. Try finding in Table Bookings
     let booking = await Booking.findOne({ uniqueBookingId: bid }).populate('customerId').populate('tableId');
+    
+    // Fallback: If not found, check if it's a KUKI/KUKII prefix mismatch
+    if (!booking) {
+        let altBid = bid;
+        if (bid.startsWith('KUKII')) {
+            altBid = bid.replace('KUKII', 'KUKI');
+        } else if (bid.startsWith('KUKI')) {
+            altBid = bid.replace('KUKI', 'KUKII');
+        }
+        if (altBid !== bid) {
+            booking = await Booking.findOne({ uniqueBookingId: altBid }).populate('customerId').populate('tableId');
+            if (booking) bid = altBid;
+        }
+    }
+
     let isEvent = false;
 
     // 2. If not found, try finding in Events
     if (!booking) {
       const Event = require('../models/Event');
       booking = await Event.findOne({ uniqueBookingId: bid });
+      
+      // Event fallback
+      if (!booking) {
+          let altBid = bid;
+          if (bid.startsWith('KUKII')) {
+              altBid = bid.replace('KUKII', 'KUKI');
+          } else if (bid.startsWith('KUKI')) {
+              altBid = bid.replace('KUKI', 'KUKII');
+          }
+          if (altBid !== bid) {
+              booking = await Event.findOne({ uniqueBookingId: altBid });
+          }
+      }
       isEvent = true;
     }
 
     if (!booking) {
-      return res.status(404).json({ message: 'Booking or Event ID not found' });
+      return res.status(404).json({ message: 'Booking or Event ID not found. Please check the ID and try again.' });
     }
 
     if (booking.status === 'Cancelled') {
@@ -309,6 +348,7 @@ exports.checkInBooking = async (req, res) => {
     }
 
     booking.status = 'Checked-in';
+    booking.checkInTime = new Date();
     await booking.save();
 
     res.status(200).json({ message: 'Checked-in successfully', type: isEvent ? 'Event' : 'Booking', booking });
@@ -331,6 +371,7 @@ exports.seatBooking = async (req, res) => {
     if (!booking) return res.status(404).json({ message: 'Reservation not found' });
 
     booking.status = 'Seated';
+    if (!booking.checkInTime) booking.checkInTime = new Date();
     await booking.save();
 
     res.status(200).json({ message: 'Reservation seated', booking });

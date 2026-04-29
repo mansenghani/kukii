@@ -167,7 +167,9 @@ exports.getTransactions = async (req, res) => {
         const transactions = await Booking.find(query)
             .populate('customerId', 'name')
             .populate('tableId', 'tableNumber')
+            .populate('preOrderId')
             .sort({ date: -1 })
+
             .skip(skip)
             .limit(parseInt(limit));
 

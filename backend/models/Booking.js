@@ -69,6 +69,19 @@ const bookingSchema = new mongoose.Schema({
     default: false
   },
 
+  checkInTime: {
+    type: Date,
+    default: null
+  },
+  invoiceSent: {
+    type: Boolean,
+    default: false
+  },
+  invoiceSentAt: {
+    type: Date,
+    default: null
+  },
+
   createdAt: {
     type: Date,
     default: Date.now,

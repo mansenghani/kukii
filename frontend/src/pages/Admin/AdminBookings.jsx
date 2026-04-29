@@ -31,6 +31,43 @@ const AdminBookings = ({ onError, onSuccess }) => {
         guests: 2
     });
 
+    useEffect(() => {
+        if (addFormData.date && addFormData.time && slots.length > 0) {
+            const now = new Date();
+            const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+            if (addFormData.date === today) {
+                const match = addFormData.time.match(/(\d+:\d+)\s*(AM|PM|am|pm)/);
+                if (match) {
+                    const [_, time, modifier] = match;
+                    let [hours, minutes] = time.split(':');
+                    if (modifier.toUpperCase() === 'PM' && hours !== '12') hours = parseInt(hours) + 12;
+                    if (modifier.toUpperCase() === 'AM' && hours === '12') hours = 0;
+                    const slotDate = new Date();
+                    slotDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+
+                    if (slotDate < new Date()) {
+                        // Find first available future slot
+                        const futureSlot = slots.find(s => {
+                            const sMatch = s.time.match(/(\d+:\d+)\s*(AM|PM|am|pm)/);
+                            if (!sMatch) return false;
+                            const [__, sTime, sMod] = sMatch;
+                            let sH = parseInt(sTime.split(':')[0]);
+                            let sM = parseInt(sTime.split(':')[1]);
+                            if (sMod.toUpperCase() === 'PM' && sH !== 12) sH += 12;
+                            if (sMod.toUpperCase() === 'AM' && sH === 12) sH = 0;
+                            const sDate = new Date();
+                            sDate.setHours(sH, sM, 0, 0);
+                            return sDate > new Date();
+                        });
+                        if (futureSlot) {
+                            setAddFormData(prev => ({ ...prev, time: futureSlot.time }));
+                        }
+                    }
+                }
+            }
+        }
+    }, [addFormData.date, addFormData.time, slots]);
+
     const API_BASE_URL = '/api';
 
     const fetchBookings = async () => {
@@ -66,9 +103,25 @@ const AdminBookings = ({ onError, onSuccess }) => {
         try {
             const res = await axios.get(`${API_BASE_URL}/slots`);
             const activeSlots = res.data.filter(s => s.isActive);
-            setSlots(activeSlots);
-            if (activeSlots.length > 0 && !addFormData.time) {
-                setAddFormData(prev => ({ ...prev, time: activeSlots[0].time }));
+            
+            // Chronological sorting logic
+            const sortedSlots = activeSlots.sort((a, b) => {
+                const parseTime = (tStr) => {
+                    const match = tStr.match(/(\d+):(\d+)\s*(AM|PM|am|pm)/i);
+                    if (!match) return 0;
+                    let [_, h, m, mod] = match;
+                    let hours = parseInt(h);
+                    let minutes = parseInt(m);
+                    if (mod.toUpperCase() === 'PM' && hours !== 12) hours += 12;
+                    if (mod.toUpperCase() === 'AM' && hours === 12) hours = 0;
+                    return hours * 60 + minutes;
+                };
+                return parseTime(a.time) - parseTime(b.time);
+            });
+
+            setSlots(sortedSlots);
+            if (sortedSlots.length > 0 && !addFormData.time) {
+                setAddFormData(prev => ({ ...prev, time: sortedSlots[0].time }));
             }
         } catch (error) {
             console.error("Failed to fetch slots", error);
@@ -273,7 +326,7 @@ const AdminBookings = ({ onError, onSuccess }) => {
 
             {isAddModalOpen && (
                 <div 
-                    className="fixed inset-0 bg-transparent z-[9999] p-4 animate-fade-in overflow-y-auto flex justify-center items-center"
+                    className="fixed inset-0 bg-transparent z-[9999] p-4 pt-20 animate-fade-in overflow-y-auto flex justify-center items-start"
                     onClick={() => setIsAddModalOpen(false)}
                 >
                     <div 
@@ -310,7 +363,25 @@ const AdminBookings = ({ onError, onSuccess }) => {
                                         {slots.length === 0 ? (
                                             <option value="">No slots configured</option>
                                         ) : (
-                                            slots.map(s => <option key={s._id} value={s.time}>{s.time}</option>)
+                                            slots.filter(s => {
+                                                const now = new Date();
+                                                const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+                                                if (addFormData.date !== today) return true;
+
+                                                // If today, check if time has passed
+                                                const match = s.time.match(/(\d+:\d+)\s*(AM|PM|am|pm)/);
+                                                if (!match) return true;
+                                                
+                                                const [_, time, modifier] = match;
+                                                let [hours, minutes] = time.split(':');
+                                                if (modifier.toUpperCase() === 'PM' && hours !== '12') hours = parseInt(hours) + 12;
+                                                if (modifier.toUpperCase() === 'AM' && hours === '12') hours = 0;
+                                                
+                                                const slotDate = new Date();
+                                                slotDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+                                                
+                                                return slotDate > new Date();
+                                            }).map(s => <option key={s._id} value={s.time}>{s.time}</option>)
                                         )}
                                     </select>
                                 </div>

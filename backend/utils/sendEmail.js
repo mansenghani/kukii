@@ -484,6 +484,8 @@ const sendInvoiceEmail = async (data, pdfBuffer) => {
  * Enhanced sendEmail with attachments support
  */
 const sendEmailWithAttachments = async (options) => {
+    logEmail(`Attempting to send email with attachment to ${options.email} - Subject: ${options.subject}`);
+
     const transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
@@ -502,12 +504,16 @@ const sendEmailWithAttachments = async (options) => {
     };
 
     try {
-        return await transporter.sendMail(mailOptions);
+        const info = await transporter.sendMail(mailOptions);
+        logEmail(`✅ Success: Attachment email sent to ${options.email}. MessageID: ${info.messageId}`);
+        return info;
     } catch (error) {
+        logEmail(`❌ Error: Failed to send attachment email to ${options.email}. Reason: ${error.message}`);
         console.error('Nodemailer Error:', error);
         throw error;
     }
 };
+
 
 /**
  * Send Enhanced Booking Confirmation
@@ -639,6 +645,61 @@ const sendPreOrderInvoiceEmail = async (data, type) => {
     });
 };
 
+/**
+ * Send Auto-Generated Invoice Email (After 2 hours check-in)
+ */
+const sendAutoInvoiceEmail = async (data, pdfBuffer) => {
+    const customerEmail = data.customerId?.email;
+    if (!customerEmail) return;
+
+    const bookingId = data.uniqueBookingId;
+    const customerName = data.customerId?.name || 'Valued Guest';
+    const dateStr = new Date(data.date).toDateString();
+    const timeSlot = data.time;
+    const amount = data.totalAmount || data.preOrderId?.grandTotal || 0;
+    
+    let preOrderItemsHtml = '';
+    if (data.preOrderId && data.preOrderId.items) {
+        preOrderItemsHtml = data.preOrderId.items.map(item => 
+            `<li>${item.name} x ${item.quantity} - ₹${item.total}</li>`
+        ).join('');
+    }
+
+    const mailOptions = {
+        email: customerEmail,
+        subject: 'Your Invoice',
+        message: `Dear ${customerName},\n\nThank you for dining with us. Please find your invoice for the pre-ordered items.\n\nBooking ID: ${bookingId}\nDate: ${dateStr}\nTime: ${timeSlot}\nTotal: ₹${amount}`,
+        html: `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee;">
+                <h2 style="color: #2b2b2b;">Your Invoice</h2>
+                <p>Dear <strong>${customerName}</strong>,</p>
+                <p>Thank you for dining with us. Please find your invoice for the pre-ordered items.</p>
+                
+                <div style="background: #f9f9f9; padding: 15px; margin: 20px 0;">
+                    <p><strong>Booking ID:</strong> ${bookingId}</p>
+                    <p><strong>Date & Time Slot:</strong> ${dateStr} at ${timeSlot}</p>
+                    <p><strong>Pre-order items:</strong></p>
+                    <ul style="padding-left: 20px;">
+                        ${preOrderItemsHtml}
+                    </ul>
+                    <p style="font-size: 18px; font-weight: bold; color: #c67c7c;">Total Amount: ₹${amount}</p>
+                </div>
+                
+                <p style="font-size: 12px; color: #888; border-top: 1px solid #eee; padding-top: 10px;">KUKI Restaurant Team</p>
+            </div>
+        `,
+        attachments: [
+            {
+                filename: `Invoice_${bookingId}.pdf`,
+                content: pdfBuffer,
+                contentType: 'application/pdf'
+            }
+        ]
+    };
+
+    return await sendEmailWithAttachments(mailOptions);
+};
+
 module.exports = sendEmail;
 module.exports.sendConfirmationWithIdEmail = sendConfirmationWithIdEmail;
 module.exports.sendOTPEmail = sendOTPEmail;
@@ -650,3 +711,4 @@ module.exports.sendAutoCancelEmail = sendAutoCancelEmail;
 module.exports.sendPreOrderInvoiceEmail = sendPreOrderInvoiceEmail;
 module.exports.sendUserBookingEmail = sendUserBookingEmail;
 module.exports.sendAdminNotificationEmail = sendAdminNotificationEmail;
+module.exports.sendAutoInvoiceEmail = sendAutoInvoiceEmail;
